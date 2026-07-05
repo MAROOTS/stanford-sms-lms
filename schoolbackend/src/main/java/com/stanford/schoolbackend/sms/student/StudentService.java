@@ -4,6 +4,7 @@ import com.stanford.schoolbackend.core.exception.ResourceNotFoundException;
 import com.stanford.schoolbackend.sms.academic.ClassSection;
 import com.stanford.schoolbackend.sms.academic.ClassSectionRepository;
 import com.stanford.schoolbackend.sms.academic.dto.AssignSectionRequest;
+import com.stanford.schoolbackend.sms.student.dto.StudentResponse;
 import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Service;
 
@@ -23,5 +24,23 @@ public class StudentService {
 
         student.setClassSection(section);
         studentRepository.save(student);
+    }
+
+    public StudentResponse getById(Long studentId) {
+        Student student = studentRepository.findById(studentId)
+                .orElseThrow(() -> new ResourceNotFoundException("Student not found"));
+        return toResponse(student);
+    }
+
+    private StudentResponse toResponse(Student s) {
+        return StudentResponse.builder()
+                .id(s.getId())
+                .firstName(s.getFirstName())
+                .lastName(s.getLastName())
+                .email(s.getEmail())
+                .classSectionId(s.getClassSection() != null ? s.getClassSection().getId() : null)
+                .classSectionName(s.getClassSection() != null ? s.getClassSection().getName() : null)
+                .gradeLevelName(s.getClassSection() != null ? s.getClassSection().getGradeLevel().getName() : null)
+                .build();
     }
 }

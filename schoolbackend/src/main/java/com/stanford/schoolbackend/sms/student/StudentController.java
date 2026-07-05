@@ -1,6 +1,7 @@
 package com.stanford.schoolbackend.sms.student;
 
 import com.stanford.schoolbackend.sms.academic.dto.AssignSectionRequest;
+import com.stanford.schoolbackend.sms.student.dto.StudentResponse;
 import jakarta.validation.Valid;
 import lombok.RequiredArgsConstructor;
 import org.springframework.http.ResponseEntity;
@@ -19,5 +20,10 @@ public class StudentController {
     public ResponseEntity<Void> assignSection(@PathVariable Long studentId, @Valid @RequestBody AssignSectionRequest request) {
         studentService.assignSection(studentId, request);
         return ResponseEntity.noContent().build();
+    }
+
+    @GetMapping("/{studentId}")
+    public ResponseEntity<StudentResponse> getById(@PathVariable Long studentId) {
+        return ResponseEntity.ok(studentService.getById(studentId));
     }
 }
