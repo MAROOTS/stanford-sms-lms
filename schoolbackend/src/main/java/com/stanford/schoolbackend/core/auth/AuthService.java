@@ -5,7 +5,6 @@ import com.stanford.schoolbackend.core.auth.dto.AuthResponse;
 import com.stanford.schoolbackend.core.auth.dto.RegisterRequest;
 import com.stanford.schoolbackend.core.enums.UserRole;
 import com.stanford.schoolbackend.core.exception.EmailAlreadyExistsException;
-import com.stanford.schoolbackend.core.exception.GlobalExceptionHandler;
 import com.stanford.schoolbackend.core.exception.ResourceNotFoundException;
 import com.stanford.schoolbackend.core.exception.UnsupportedRoleRegistrationException;
 import com.stanford.schoolbackend.core.user.User;
