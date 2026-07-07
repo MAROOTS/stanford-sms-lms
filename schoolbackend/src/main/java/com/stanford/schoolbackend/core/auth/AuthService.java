@@ -7,6 +7,7 @@ import com.stanford.schoolbackend.core.enums.UserRole;
 import com.stanford.schoolbackend.core.exception.EmailAlreadyExistsException;
 import com.stanford.schoolbackend.core.exception.GlobalExceptionHandler;
 import com.stanford.schoolbackend.core.exception.ResourceNotFoundException;
+import com.stanford.schoolbackend.core.exception.UnsupportedRoleRegistrationException;
 import com.stanford.schoolbackend.core.user.User;
 import com.stanford.schoolbackend.core.user.UserRepository;
 import com.stanford.schoolbackend.core.utils.JwtService;
@@ -34,6 +35,10 @@ public class AuthService {
 
     @Transactional
     public AuthResponse register(RegisterRequest request) {
+        if (request.getRole() != UserRole.STUDENT){
+            throw new UnsupportedRoleRegistrationException
+                    (  "Registration for this role is not supported via this endpoint.");
+        }
         if (userRepository.findByEmail(request.getEmail()).isPresent()) {
             throw new EmailAlreadyExistsException("Email already exists");
         }

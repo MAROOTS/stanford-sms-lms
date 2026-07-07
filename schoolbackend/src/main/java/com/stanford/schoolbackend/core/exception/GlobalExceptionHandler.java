@@ -54,6 +54,11 @@ public class GlobalExceptionHandler {
         return build(HttpStatus.FORBIDDEN, "You do not have permission to perform this action", null);
     }
 
+    @ExceptionHandler(UnsupportedRoleRegistrationException.class)
+    public ResponseEntity<Map<String, Object>> handleUnsupportedRole(UnsupportedRoleRegistrationException ex) {
+        return build(HttpStatus.FORBIDDEN, ex.getMessage(), null);
+    }
+
     private ResponseEntity<Map<String, Object>> build(HttpStatus status, String message, Map<String, String> details) {
         Map<String, Object> body = new LinkedHashMap<>();
         body.put("timestamp", Instant.now().toString());

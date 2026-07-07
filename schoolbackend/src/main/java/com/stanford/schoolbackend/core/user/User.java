@@ -3,6 +3,7 @@ package com.stanford.schoolbackend.core.user;
 import com.stanford.schoolbackend.core.enums.UserRole;
 import jakarta.persistence.*;
 import lombok.*;
+import lombok.experimental.SuperBuilder;
 
 @Entity
 @Table(name = "users")
@@ -11,7 +12,7 @@ import lombok.*;
 @AllArgsConstructor
 @Getter
 @Setter
-@Builder
+@SuperBuilder
 public class User {
     @Id
     @GeneratedValue(strategy = GenerationType.IDENTITY)

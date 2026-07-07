@@ -4,6 +4,7 @@ import com.stanford.schoolbackend.core.user.User;
 import com.stanford.schoolbackend.sms.academic.ClassSection;
 import jakarta.persistence.*;
 import lombok.*;
+import lombok.experimental.SuperBuilder;
 
 @Entity
 @Table(name = "students")
@@ -11,6 +12,7 @@ import lombok.*;
 @AllArgsConstructor
 @Getter
 @Setter
+@SuperBuilder
 @ToString(callSuper = true)
 @EqualsAndHashCode(callSuper = true)
 public class Student extends User {
