@@ -33,4 +33,17 @@ public class ClassSectionController {
     public ResponseEntity<List<ClassSectionResponse>> listByGradeLevel(@PathVariable Long gradeLevelId) {
         return ResponseEntity.ok(classSectionService.listByGradeLevel(gradeLevelId));
     }
+
+    @PutMapping("/{id}")
+    @PreAuthorize("hasRole('ADMIN')")
+    public ResponseEntity<ClassSectionResponse> update(@PathVariable Long id, @Valid @RequestBody ClassSectionRequest request) {
+        return ResponseEntity.ok(classSectionService.update(id, request));
+    }
+
+    @DeleteMapping("/{id}")
+    @PreAuthorize("hasRole('ADMIN')")
+    public ResponseEntity<Void> delete(@PathVariable Long id) {
+        classSectionService.delete(id);
+        return ResponseEntity.noContent().build();
+    }
 }

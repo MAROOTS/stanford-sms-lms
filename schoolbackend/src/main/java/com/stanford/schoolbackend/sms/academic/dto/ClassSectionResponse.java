@@ -10,6 +10,7 @@ public class ClassSectionResponse {
     private String name;
     private Long gradeLevelId;
     private String gradeLevelName;
+    private String gradeLevelStage;
     private Long homeroomTeacherId;
     private String homeroomTeacherName;
 }

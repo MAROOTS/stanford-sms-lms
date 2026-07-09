@@ -18,6 +18,7 @@ public class GradeLevelService {
     public GradeLevelResponse create(GradeLevelRequest request) {
         GradeLevel gradeLevel = GradeLevel.builder()
                 .name(request.getName())
+                .stage(request.getStage())
                 .sortOrder(request.getSortOrder())
                 .build();
         return toResponse(gradeLevelRepository.save(gradeLevel));
@@ -26,6 +27,7 @@ public class GradeLevelService {
     public GradeLevelResponse update(Long id, GradeLevelRequest request) {
         GradeLevel gradeLevel = getOrThrow(id);
         gradeLevel.setName(request.getName());
+        gradeLevel.setStage(request.getStage());
         gradeLevel.setSortOrder(request.getSortOrder());
         return toResponse(gradeLevelRepository.save(gradeLevel));
     }
@@ -50,6 +52,7 @@ public class GradeLevelService {
         return GradeLevelResponse.builder()
                 .id(g.getId())
                 .name(g.getName())
+                .stage(g.getStage())
                 .sortOrder(g.getSortOrder())
                 .build();
     }

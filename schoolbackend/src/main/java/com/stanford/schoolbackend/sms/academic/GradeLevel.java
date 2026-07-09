@@ -21,4 +21,7 @@ public class GradeLevel {
 
     @Column(nullable = false)
     private Integer sortOrder; // for displaying levels in the right sequence
+
+    @Column
+    private String stage;
 }

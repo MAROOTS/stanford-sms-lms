@@ -8,5 +8,6 @@ import lombok.Data;
 public class GradeLevelResponse {
     private Long id;
     private String name;
+    private String stage;
     private Integer sortOrder;
 }

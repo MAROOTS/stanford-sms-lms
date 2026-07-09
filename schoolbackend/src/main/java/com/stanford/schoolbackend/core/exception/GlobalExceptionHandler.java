@@ -1,5 +1,6 @@
 package com.stanford.schoolbackend.core.exception;
 
+import org.springframework.dao.DataIntegrityViolationException;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.security.access.AccessDeniedException;
@@ -58,7 +59,12 @@ public class GlobalExceptionHandler {
     public ResponseEntity<Map<String, Object>> handleUnsupportedRole(UnsupportedRoleRegistrationException ex) {
         return build(HttpStatus.FORBIDDEN, ex.getMessage(), null);
     }
-
+    @ExceptionHandler(DataIntegrityViolationException.class)
+    public ResponseEntity<Map<String, Object>> handleDataIntegrity(DataIntegrityViolationException ex) {
+        return build(HttpStatus.CONFLICT,
+                "Cannot delete this record because related data exists (e.g. enrollments, courses, or attendance).",
+                null);
+    }
     private ResponseEntity<Map<String, Object>> build(HttpStatus status, String message, Map<String, String> details) {
         Map<String, Object> body = new LinkedHashMap<>();
         body.put("timestamp", Instant.now().toString());

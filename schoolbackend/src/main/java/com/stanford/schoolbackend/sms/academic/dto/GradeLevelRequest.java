@@ -8,7 +8,7 @@ import lombok.Data;
 public class GradeLevelRequest {
     @NotBlank(message = "name is required")
     private String name;
-
+    private  String stage;
     @NotNull(message = "sortOrder is required")
     private Integer sortOrder;
 }

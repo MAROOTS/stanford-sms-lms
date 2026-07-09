@@ -5,26 +5,25 @@ const AuthContext = createContext(null);
 
 export function AuthProvider({ children }) {
   const [user, setUser] = useState(() => {
-    const stored = localStorage.getItem("user");
+    const stored = localStorage.getItem("user") || sessionStorage.getItem("user");
     return stored ? JSON.parse(stored) : null;
   });
 
-  const login = async (email, password) => {
-    const { data } = await axiosClient.post("/auth/login", { email, password });
-    const userData = {
-      userId: data.userId,
-      email: data.email,
-      role: data.role,
-    };
-    localStorage.setItem("accessToken", data.accessToken);
-    localStorage.setItem("user", JSON.stringify(userData));
+  const login = async (email, password, remember = false) => {
+    const { data } = await axiosClient.post('/auth/login', { email, password });
+    const userData = { userId: data.userId, email: data.email, role: data.role };
+    const storage = remember ? localStorage : sessionStorage;
+    storage.setItem('accessToken', data.accessToken);
+    storage.setItem('user', JSON.stringify(userData));
     setUser(userData);
     return userData;
   };
 
   const logout = () => {
-    localStorage.removeItem("accessToken");
-    localStorage.removeItem("user");
+    localStorage.removeItem('accessToken');
+    localStorage.removeItem('user');
+    sessionStorage.removeItem('accessToken');
+    sessionStorage.removeItem('user');
     setUser(null);
   };
 

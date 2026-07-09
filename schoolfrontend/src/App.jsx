@@ -4,6 +4,8 @@ import ProtectedRoute from "./routes/ProtectedRoute";
 import DashboardLayout from "./components/layout/DashboardLayout";
 import Login from "./pages/auth/Login";
 import Classes from "./pages/classes/Classes";
+import Students from "./pages/students/Students";
+import Teachers from "./pages/teachers/Teachers";
 
 export default function App() {
   return (
@@ -24,6 +26,8 @@ export default function App() {
               element={<div>Dashboard overview — coming soon</div>}
             />
             <Route path="/classes" element={<Classes />} />
+              <Route path="/students" element={<Students />} />
+              <Route path="/teachers" element={<Teachers />} />
           </Route>
 
           <Route path="/" element={<Navigate to="/dashboard" replace />} />

@@ -10,6 +10,7 @@ export default function Login() {
   const [remember, setRemember] = useState(false);
   const [error, setError] = useState("");
   const [loading, setLoading] = useState(false);
+  const [showForgotMsg, setShowForgotMsg] = useState(false);
 
   const { login } = useAuth();
   const navigate = useNavigate();
@@ -19,7 +20,7 @@ export default function Login() {
     setError("");
     setLoading(true);
     try {
-      await login(email, password);
+      await login(email, password, remember);
       navigate("/dashboard");
     } catch (err) {
       setError(err.response?.data?.message || "Invalid email or password");
@@ -73,12 +74,13 @@ export default function Login() {
                 <label className="block text-sm font-medium text-slate-700">
                   Password
                 </label>
-                <a
-                  href="#"
-                  className="text-sm font-medium text-teal-600 hover:text-teal-700"
+                <button
+                    type="button"
+                    onClick={() => setShowForgotMsg(true)}
+                    className="text-sm font-medium text-teal-600 hover:text-teal-700"
                 >
                   Forgot password?
-                </a>
+                </button>
               </div>
               <div className="relative">
                 <Lock
@@ -101,6 +103,11 @@ export default function Login() {
                   {showPassword ? <EyeOff size={16} /> : <Eye size={16} />}
                 </button>
               </div>
+              {showForgotMsg && (
+                  <p className="text-xs text-slate-500 bg-slate-50 border border-slate-200 rounded-lg px-3 py-2">
+                    Password resets aren't self-service yet — please contact your school administrator.
+                  </p>
+              )}
             </div>
 
             <label className="flex items-center gap-2 text-sm text-slate-600">
@@ -149,7 +156,7 @@ export default function Login() {
       <div className="hidden lg:flex lg:w-1/2 bg-navy-950 relative overflow-hidden flex-col justify-between px-14 py-10">
         <div className="inline-flex items-center gap-2 text-xs text-slate-300 bg-white/5 border border-white/10 rounded-full px-3 py-1.5 w-fit">
           <ShieldCheck size={14} className="text-teal-accent" />
-          Trusted by 200+ schools across East Africa
+          Trusted by schools all over bro...
         </div>
 
         <div>
@@ -195,3 +202,5 @@ export default function Login() {
     </div>
   );
 }
+
+//TODO Replace the "Forgot password?" <a> with a button, and add a small state-driven message (no backend reset flow exists yet, so this is honest rather than a dead promise):

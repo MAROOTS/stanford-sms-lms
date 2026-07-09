@@ -48,12 +48,38 @@ public class ClassSectionService {
                 .map(this::toResponse)
                 .toList();
     }
+    public ClassSectionResponse update(Long id, ClassSectionRequest request) {
+        ClassSection section = classSectionRepository.findById(id)
+                .orElseThrow(() -> new ResourceNotFoundException("Class section not found"));
+
+        GradeLevel gradeLevel = gradeLevelRepository.findById(request.getGradeLevelId())
+                .orElseThrow(() -> new ResourceNotFoundException("Grade level not found"));
+
+        Teacher homeroomTeacher = null;
+        if (request.getHomeroomTeacherId() != null) {
+            homeroomTeacher = teacherRepository.findById(request.getHomeroomTeacherId())
+                    .orElseThrow(() -> new ResourceNotFoundException("Teacher not found"));
+        }
+
+        section.setName(request.getName());
+        section.setGradeLevel(gradeLevel);
+        section.setHomeroomTeacher(homeroomTeacher);
+
+        return toResponse(classSectionRepository.save(section));
+    }
+
+    public void delete(Long id) {
+        ClassSection section = classSectionRepository.findById(id)
+                .orElseThrow(() -> new ResourceNotFoundException("Class section not found"));
+        classSectionRepository.delete(section);
+    }
 
     private ClassSectionResponse toResponse(ClassSection s) {
         return ClassSectionResponse.builder()
                 .id(s.getId())
                 .name(s.getName())
                 .gradeLevelId(s.getGradeLevel().getId())
+                .gradeLevelStage(s.getGradeLevel().getStage())
                 .gradeLevelName(s.getGradeLevel().getName())
                 .homeroomTeacherId(s.getHomeroomTeacher() != null ? s.getHomeroomTeacher().getId() : null)
                 .homeroomTeacherName(s.getHomeroomTeacher() != null
