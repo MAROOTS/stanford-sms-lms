@@ -65,6 +65,10 @@ public class GlobalExceptionHandler {
                 "Cannot delete this record because related data exists (e.g. enrollments, courses, or attendance).",
                 null);
     }
+    @ExceptionHandler(IllegalArgumentException.class)
+    public ResponseEntity<Map<String, Object>> handleIllegalArgument(IllegalArgumentException ex) {
+        return build(HttpStatus.BAD_REQUEST, ex.getMessage(), null);
+    }
     private ResponseEntity<Map<String, Object>> build(HttpStatus status, String message, Map<String, String> details) {
         Map<String, Object> body = new LinkedHashMap<>();
         body.put("timestamp", Instant.now().toString());
