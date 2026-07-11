@@ -62,7 +62,7 @@ public class GlobalExceptionHandler {
     @ExceptionHandler(DataIntegrityViolationException.class)
     public ResponseEntity<Map<String, Object>> handleDataIntegrity(DataIntegrityViolationException ex) {
         return build(HttpStatus.CONFLICT,
-                "Cannot delete this record because related data exists (e.g. enrollments, courses, or attendance).",
+                "This action conflicts with existing data — check for duplicate values or related records.",
                 null);
     }
     @ExceptionHandler(IllegalArgumentException.class)

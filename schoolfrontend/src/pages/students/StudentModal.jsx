@@ -9,6 +9,7 @@ export default function StudentModal({ initialData, classSections, onClose, onSa
     const [lastName, setLastName] = useState(initialData?.lastName || '');
     const [email, setEmail] = useState(initialData?.email || '');
     const [password, setPassword] = useState('');
+    const [admissionNumber, setAdmissionNumber] = useState('');
     const [classSectionId, setClassSectionId] = useState(initialData?.classSectionId?.toString() || '');
     const [error, setError] = useState('');
     const [saving, setSaving] = useState(false);
@@ -23,6 +24,7 @@ export default function StudentModal({ initialData, classSections, onClose, onSa
                     firstName,
                     lastName,
                     email,
+                    admissionNumber,
                     classSectionId: classSectionId ? Number(classSectionId) : null,
                 });
             } else {
@@ -32,6 +34,7 @@ export default function StudentModal({ initialData, classSections, onClose, onSa
                     lastName,
                     email,
                     password,
+                    admissionNumber,
                     role: 'STUDENT',
                 });
                 if (classSectionId) {
@@ -104,6 +107,15 @@ export default function StudentModal({ initialData, classSections, onClose, onSa
                             />
                         </div>
                     )}
+                    <div>
+                        <label className="block text-sm font-medium text-slate-700 mb-1.5">Admission Number</label>
+                        <input
+                            required
+                            value={admissionNumber}
+                            onChange={(e) => setAdmissionNumber(e.target.value)}
+                            className="w-full px-3 py-2.5 rounded-lg bg-slate-50 border border-slate-200 text-sm focus:outline-none focus:ring-2 focus:ring-teal-accent"
+                        />
+                    </div>
 
                     <div>
                         <label className="block text-sm font-medium text-slate-700 mb-1.5">

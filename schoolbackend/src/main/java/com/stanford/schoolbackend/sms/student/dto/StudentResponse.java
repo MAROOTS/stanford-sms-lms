@@ -13,4 +13,5 @@ public class StudentResponse {
     private Long classSectionId;
     private String classSectionName;
     private String gradeLevelName;
+    private String admissionNumber;
 }

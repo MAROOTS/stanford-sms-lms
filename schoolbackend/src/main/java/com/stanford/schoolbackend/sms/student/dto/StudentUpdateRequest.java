@@ -18,4 +18,5 @@ public class StudentUpdateRequest {
     private String email;
 
     private Long classSectionId; // null = unassign
+    private String admissionNumber;
 }

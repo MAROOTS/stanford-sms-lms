@@ -6,6 +6,13 @@ import Login from "./pages/auth/Login";
 import Classes from "./pages/classes/Classes";
 import Students from "./pages/students/Students";
 import Teachers from "./pages/teachers/Teachers";
+import Subjects from "./pages/subjects/Subjects";
+import Terms from "./pages/terms/Terms";
+import Exams from "./pages/exams/Exams";
+import MarksEntry from "./pages/marks/MarksEntry";
+import Results from "./pages/results/Results";
+import ReportCards from "./pages/reportcards/ReportCards";
+import Attendance from './pages/attendance/Attendance';
 
 export default function App() {
   return (
@@ -28,6 +35,13 @@ export default function App() {
             <Route path="/classes" element={<Classes />} />
               <Route path="/students" element={<Students />} />
               <Route path="/teachers" element={<Teachers />} />
+            <Route path="/subjects" element={<Subjects />} />
+            <Route path="/terms" element={<Terms />} />
+            <Route path="/exams" element={<Exams />} />
+            <Route path="/marks-entry" element={<MarksEntry />} />
+            <Route path="/results" element={<Results />} />
+            <Route path="/report-cards" element={<ReportCards />} />
+            <Route path="/attendance" element={<Attendance />} />
           </Route>
 
           <Route path="/" element={<Navigate to="/dashboard" replace />} />

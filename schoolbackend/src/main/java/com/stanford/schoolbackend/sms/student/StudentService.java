@@ -54,6 +54,7 @@ public class StudentService {
         student.setFirstName(request.getFirstName());
         student.setLastName(request.getLastName());
         student.setEmail(request.getEmail());
+        student.setAdmissionNumber(request.getAdmissionNumber());
 
         if (request.getClassSectionId() != null) {
             ClassSection section = classSectionRepository.findById(request.getClassSectionId())
@@ -78,6 +79,7 @@ public class StudentService {
                 .firstName(s.getFirstName())
                 .lastName(s.getLastName())
                 .email(s.getEmail())
+                .admissionNumber(s.getAdmissionNumber())
                 .classSectionId(s.getClassSection() != null ? s.getClassSection().getId() : null)
                 .classSectionName(s.getClassSection() != null ? s.getClassSection().getName() : null)
                 .gradeLevelName(s.getClassSection() != null ? s.getClassSection().getGradeLevel().getName() : null)

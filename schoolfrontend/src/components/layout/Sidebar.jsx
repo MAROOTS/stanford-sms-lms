@@ -6,32 +6,29 @@ import {
   Layers3,
   BookOpen,
   ClipboardCheck,
-  FileText,
   CreditCard,
-  ChevronsLeft,
+  ChevronsLeft, FileDown, TrendingUp, BarChart3, ClipboardList, Calendar,
 } from "lucide-react";
 import { useAuth } from "../../context/AuthContext";
 
 const navSections = [
+  { label: 'OVERVIEW', items: [{ to: '/dashboard', icon: LayoutDashboard, label: 'Dashboard' }] },
   {
-    label: "OVERVIEW",
-    items: [{ to: "/dashboard", icon: LayoutDashboard, label: "Dashboard" }],
-  },
-  {
-    label: "ACADEMICS",
+    label: 'ACADEMICS',
     items: [
-      { to: "/students", icon: Users, label: "Students" },
-      { to: "/teachers", icon: GraduationCap, label: "Teachers" },
-      { to: "/classes", icon: Layers3, label: "Classes" },
-      { to: "/subjects", icon: BookOpen, label: "Subjects" },
-      { to: "/attendance", icon: ClipboardCheck, label: "Attendance" },
-      { to: "/examinations", icon: FileText, label: "Examinations" },
+      { to: '/students', icon: Users, label: 'Students' },
+      { to: '/terms', icon: Calendar, label: 'Terms' },
+      { to: '/exams', icon: ClipboardList, label: 'Exams' },
+      { to: '/marks-entry', icon: BarChart3, label: 'Marks Entry' },
+      { to: '/results', icon: TrendingUp, label: 'Results & Ranking' },
+      { to: '/report-cards', icon: FileDown, label: 'Report Cards' },
+      { to: '/teachers', icon: GraduationCap, label: 'Teachers' },
+      { to: '/classes', icon: Layers3, label: 'Classes' },
+      { to: '/subjects', icon: BookOpen, label: 'Subjects' },
+      { to: '/attendance', icon: ClipboardCheck, label: 'Attendance' },
     ],
   },
-  {
-    label: "OPERATIONS",
-    items: [{ to: "/fees", icon: CreditCard, label: "Fee Collection" }],
-  },
+  { label: 'OPERATIONS', items: [{ to: '/fees', icon: CreditCard, label: 'Fee Collection' }] },
 ];
 
 export default function Sidebar() {

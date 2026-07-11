@@ -21,4 +21,6 @@ public class Student extends User {
     @ManyToOne(fetch = FetchType.LAZY)
     @JoinColumn(name = "class_section_id")
     private ClassSection classSection; // nullable — assigned later, not at registration
+    @Column(unique = true)
+    private String admissionNumber; // nullable — assigned by admin after enrollment, not at signup
 }
