@@ -59,6 +59,11 @@ public class GlobalExceptionHandler {
     public ResponseEntity<Map<String, Object>> handleUnsupportedRole(UnsupportedRoleRegistrationException ex) {
         return build(HttpStatus.FORBIDDEN, ex.getMessage(), null);
     }
+
+    @ExceptionHandler(PasswordMismatchException.class)
+    public ResponseEntity<Map<String, Object>> handlePasswordMismatch(PasswordMismatchException ex) {
+        return build(HttpStatus.BAD_REQUEST, ex.getMessage(), null);
+    }
     @ExceptionHandler(DataIntegrityViolationException.class)
     public ResponseEntity<Map<String, Object>> handleDataIntegrity(DataIntegrityViolationException ex) {
         return build(HttpStatus.CONFLICT,

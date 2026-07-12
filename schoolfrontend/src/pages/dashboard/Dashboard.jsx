@@ -1,8 +1,9 @@
 import { useEffect, useState, useCallback } from 'react';
-import { Users, GraduationCap, Layers3, ShieldCheck, Download, ChevronDown, ArrowUp, ArrowDown } from 'lucide-react';
+import { Users, GraduationCap, Layers3, ShieldCheck, Download, ChevronDown, ArrowUp, ArrowDown, RefreshCw } from 'lucide-react';
 import { LineChart, Line, XAxis, YAxis, CartesianGrid, Tooltip, ResponsiveContainer } from 'recharts';
 import axiosClient from '../../api/axiosClient';
 import { useAuth } from '../../context/AuthContext';
+import { CardSkeleton } from '../../components/shared/LoadingSkeleton';
 
 function greeting() {
     const hour = new Date().getHours();
@@ -75,13 +76,38 @@ export default function Dashboard() {
         const url = URL.createObjectURL(blob);
         const a = document.createElement('a');
         a.href = url;
-        a.download = `dashboard-report-${summary.asOfDate}.csv`;
+        a.download = `dashboard-report-${summary.asOfDate || 'today'}.csv`;
         a.click();
         URL.revokeObjectURL(url);
     };
 
-    if (loading) return <p className="text-sm text-slate-400">Loading dashboard...</p>;
-    if (error) return <p className="text-sm text-red-500">{error}</p>;
+    if (loading) {
+        return (
+            <div>
+                <div className="mb-6 animate-pulse">
+                    <div className="h-7 bg-slate-200 rounded w-64 mb-2" />
+                    <div className="h-4 bg-slate-100 rounded w-80" />
+                </div>
+                <CardSkeleton count={4} />
+            </div>
+        );
+    }
+
+    if (error) {
+        return (
+            <div className="flex flex-col items-center justify-center py-20 text-center">
+                <div className="w-14 h-14 rounded-2xl bg-red-50 flex items-center justify-center mb-4">
+                    <ShieldCheck size={26} className="text-red-400" />
+                </div>
+                <h3 className="text-base font-semibold text-slate-700 mb-2">Could not load dashboard</h3>
+                <p className="text-sm text-slate-400 mb-5">{error}</p>
+                <button onClick={() => window.location.reload()}
+                        className="flex items-center gap-1.5 bg-navy-900 hover:bg-navy-800 text-white text-sm font-medium px-4 py-2.5 rounded-lg transition-colors">
+                    <RefreshCw size={16} /> Retry
+                </button>
+            </div>
+        );
+    }
 
     const today = new Date().toLocaleDateString('en-US', { weekday: 'long', day: 'numeric', month: 'long', year: 'numeric' });
 
@@ -102,7 +128,7 @@ export default function Dashboard() {
                 <div className="flex items-center gap-3">
                     <div className="relative">
                         <select value={selectedTermId} onChange={(e) => setSelectedTermId(e.target.value)}
-                                className="appearance-none pl-4 pr-8 py-2.5 rounded-lg border border-slate-200 text-sm font-medium text-slate-700 bg-white focus:outline-none focus:ring-2 focus:ring-teal-accent">
+                                className="appearance-none pl-4 pr-8 py-2.5 rounded-lg border border-slate-200 text-sm font-medium text-slate-700 bg-white focus:outline-none focus:ring-2 focus:ring-teal-accent cursor-pointer">
                             {terms.map((t) => <option key={t.id} value={t.id}>{t.name}</option>)}
                         </select>
                         <ChevronDown size={14} className="absolute right-3 top-1/2 -translate-y-1/2 text-slate-400 pointer-events-none" />
@@ -116,7 +142,7 @@ export default function Dashboard() {
 
             <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4 mb-6">
                 {cards.map((c) => (
-                    <div key={c.label} className="bg-white rounded-xl border border-slate-200 p-5">
+                    <div key={c.label} className="bg-white rounded-xl border border-slate-200 p-5 hover:shadow-md transition-shadow">
                         <div className="flex items-center justify-between mb-4">
                             <div className={`w-10 h-10 rounded-lg flex items-center justify-center ${c.color}`}>
                                 <c.icon size={18} />
