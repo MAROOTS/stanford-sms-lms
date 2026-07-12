@@ -1,8 +1,10 @@
-import { Search, Plus, Bell, ChevronDown } from "lucide-react";
+import { Search, Plus, Bell, ChevronDown, Menu } from "lucide-react";
 import { useAuth } from "../../context/AuthContext";
+import { useSidebar } from "../../context/SidebarContext";
 
 export default function Topbar() {
   const { user, logout } = useAuth();
+  const { toggle } = useSidebar();
 
   return (
     <header className="h-16 bg-white border-b border-slate-200 flex items-center justify-between px-6 gap-4 sticky top-0 z-10">
@@ -21,6 +23,12 @@ export default function Topbar() {
       </div>
 
       <div className="flex items-center gap-4">
+        <button
+          onClick={toggle}
+          className="text-slate-600 hover:text-slate-800 mr-2"
+        >
+          <Menu size={18} />
+        </button>
         <button className="flex items-center gap-1.5 bg-teal-accent hover:bg-teal-600 text-white text-sm font-medium px-3.5 py-2 rounded-lg transition-colors">
           <Plus size={16} />
           Quick Add

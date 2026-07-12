@@ -1,0 +1,36 @@
+import { createContext, useContext, useEffect, useState } from "react";
+
+const SidebarContext = createContext();
+
+export function SidebarProvider({ children }) {
+  const [collapsed, setCollapsed] = useState(() => {
+    try {
+      const raw = localStorage.getItem("sidebarCollapsed");
+      return raw ? JSON.parse(raw) : false;
+    } catch (e) {
+      return false;
+    }
+  });
+
+  useEffect(() => {
+    try {
+      localStorage.setItem("sidebarCollapsed", JSON.stringify(collapsed));
+    } catch (e) {}
+  }, [collapsed]);
+
+  const toggle = () => setCollapsed((s) => !s);
+
+  return (
+    <SidebarContext.Provider value={{ collapsed, setCollapsed, toggle }}>
+      {children}
+    </SidebarContext.Provider>
+  );
+}
+
+export function useSidebar() {
+  const ctx = useContext(SidebarContext);
+  if (!ctx) throw new Error("useSidebar must be used within SidebarProvider");
+  return ctx;
+}
+
+export default SidebarContext;
