@@ -1,7 +1,11 @@
 import { useEffect, useState, useCallback } from 'react';
-import { Plus } from 'lucide-react';
+import { Plus, GraduationCap } from 'lucide-react';
 import axiosClient from '../../api/axiosClient';
 import TeacherModal from './TeacherModal';
+import ConfirmDialog from '../../components/shared/ConfirmDialog';
+import EmptyState from '../../components/shared/EmptyState';
+import { TableSkeleton } from '../../components/shared/LoadingSkeleton';
+import { useToast } from '../../context/ToastContext';
 
 export default function Teachers() {
     const [teachers, setTeachers] = useState([]);
@@ -9,6 +13,9 @@ export default function Teachers() {
     const [error, setError] = useState('');
     const [modalOpen, setModalOpen] = useState(false);
     const [editingTeacher, setEditingTeacher] = useState(null);
+    const [deleteTarget, setDeleteTarget] = useState(null);
+
+    const toast = useToast();
 
     const loadAll = useCallback(async () => {
         setLoading(true);
@@ -25,19 +32,23 @@ export default function Teachers() {
 
     useEffect(() => { loadAll(); }, [loadAll]);
 
-    const handleDelete = async (id) => {
-        if (!window.confirm('Delete this teacher? This cannot be undone.')) return;
+    const handleDelete = async () => {
+        if (!deleteTarget) return;
+        const id = deleteTarget.id;
+        const name = `${deleteTarget.firstName} ${deleteTarget.lastName}`;
+        setDeleteTarget(null);
         try {
             await axiosClient.delete(`/teachers/${id}`);
             setTeachers((prev) => prev.filter((t) => t.id !== id));
+            toast.success(`${name} has been deleted.`);
         } catch (err) {
-            alert(err.response?.data?.message || 'Could not delete this teacher.');
+            toast.error(err.response?.data?.message || 'Could not delete this teacher.');
         }
     };
 
     const openAddModal = () => { setEditingTeacher(null); setModalOpen(true); };
     const openEditModal = (teacher) => { setEditingTeacher(teacher); setModalOpen(true); };
-    const handleSaved = () => { setModalOpen(false); loadAll(); };
+    const handleSaved = () => { setModalOpen(false); loadAll(); toast.success('Teacher saved successfully.'); };
 
     return (
         <div>
@@ -54,45 +65,63 @@ export default function Teachers() {
                 </button>
             </div>
 
-            <div className="bg-white rounded-xl border border-slate-200 overflow-hidden">
-                <table className="w-full text-sm">
-                    <thead>
-                    <tr className="border-b border-slate-100 text-left text-[11px] font-semibold tracking-wider text-slate-400">
-                        <th className="px-6 py-3">TEACHER</th>
-                        <th className="px-6 py-3">EMAIL</th>
-                        <th className="px-6 py-3 text-right">ACTIONS</th>
-                    </tr>
-                    </thead>
-                    <tbody>
-                    {loading && (
-                        <tr><td colSpan={3} className="px-6 py-8 text-center text-slate-400">Loading teachers...</td></tr>
-                    )}
-                    {error && !loading && (
-                        <tr><td colSpan={3} className="px-6 py-8 text-center text-red-500">{error}</td></tr>
-                    )}
-                    {!loading && !error && teachers.length === 0 && (
-                        <tr><td colSpan={3} className="px-6 py-8 text-center text-slate-400">No teachers yet.</td></tr>
-                    )}
-                    {teachers.map((t) => (
-                        <tr key={t.id} className="border-b border-slate-50 last:border-0 hover:bg-slate-50/50">
-                            <td className="px-6 py-4">
-                                <div className="flex items-center gap-3">
-                                    <div className="w-8 h-8 rounded-full bg-teal-accent/15 flex items-center justify-center text-xs font-semibold text-teal-700">
-                                        {t.firstName[0]}{t.lastName[0]}
-                                    </div>
-                                    <span className="font-medium text-slate-800">{t.firstName} {t.lastName}</span>
-                                </div>
-                            </td>
-                            <td className="px-6 py-4 text-slate-600">{t.email}</td>
-                            <td className="px-6 py-4 text-right">
-                                <button onClick={() => openEditModal(t)} className="text-slate-500 hover:text-slate-700 font-medium mr-4">Edit</button>
-                                <button onClick={() => handleDelete(t.id)} className="text-red-500 hover:text-red-600 font-medium">Delete</button>
-                            </td>
-                        </tr>
-                    ))}
-                    </tbody>
-                </table>
-            </div>
+            {loading && <TableSkeleton columns={3} rows={5} />}
+
+            {error && !loading && (
+                <div className="bg-red-50 border border-red-100 rounded-xl p-6 text-center">
+                    <p className="text-red-600 text-sm mb-3">{error}</p>
+                    <button onClick={loadAll} className="text-sm font-medium text-red-700 hover:text-red-800 underline">Try again</button>
+                </div>
+            )}
+
+            {!loading && !error && teachers.length === 0 && (
+                <EmptyState
+                    icon={GraduationCap}
+                    title="No teachers yet"
+                    description="Add your first teacher to get started."
+                    action={
+                        <button onClick={openAddModal}
+                                className="flex items-center gap-1.5 bg-navy-900 hover:bg-navy-800 text-white text-sm font-medium px-4 py-2.5 rounded-lg transition-colors">
+                            <Plus size={16} /> Add teacher
+                        </button>
+                    }
+                />
+            )}
+
+            {!loading && !error && teachers.length > 0 && (
+                <div className="bg-white rounded-xl border border-slate-200 overflow-hidden">
+                    <div className="overflow-x-auto">
+                        <table className="w-full text-sm">
+                            <thead>
+                            <tr className="border-b border-slate-100 text-left text-[11px] font-semibold tracking-wider text-slate-400">
+                                <th className="px-6 py-3">TEACHER</th>
+                                <th className="px-6 py-3">EMAIL</th>
+                                <th className="px-6 py-3 text-right">ACTIONS</th>
+                            </tr>
+                            </thead>
+                            <tbody>
+                            {teachers.map((t) => (
+                                <tr key={t.id} className="border-b border-slate-50 last:border-0 hover:bg-slate-50/50 transition-colors">
+                                    <td className="px-6 py-4">
+                                        <div className="flex items-center gap-3">
+                                            <div className="w-8 h-8 rounded-full bg-teal-accent/15 flex items-center justify-center text-xs font-semibold text-teal-700">
+                                                {t.firstName?.[0]}{t.lastName?.[0]}
+                                            </div>
+                                            <span className="font-medium text-slate-800">{t.firstName} {t.lastName}</span>
+                                        </div>
+                                    </td>
+                                    <td className="px-6 py-4 text-slate-600">{t.email}</td>
+                                    <td className="px-6 py-4 text-right">
+                                        <button onClick={() => openEditModal(t)} className="text-slate-500 hover:text-slate-700 font-medium mr-4 transition-colors">Edit</button>
+                                        <button onClick={() => setDeleteTarget(t)} className="text-red-500 hover:text-red-600 font-medium transition-colors">Delete</button>
+                                    </td>
+                                </tr>
+                            ))}
+                            </tbody>
+                        </table>
+                    </div>
+                </div>
+            )}
 
             {modalOpen && (
                 <TeacherModal
@@ -101,6 +130,16 @@ export default function Teachers() {
                     onSaved={handleSaved}
                 />
             )}
+
+            <ConfirmDialog
+                open={!!deleteTarget}
+                title="Delete teacher"
+                message={`Are you sure you want to delete ${deleteTarget?.firstName} ${deleteTarget?.lastName}? This action cannot be undone.`}
+                confirmLabel="Delete"
+                variant="danger"
+                onConfirm={handleDelete}
+                onCancel={() => setDeleteTarget(null)}
+            />
         </div>
     );
 }

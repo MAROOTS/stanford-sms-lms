@@ -1,5 +1,16 @@
 import { useEffect, useState, useCallback } from 'react';
+import { TrendingUp } from 'lucide-react';
 import axiosClient from '../../api/axiosClient';
+import EmptyState from '../../components/shared/EmptyState';
+import { TableSkeleton } from '../../components/shared/LoadingSkeleton';
+
+const GRADE_COLORS = {
+    A: 'bg-emerald-50 text-emerald-700',
+    B: 'bg-teal-50 text-teal-700',
+    C: 'bg-amber-50 text-amber-700',
+    D: 'bg-orange-50 text-orange-700',
+    F: 'bg-red-50 text-red-600',
+};
 
 export default function Results() {
     const [exams, setExams] = useState([]);
@@ -32,6 +43,12 @@ export default function Results() {
 
     useEffect(() => { loadResults(); }, [loadResults]);
 
+    const getGradeStyle = (grade) => {
+        if (!grade) return 'bg-slate-100 text-slate-600';
+        const key = grade.charAt(0).toUpperCase();
+        return GRADE_COLORS[key] || 'bg-slate-100 text-slate-600';
+    };
+
     return (
         <div>
             <div className="mb-6">
@@ -59,39 +76,57 @@ export default function Results() {
             </div>
 
             {error && <p className="text-sm text-red-600 bg-red-50 border border-red-100 rounded-lg px-3 py-2 mb-4">{error}</p>}
-            {loading && <p className="text-sm text-slate-400">Loading results...</p>}
+            {loading && <TableSkeleton columns={5} rows={5} />}
 
             {!loading && rows.length > 0 && (
                 <div className="bg-white rounded-xl border border-slate-200 overflow-hidden">
-                    <table className="w-full text-sm">
-                        <thead>
-                        <tr className="border-b border-slate-100 text-left text-[11px] font-semibold tracking-wider text-slate-400">
-                            <th className="px-6 py-3">POSITION</th>
-                            <th className="px-6 py-3">STUDENT</th>
-                            <th className="px-6 py-3">TOTAL SCORE</th>
-                            <th className="px-6 py-3">MEAN %</th>
-                            <th className="px-6 py-3">GRADE</th>
-                        </tr>
-                        </thead>
-                        <tbody>
-                        {rows.map((r) => (
-                            <tr key={r.studentId} className="border-b border-slate-50 last:border-0">
-                                <td className="px-6 py-3 font-semibold text-slate-800">{r.position} / {r.outOf}</td>
-                                <td className="px-6 py-3 text-slate-700">{r.studentName}</td>
-                                <td className="px-6 py-3 text-slate-600">{r.totalScore} / {r.totalMaxScore}</td>
-                                <td className="px-6 py-3 text-slate-600">{r.meanPercentage}%</td>
-                                <td className="px-6 py-3">
-                                    <span className="inline-block bg-slate-100 text-slate-600 text-xs font-medium px-2.5 py-1 rounded-full">{r.overallGrade}</span>
-                                </td>
+                    <div className="overflow-x-auto">
+                        <table className="w-full text-sm">
+                            <thead>
+                            <tr className="border-b border-slate-100 text-left text-[11px] font-semibold tracking-wider text-slate-400">
+                                <th className="px-6 py-3 w-12">POS</th>
+                                <th className="px-6 py-3">STUDENT</th>
+                                <th className="px-6 py-3">TOTAL SCORE</th>
+                                <th className="px-6 py-3">MEAN %</th>
+                                <th className="px-6 py-3">GRADE</th>
                             </tr>
-                        ))}
-                        </tbody>
-                    </table>
+                            </thead>
+                            <tbody>
+                            {rows.map((r) => (
+                                <tr key={r.studentId} className="border-b border-slate-50 last:border-0 hover:bg-slate-50/50 transition-colors">
+                                    <td className="px-6 py-3">
+                                        {r.position <= 3 ? (
+                                            <span className={`inline-flex items-center justify-center w-7 h-7 rounded-full text-xs font-bold text-white ${
+                                                r.position === 1 ? 'bg-amber-400' : r.position === 2 ? 'bg-slate-400' : 'bg-amber-600'
+                                            }`}>
+                                                {r.position}
+                                            </span>
+                                        ) : (
+                                            <span className="text-slate-500 font-medium">{r.position}</span>
+                                        )}
+                                    </td>
+                                    <td className="px-6 py-3 text-slate-700 font-medium">{r.studentName}</td>
+                                    <td className="px-6 py-3 text-slate-600">{r.totalScore} / {r.totalMaxScore}</td>
+                                    <td className="px-6 py-3 text-slate-600">{r.meanPercentage}%</td>
+                                    <td className="px-6 py-3">
+                                        <span className={`inline-block text-xs font-medium px-2.5 py-1 rounded-full ${getGradeStyle(r.overallGrade)}`}>
+                                            {r.overallGrade || '—'}
+                                        </span>
+                                    </td>
+                                </tr>
+                            ))}
+                            </tbody>
+                        </table>
+                    </div>
                 </div>
             )}
 
             {!loading && examId && classSectionId && rows.length === 0 && !error && (
-                <p className="text-sm text-slate-400">No marks have been entered for this class yet.</p>
+                <EmptyState
+                    icon={TrendingUp}
+                    title="No results yet"
+                    description="No marks have been entered for this class and exam yet."
+                />
             )}
         </div>
     );

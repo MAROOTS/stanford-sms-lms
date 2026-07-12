@@ -4,6 +4,7 @@ import com.stanford.schoolbackend.core.admin.dto.CreatedUserResponse;
 import com.stanford.schoolbackend.core.auth.dto.RegisterRequest;
 import com.stanford.schoolbackend.core.enums.UserRole;
 import com.stanford.schoolbackend.core.exception.EmailAlreadyExistsException;
+import com.stanford.schoolbackend.core.exception.PasswordMismatchException;
 import com.stanford.schoolbackend.core.user.User;
 import com.stanford.schoolbackend.core.user.UserRepository;
 import com.stanford.schoolbackend.sms.student.Student;
@@ -24,6 +25,9 @@ public class AdminUserService {
     private final PasswordEncoder passwordEncoder;
 
     public CreatedUserResponse createUser(RegisterRequest request) {
+        if (!request.getPassword().equals(request.getConfirmPassword())) {
+            throw new PasswordMismatchException();
+        }
         if (userRepository.findByEmail(request.getEmail()).isPresent()) {
             throw new EmailAlreadyExistsException("Email already exists");
         }

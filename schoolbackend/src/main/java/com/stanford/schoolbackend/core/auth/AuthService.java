@@ -5,6 +5,7 @@ import com.stanford.schoolbackend.core.auth.dto.AuthResponse;
 import com.stanford.schoolbackend.core.auth.dto.RegisterRequest;
 import com.stanford.schoolbackend.core.enums.UserRole;
 import com.stanford.schoolbackend.core.exception.EmailAlreadyExistsException;
+import com.stanford.schoolbackend.core.exception.PasswordMismatchException;
 import com.stanford.schoolbackend.core.exception.ResourceNotFoundException;
 import com.stanford.schoolbackend.core.exception.UnsupportedRoleRegistrationException;
 import com.stanford.schoolbackend.core.user.User;
@@ -34,6 +35,9 @@ public class AuthService {
 
     @Transactional
     public AuthResponse register(RegisterRequest request) {
+        if (!request.getPassword().equals(request.getConfirmPassword())) {
+            throw new PasswordMismatchException();
+        }
         if (request.getRole() != UserRole.STUDENT){
             throw new UnsupportedRoleRegistrationException
                     (  "Registration for this role is not supported via this endpoint.");

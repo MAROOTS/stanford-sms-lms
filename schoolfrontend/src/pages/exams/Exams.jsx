@@ -1,7 +1,11 @@
 import { useEffect, useState, useCallback } from 'react';
-import { Plus } from 'lucide-react';
+import { Plus, ClipboardList } from 'lucide-react';
 import axiosClient from '../../api/axiosClient';
 import ExamModal from './ExamModal';
+import ConfirmDialog from '../../components/shared/ConfirmDialog';
+import EmptyState from '../../components/shared/EmptyState';
+import { TableSkeleton } from '../../components/shared/LoadingSkeleton';
+import { useToast } from '../../context/ToastContext';
 
 export default function Exams() {
     const [exams, setExams] = useState([]);
@@ -12,6 +16,9 @@ export default function Exams() {
     const [error, setError] = useState('');
     const [modalOpen, setModalOpen] = useState(false);
     const [editing, setEditing] = useState(null);
+    const [deleteTarget, setDeleteTarget] = useState(null);
+
+    const toast = useToast();
 
     const load = useCallback(async () => {
         setLoading(true); setError('');
@@ -32,13 +39,17 @@ export default function Exams() {
 
     useEffect(() => { load(); }, [load]);
 
-    const handleDelete = async (id) => {
-        if (!window.confirm('Delete this exam? Any marks recorded against it will remain but become orphaned.')) return;
+    const handleDelete = async () => {
+        if (!deleteTarget) return;
+        const id = deleteTarget.id;
+        const name = deleteTarget.name;
+        setDeleteTarget(null);
         try {
             await axiosClient.delete(`/exams/${id}`);
             setExams((prev) => prev.filter((e) => e.id !== id));
+            toast.success(`${name} has been deleted. Any marks will remain.`);
         } catch (err) {
-            alert(err.response?.data?.message || 'Could not delete this exam.');
+            toast.error(err.response?.data?.message || 'Could not delete this exam.');
         }
     };
 
@@ -55,40 +66,64 @@ export default function Exams() {
                 </button>
             </div>
 
-            <div className="bg-white rounded-xl border border-slate-200 overflow-hidden">
-                <table className="w-full text-sm">
-                    <thead>
-                    <tr className="border-b border-slate-100 text-left text-[11px] font-semibold tracking-wider text-slate-400">
-                        <th className="px-6 py-3">EXAM</th>
-                        <th className="px-6 py-3">TYPE</th>
-                        <th className="px-6 py-3">TERM</th>
-                        <th className="px-6 py-3">CLASSES</th>
-                        <th className="px-6 py-3">SUBJECTS</th>
-                        <th className="px-6 py-3 text-right">ACTIONS</th>
-                    </tr>
-                    </thead>
-                    <tbody>
-                    {loading && <tr><td colSpan={6} className="px-6 py-8 text-center text-slate-400">Loading exams...</td></tr>}
-                    {error && !loading && <tr><td colSpan={6} className="px-6 py-8 text-center text-red-500">{error}</td></tr>}
-                    {!loading && !error && exams.length === 0 && <tr><td colSpan={6} className="px-6 py-8 text-center text-slate-400">No exams yet.</td></tr>}
-                    {exams.map((e) => (
-                        <tr key={e.id} className="border-b border-slate-50 last:border-0 hover:bg-slate-50/50">
-                            <td className="px-6 py-4 font-medium text-slate-800">{e.name}</td>
-                            <td className="px-6 py-4">
-                                <span className="inline-block bg-slate-100 text-slate-600 text-xs font-medium px-2.5 py-1 rounded-full">{e.examType}</span>
-                            </td>
-                            <td className="px-6 py-4 text-slate-600">{e.termName}</td>
-                            <td className="px-6 py-4 text-slate-600">{e.classSections.length}</td>
-                            <td className="px-6 py-4 text-slate-600">{e.subjects.length}</td>
-                            <td className="px-6 py-4 text-right">
-                                <button onClick={() => { setEditing(e); setModalOpen(true); }} className="text-slate-500 hover:text-slate-700 font-medium mr-4">Edit</button>
-                                <button onClick={() => handleDelete(e.id)} className="text-red-500 hover:text-red-600 font-medium">Delete</button>
-                            </td>
-                        </tr>
-                    ))}
-                    </tbody>
-                </table>
-            </div>
+            {loading && <TableSkeleton columns={6} rows={4} />}
+
+            {error && !loading && (
+                <div className="bg-red-50 border border-red-100 rounded-xl p-6 text-center">
+                    <p className="text-red-600 text-sm mb-3">{error}</p>
+                    <button onClick={load} className="text-sm font-medium text-red-700 hover:text-red-800 underline">Try again</button>
+                </div>
+            )}
+
+            {!loading && !error && exams.length === 0 && (
+                <EmptyState
+                    icon={ClipboardList}
+                    title="No exams yet"
+                    description="Schedule your first exam by selecting a term, classes, and subjects."
+                    action={
+                        <button onClick={() => { setEditing(null); setModalOpen(true); }}
+                                className="flex items-center gap-1.5 bg-navy-900 hover:bg-navy-800 text-white text-sm font-medium px-4 py-2.5 rounded-lg transition-colors">
+                            <Plus size={16} /> Add exam
+                        </button>
+                    }
+                />
+            )}
+
+            {!loading && !error && exams.length > 0 && (
+                <div className="bg-white rounded-xl border border-slate-200 overflow-hidden">
+                    <div className="overflow-x-auto">
+                        <table className="w-full text-sm">
+                            <thead>
+                            <tr className="border-b border-slate-100 text-left text-[11px] font-semibold tracking-wider text-slate-400">
+                                <th className="px-6 py-3">EXAM</th>
+                                <th className="px-6 py-3">TYPE</th>
+                                <th className="px-6 py-3">TERM</th>
+                                <th className="px-6 py-3">CLASSES</th>
+                                <th className="px-6 py-3">SUBJECTS</th>
+                                <th className="px-6 py-3 text-right">ACTIONS</th>
+                            </tr>
+                            </thead>
+                            <tbody>
+                            {exams.map((e) => (
+                                <tr key={e.id} className="border-b border-slate-50 last:border-0 hover:bg-slate-50/50 transition-colors">
+                                    <td className="px-6 py-4 font-medium text-slate-800">{e.name}</td>
+                                    <td className="px-6 py-4">
+                                        <span className="inline-block bg-slate-100 text-slate-600 text-xs font-medium px-2.5 py-1 rounded-full">{e.examType}</span>
+                                    </td>
+                                    <td className="px-6 py-4 text-slate-600">{e.termName}</td>
+                                    <td className="px-6 py-4 text-slate-600">{e.classSections.length}</td>
+                                    <td className="px-6 py-4 text-slate-600">{e.subjects.length}</td>
+                                    <td className="px-6 py-4 text-right">
+                                        <button onClick={() => { setEditing(e); setModalOpen(true); }} className="text-slate-500 hover:text-slate-700 font-medium mr-4 transition-colors">Edit</button>
+                                        <button onClick={() => setDeleteTarget(e)} className="text-red-500 hover:text-red-600 font-medium transition-colors">Delete</button>
+                                    </td>
+                                </tr>
+                            ))}
+                            </tbody>
+                        </table>
+                    </div>
+                </div>
+            )}
 
             {modalOpen && (
                 <ExamModal
@@ -97,9 +132,19 @@ export default function Exams() {
                     classSections={classSections}
                     subjects={subjects}
                     onClose={() => setModalOpen(false)}
-                    onSaved={() => { setModalOpen(false); load(); }}
+                    onSaved={() => { setModalOpen(false); load(); toast.success('Exam saved successfully.'); }}
                 />
             )}
+
+            <ConfirmDialog
+                open={!!deleteTarget}
+                title="Delete exam"
+                message={`Are you sure you want to delete "${deleteTarget?.name}"? Any marks recorded against it will remain but become orphaned.`}
+                confirmLabel="Delete"
+                variant="danger"
+                onConfirm={handleDelete}
+                onCancel={() => setDeleteTarget(null)}
+            />
         </div>
     );
 }

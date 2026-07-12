@@ -1,6 +1,8 @@
 import { useEffect, useState } from 'react';
-import { FileDown } from 'lucide-react';
+import { FileDown, FileText } from 'lucide-react';
 import axiosClient from '../../api/axiosClient';
+import EmptyState from '../../components/shared/EmptyState';
+import { useToast } from '../../context/ToastContext';
 
 export default function ReportCards() {
     const [exams, setExams] = useState([]);
@@ -11,6 +13,8 @@ export default function ReportCards() {
     const [studentId, setStudentId] = useState('');
     const [generating, setGenerating] = useState(false);
     const [error, setError] = useState('');
+
+    const toast = useToast();
 
     useEffect(() => {
         axiosClient.get('/exams').then((res) => setExams(res.data)).catch(() => setError('Could not load exams'));
@@ -35,7 +39,10 @@ export default function ReportCards() {
         try {
             const response = await axiosClient.get(`/report-cards/student/${studentId}/exam/${examId}`, { responseType: 'blob' });
             const url = window.URL.createObjectURL(new Blob([response.data], { type: 'application/pdf' }));
-            window.open(url, '_blank');
+            const win = window.open(url, '_blank');
+            if (!win) {
+                toast.warning('Pop-up blocked. Please allow pop-ups for this site to view the report card.');
+            }
         } catch {
             setError('Could not generate this report card — the student may not have any marks recorded for this exam yet.');
         } finally { setGenerating(false); }
@@ -70,7 +77,7 @@ export default function ReportCards() {
 
                     <div>
                         <label className="block text-sm font-medium text-slate-700 mb-1.5">Student</label>
-                        <select value={studentId} onChange={(e) => setStudentId(e.target.value)} disabled={!classSectionId}
+                        <select value={studentId} onChange={(e) => setStudentId(e.target.value)} disabled={!classSectionId || students.length === 0}
                                 className="w-full px-3 py-2.5 rounded-lg bg-slate-50 border border-slate-200 text-sm focus:outline-none focus:ring-2 focus:ring-teal-accent disabled:opacity-50">
                             <option value="">Select student...</option>
                             {students.map((s) => <option key={s.id} value={s.id}>{s.firstName} {s.lastName}</option>)}
@@ -85,6 +92,16 @@ export default function ReportCards() {
                     </button>
                 </div>
             </div>
+
+            {!examId && (
+                <div className="mt-6">
+                    <EmptyState
+                        icon={FileText}
+                        title="Generate a report card"
+                        description="Select an exam, class, and student above to generate a PDF report card."
+                    />
+                </div>
+            )}
         </div>
     );
 }
