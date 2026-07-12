@@ -22,10 +22,10 @@ let toastId = 0;
 export function ToastProvider({ children }) {
     const [toasts, setToasts] = useState([]);
 
-    const addToast = useCallback((message, type = 'info', duration = 5000) => {
+    const addToast = useCallback((message, type = 'info', duration = 5000, undoAction = null) => {
         const id = ++toastId;
-        setToasts((prev) => [...prev, { id, message, type }]);
-        if (duration > 0) {
+        setToasts((prev) => [...prev, { id, message, type, undoAction }]);
+        if (duration > 0 && !undoAction) {
             setTimeout(() => {
                 setToasts((prev) => prev.filter((t) => t.id !== id));
             }, duration);
@@ -42,6 +42,8 @@ export function ToastProvider({ children }) {
         error: (msg) => addToast(msg, 'error', 7000),
         warning: (msg) => addToast(msg, 'warning'),
         info: (msg) => addToast(msg, 'info'),
+        // Undo toast (#13) — stays until user dismisses or clicks undo
+        undo: (msg, onUndo) => addToast(msg, 'info', 0, onUndo),
     };
 
     return (
@@ -58,6 +60,14 @@ export function ToastProvider({ children }) {
                         >
                             <Icon size={18} className="mt-0.5 shrink-0" />
                             <p className="text-sm font-medium flex-1">{t.message}</p>
+                            {t.undoAction && (
+                                <button
+                                    onClick={() => { t.undoAction(); removeToast(t.id); }}
+                                    className="shrink-0 text-sm font-semibold underline hover:no-underline"
+                                >
+                                    Undo
+                                </button>
+                            )}
                             <button
                                 onClick={() => removeToast(t.id)}
                                 className="shrink-0 opacity-60 hover:opacity-100"

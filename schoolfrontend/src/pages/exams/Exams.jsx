@@ -1,5 +1,5 @@
 import { useEffect, useState, useCallback } from 'react';
-import { Plus, ClipboardList } from 'lucide-react';
+import { Plus, ClipboardList, Eye, Pencil, Trash2 } from 'lucide-react';
 import axiosClient from '../../api/axiosClient';
 import ExamModal from './ExamModal';
 import ConfirmDialog from '../../components/shared/ConfirmDialog';
@@ -16,6 +16,7 @@ export default function Exams() {
     const [error, setError] = useState('');
     const [modalOpen, setModalOpen] = useState(false);
     const [editing, setEditing] = useState(null);
+    const [viewing, setViewing] = useState(null);
     const [deleteTarget, setDeleteTarget] = useState(null);
 
     const toast = useToast();
@@ -60,7 +61,7 @@ export default function Exams() {
                     <h1 className="text-2xl font-bold text-slate-900">Examinations</h1>
                     <p className="text-sm text-slate-500 mt-1">Exams scheduled per term, with the classes and subjects they cover.</p>
                 </div>
-                <button onClick={() => { setEditing(null); setModalOpen(true); }}
+                <button onClick={() => { setEditing(null); setViewing(null); setModalOpen(true); }}
                         className="flex items-center gap-1.5 bg-navy-900 hover:bg-navy-800 text-white text-sm font-medium px-4 py-2.5 rounded-lg transition-colors">
                     <Plus size={16} /> Add exam
                 </button>
@@ -113,9 +114,18 @@ export default function Exams() {
                                     <td className="px-6 py-4 text-slate-600">{e.termName}</td>
                                     <td className="px-6 py-4 text-slate-600">{e.classSections.length}</td>
                                     <td className="px-6 py-4 text-slate-600">{e.subjects.length}</td>
-                                    <td className="px-6 py-4 text-right">
-                                        <button onClick={() => { setEditing(e); setModalOpen(true); }} className="text-slate-500 hover:text-slate-700 font-medium mr-4 transition-colors">Edit</button>
-                                        <button onClick={() => setDeleteTarget(e)} className="text-red-500 hover:text-red-600 font-medium transition-colors">Delete</button>
+                                    <td className="px-6 py-4 text-right whitespace-nowrap">
+                                        <div className="flex items-center justify-end gap-1">
+                                            <button onClick={() => { setViewing(e); setEditing(null); setModalOpen(true); }} title="View" className="p-2 rounded-lg text-slate-400 hover:text-slate-600 hover:bg-surface-100 transition-colors">
+                                                <Eye size={16} />
+                                            </button>
+                                            <button onClick={() => { setEditing(e); setViewing(null); setModalOpen(true); }} title="Edit" className="p-2 rounded-lg text-slate-400 hover:text-slate-600 hover:bg-surface-100 transition-colors">
+                                                <Pencil size={16} />
+                                            </button>
+                                            <button onClick={() => setDeleteTarget(e)} title="Delete" className="p-2 rounded-lg text-red-400 hover:text-red-600 hover:bg-red-50 transition-colors">
+                                                <Trash2 size={16} />
+                                            </button>
+                                        </div>
                                     </td>
                                 </tr>
                             ))}
@@ -127,10 +137,11 @@ export default function Exams() {
 
             {modalOpen && (
                 <ExamModal
-                    initialData={editing}
+                    initialData={editing || viewing}
                     terms={terms}
                     classSections={classSections}
                     subjects={subjects}
+                    readOnly={!!viewing}
                     onClose={() => setModalOpen(false)}
                     onSaved={() => { setModalOpen(false); load(); toast.success('Exam saved successfully.'); }}
                 />
