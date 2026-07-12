@@ -9,4 +9,5 @@ import java.util.Optional;
 public interface ClassSessionRepository extends JpaRepository<ClassSession, Long> {
     List<ClassSession> findByClassSectionIdOrderBySessionDateDesc(Long classSectionId);
     Optional<ClassSession> findByClassSectionIdAndSessionDate(Long classSectionId, LocalDate sessionDate);
+    List<ClassSession> findBySessionDate(LocalDate date);
 }

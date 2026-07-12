@@ -13,6 +13,7 @@ import MarksEntry from "./pages/marks/MarksEntry";
 import Results from "./pages/results/Results";
 import ReportCards from "./pages/reportcards/ReportCards";
 import Attendance from './pages/attendance/Attendance';
+import Dashboard from "./pages/dashboard/Dashboard";
 
 export default function App() {
   return (
@@ -30,11 +31,11 @@ export default function App() {
           >
             <Route
               path="/dashboard"
-              element={<div>Dashboard overview — coming soon</div>}
+              element={<Dashboard/>}
             />
             <Route path="/classes" element={<Classes />} />
-              <Route path="/students" element={<Students />} />
-              <Route path="/teachers" element={<Teachers />} />
+            <Route path="/students" element={<Students />} />
+            <Route path="/teachers" element={<Teachers />} />
             <Route path="/subjects" element={<Subjects />} />
             <Route path="/terms" element={<Terms />} />
             <Route path="/exams" element={<Exams />} />

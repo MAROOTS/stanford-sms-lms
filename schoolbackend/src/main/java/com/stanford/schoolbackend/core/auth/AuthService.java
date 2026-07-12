@@ -72,6 +72,7 @@ public class AuthService {
                 .accessToken(token)
                 .userId(savedUser.getId())
                 .email(savedUser.getEmail())
+                .firstName(savedUser.getFirstName())
                 .role(savedUser.getRole().name())
                 .build();
     }
@@ -92,6 +93,7 @@ public class AuthService {
                 .accessToken(token)
                 .userId(user.getId())
                 .email(user.getEmail())
+                .firstName(user.getFirstName())
                 .role(user.getRole().name())
                 .build();
     }

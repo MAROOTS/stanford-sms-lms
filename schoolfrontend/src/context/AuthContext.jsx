@@ -11,7 +11,7 @@ export function AuthProvider({ children }) {
 
   const login = async (email, password, remember = false) => {
     const { data } = await axiosClient.post('/auth/login', { email, password });
-    const userData = { userId: data.userId, email: data.email, role: data.role };
+    const userData = { userId: data.userId, firstName: data.firstName, email: data.email, role: data.role };
     const storage = remember ? localStorage : sessionStorage;
     storage.setItem('accessToken', data.accessToken);
     storage.setItem('user', JSON.stringify(userData));

@@ -112,4 +112,4 @@ public class ReportCardService {
     }
 }
 
-// TODO when a teacher logs in, he or she can see only his or her students
+// TODO when a teacher logs in, he or she can see only his or her students, only see things that affect his or her student
