@@ -1,13 +1,27 @@
-import { createContext, useContext, useState } from "react";
+import { createContext, useContext, useState, useEffect } from "react";
 import axiosClient from "../api/axiosClient";
 
 const AuthContext = createContext(null);
 
 export function AuthProvider({ children }) {
-  const [user, setUser] = useState(() => {
-    const stored = localStorage.getItem("user") || sessionStorage.getItem("user");
-    return stored ? JSON.parse(stored) : null;
-  });
+  const [user, setUser] = useState(null);
+  const [isLoading, setIsLoading] = useState(true);
+
+  // Hydrate from storage on mount (#7 - fixes auth loading flash)
+  useEffect(() => {
+    try {
+      const stored = localStorage.getItem("user") || sessionStorage.getItem("user");
+      if (stored) {
+        setUser(JSON.parse(stored));
+      }
+    } catch {
+      // Corrupted storage — clear it
+      localStorage.removeItem('user');
+      sessionStorage.removeItem('user');
+    } finally {
+      setIsLoading(false);
+    }
+  }, []);
 
   const login = async (email, password, remember = false) => {
     const { data } = await axiosClient.post('/auth/login', { email, password });
@@ -28,7 +42,7 @@ export function AuthProvider({ children }) {
   };
 
   return (
-    <AuthContext.Provider value={{ user, login, logout }}>
+    <AuthContext.Provider value={{ user, isLoading, login, logout }}>
       {children}
     </AuthContext.Provider>
   );

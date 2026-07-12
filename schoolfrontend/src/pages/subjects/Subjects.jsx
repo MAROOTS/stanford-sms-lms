@@ -1,5 +1,5 @@
 import { useEffect, useState, useCallback } from 'react';
-import { Plus, BookOpen } from 'lucide-react';
+import { Plus, BookOpen, Eye, Pencil, Trash2 } from 'lucide-react';
 import axiosClient from '../../api/axiosClient';
 import SubjectModal from './SubjectModal';
 import ConfirmDialog from '../../components/shared/ConfirmDialog';
@@ -13,6 +13,7 @@ export default function Subjects() {
     const [error, setError] = useState('');
     const [modalOpen, setModalOpen] = useState(false);
     const [editing, setEditing] = useState(null);
+    const [viewing, setViewing] = useState(null);
     const [deleteTarget, setDeleteTarget] = useState(null);
 
     const toast = useToast();
@@ -49,7 +50,7 @@ export default function Subjects() {
                     <h1 className="text-2xl font-bold text-slate-900">Subjects</h1>
                     <p className="text-sm text-slate-500 mt-1">Subjects taught across your school.</p>
                 </div>
-                <button onClick={() => { setEditing(null); setModalOpen(true); }}
+                <button onClick={() => { setEditing(null); setViewing(null); setModalOpen(true); }}
                         className="flex items-center gap-1.5 bg-navy-900 hover:bg-navy-800 text-white text-sm font-medium px-4 py-2.5 rounded-lg transition-colors">
                     <Plus size={16} /> Add subject
                 </button>
@@ -94,9 +95,18 @@ export default function Subjects() {
                                 <tr key={s.id} className="border-b border-slate-50 last:border-0 hover:bg-slate-50/50 transition-colors">
                                     <td className="px-6 py-4 font-medium text-slate-800">{s.name}</td>
                                     <td className="px-6 py-4 text-slate-600">{s.code || '—'}</td>
-                                    <td className="px-6 py-4 text-right">
-                                        <button onClick={() => { setEditing(s); setModalOpen(true); }} className="text-slate-500 hover:text-slate-700 font-medium mr-4 transition-colors">Edit</button>
-                                        <button onClick={() => setDeleteTarget(s)} className="text-red-500 hover:text-red-600 font-medium transition-colors">Delete</button>
+                                    <td className="px-6 py-4 text-right whitespace-nowrap">
+                                        <div className="flex items-center justify-end gap-1">
+                                            <button onClick={() => { setViewing(s); setEditing(null); setModalOpen(true); }} title="View" className="p-2 rounded-lg text-slate-400 hover:text-slate-600 hover:bg-surface-100 transition-colors">
+                                                <Eye size={16} />
+                                            </button>
+                                            <button onClick={() => { setEditing(s); setViewing(null); setModalOpen(true); }} title="Edit" className="p-2 rounded-lg text-slate-400 hover:text-slate-600 hover:bg-surface-100 transition-colors">
+                                                <Pencil size={16} />
+                                            </button>
+                                            <button onClick={() => setDeleteTarget(s)} title="Delete" className="p-2 rounded-lg text-red-400 hover:text-red-600 hover:bg-red-50 transition-colors">
+                                                <Trash2 size={16} />
+                                            </button>
+                                        </div>
                                     </td>
                                 </tr>
                             ))}
@@ -106,7 +116,7 @@ export default function Subjects() {
                 </div>
             )}
 
-            {modalOpen && <SubjectModal initialData={editing} onClose={() => setModalOpen(false)} onSaved={() => { setModalOpen(false); load(); toast.success('Subject saved successfully.'); }} />}
+            {modalOpen && <SubjectModal initialData={editing || viewing} readOnly={!!viewing} onClose={() => setModalOpen(false)} onSaved={() => { setModalOpen(false); load(); toast.success('Subject saved successfully.'); }} />}
 
             <ConfirmDialog
                 open={!!deleteTarget}

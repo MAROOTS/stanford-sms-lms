@@ -1,5 +1,5 @@
 import { useEffect, useState, useCallback } from 'react';
-import { Plus, Users } from 'lucide-react';
+import { Plus, Users, Eye, Pencil, Trash2 } from 'lucide-react';
 import axiosClient from '../../api/axiosClient';
 import StudentModal from './StudentModal';
 import ConfirmDialog from '../../components/shared/ConfirmDialog';
@@ -14,6 +14,7 @@ export default function Students() {
     const [error, setError] = useState('');
     const [modalOpen, setModalOpen] = useState(false);
     const [editingStudent, setEditingStudent] = useState(null);
+    const [viewingStudent, setViewingStudent] = useState(null);
     const [deleteTarget, setDeleteTarget] = useState(null);
 
     const toast = useToast();
@@ -51,8 +52,9 @@ export default function Students() {
         }
     };
 
-    const openAddModal = () => { setEditingStudent(null); setModalOpen(true); };
-    const openEditModal = (student) => { setEditingStudent(student); setModalOpen(true); };
+    const openAddModal = () => { setEditingStudent(null); setViewingStudent(null); setModalOpen(true); };
+    const openEditModal = (student) => { setEditingStudent(student); setViewingStudent(null); setModalOpen(true); };
+    const openViewModal = (student) => { setViewingStudent(student); setEditingStudent(null); setModalOpen(true); };
     const handleSaved = () => { setModalOpen(false); loadAll(); toast.success('Student saved successfully.'); };
 
     return (
@@ -122,9 +124,18 @@ export default function Students() {
                                             ? <span className="inline-block bg-teal-accent/10 text-teal-700 text-xs font-medium px-2.5 py-1 rounded-full">{s.classSectionName}</span>
                                             : <span className="text-slate-400 text-xs">Unassigned</span>}
                                     </td>
-                                    <td className="px-6 py-4 text-right">
-                                        <button onClick={() => openEditModal(s)} className="text-slate-500 hover:text-slate-700 font-medium mr-4 transition-colors">Edit</button>
-                                        <button onClick={() => setDeleteTarget(s)} className="text-red-500 hover:text-red-600 font-medium transition-colors">Delete</button>
+                                    <td className="px-6 py-4 text-right whitespace-nowrap">
+                                        <div className="flex items-center justify-end gap-1">
+                                            <button onClick={() => openViewModal(s)} title="View" className="p-2 rounded-lg text-slate-400 hover:text-slate-600 hover:bg-surface-100 transition-colors">
+                                                <Eye size={16} />
+                                            </button>
+                                            <button onClick={() => openEditModal(s)} title="Edit" className="p-2 rounded-lg text-slate-400 hover:text-slate-600 hover:bg-surface-100 transition-colors">
+                                                <Pencil size={16} />
+                                            </button>
+                                            <button onClick={() => setDeleteTarget(s)} title="Delete" className="p-2 rounded-lg text-red-400 hover:text-red-600 hover:bg-red-50 transition-colors">
+                                                <Trash2 size={16} />
+                                            </button>
+                                        </div>
                                     </td>
                                 </tr>
                             ))}
@@ -136,8 +147,9 @@ export default function Students() {
 
             {modalOpen && (
                 <StudentModal
-                    initialData={editingStudent}
+                    initialData={editingStudent || viewingStudent}
                     classSections={classSections}
+                    readOnly={!!viewingStudent}
                     onClose={() => setModalOpen(false)}
                     onSaved={handleSaved}
                 />

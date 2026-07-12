@@ -1,6 +1,7 @@
 import { BrowserRouter, Routes, Route, Navigate } from "react-router-dom";
 import { AuthProvider } from "./context/AuthContext";
 import { ToastProvider } from "./context/ToastContext";
+import { ThemeProvider } from "./context/ThemeContext";
 import { SidebarProvider } from "./context/SidebarContext";
 import ProtectedRoute from "./routes/ProtectedRoute";
 import DashboardLayout from "./components/layout/DashboardLayout";
@@ -18,9 +19,11 @@ import Attendance from './pages/attendance/Attendance';
 import Dashboard from "./pages/dashboard/Dashboard";
 import FeeCollection from './pages/fees/FeeCollection';
 import FeeItems from './pages/fees/FeeItems';
+import NotFound from './pages/NotFound';
 
 export default function App() {
   return (
+    <ThemeProvider>
     <ToastProvider>
       <AuthProvider>
         <SidebarProvider>
@@ -51,10 +54,12 @@ export default function App() {
               </Route>
 
               <Route path="/" element={<Navigate to="/dashboard" replace />} />
+              <Route path="*" element={<NotFound />} />
             </Routes>
           </BrowserRouter>
         </SidebarProvider>
       </AuthProvider>
     </ToastProvider>
+    </ThemeProvider>
   );
 }

@@ -1,5 +1,5 @@
 import { useEffect, useState, useCallback } from 'react';
-import { Plus, Calendar } from 'lucide-react';
+import { Plus, Calendar, Eye, Pencil, Trash2 } from 'lucide-react';
 import axiosClient from '../../api/axiosClient';
 import TermModal from './TermModal';
 import ConfirmDialog from '../../components/shared/ConfirmDialog';
@@ -13,6 +13,7 @@ export default function Terms() {
     const [error, setError] = useState('');
     const [modalOpen, setModalOpen] = useState(false);
     const [editing, setEditing] = useState(null);
+    const [viewing, setViewing] = useState(null);
     const [deleteTarget, setDeleteTarget] = useState(null);
 
     const toast = useToast();
@@ -49,7 +50,7 @@ export default function Terms() {
                     <h1 className="text-2xl font-bold text-slate-900">Terms</h1>
                     <p className="text-sm text-slate-500 mt-1">Academic terms for the school calendar.</p>
                 </div>
-                <button onClick={() => { setEditing(null); setModalOpen(true); }}
+                <button onClick={() => { setEditing(null); setViewing(null); setModalOpen(true); }}
                         className="flex items-center gap-1.5 bg-navy-900 hover:bg-navy-800 text-white text-sm font-medium px-4 py-2.5 rounded-lg transition-colors">
                     <Plus size={16} /> Add term
                 </button>
@@ -100,9 +101,18 @@ export default function Terms() {
                                             ? <span className="inline-block bg-teal-accent/15 text-teal-700 text-xs font-medium px-2.5 py-1 rounded-full">Current</span>
                                             : <span className="text-slate-400 text-xs">—</span>}
                                     </td>
-                                    <td className="px-6 py-4 text-right">
-                                        <button onClick={() => { setEditing(t); setModalOpen(true); }} className="text-slate-500 hover:text-slate-700 font-medium mr-4 transition-colors">Edit</button>
-                                        <button onClick={() => setDeleteTarget(t)} className="text-red-500 hover:text-red-600 font-medium transition-colors">Delete</button>
+                                    <td className="px-6 py-4 text-right whitespace-nowrap">
+                                        <div className="flex items-center justify-end gap-1">
+                                            <button onClick={() => { setViewing(t); setEditing(null); setModalOpen(true); }} title="View" className="p-2 rounded-lg text-slate-400 hover:text-slate-600 hover:bg-surface-100 transition-colors">
+                                                <Eye size={16} />
+                                            </button>
+                                            <button onClick={() => { setEditing(t); setViewing(null); setModalOpen(true); }} title="Edit" className="p-2 rounded-lg text-slate-400 hover:text-slate-600 hover:bg-surface-100 transition-colors">
+                                                <Pencil size={16} />
+                                            </button>
+                                            <button onClick={() => setDeleteTarget(t)} title="Delete" className="p-2 rounded-lg text-red-400 hover:text-red-600 hover:bg-red-50 transition-colors">
+                                                <Trash2 size={16} />
+                                            </button>
+                                        </div>
                                     </td>
                                 </tr>
                             ))}
@@ -112,7 +122,7 @@ export default function Terms() {
                 </div>
             )}
 
-            {modalOpen && <TermModal initialData={editing} onClose={() => setModalOpen(false)} onSaved={() => { setModalOpen(false); load(); toast.success('Term saved successfully.'); }} />}
+            {modalOpen && <TermModal initialData={editing || viewing} readOnly={!!viewing} onClose={() => setModalOpen(false)} onSaved={() => { setModalOpen(false); load(); toast.success('Term saved successfully.'); }} />}
 
             <ConfirmDialog
                 open={!!deleteTarget}

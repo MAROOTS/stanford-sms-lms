@@ -1,5 +1,5 @@
 import { useEffect, useState, useCallback } from 'react';
-import { Plus, Layers3 } from 'lucide-react';
+import { Plus, Layers3, Eye, Pencil, Trash2 } from 'lucide-react';
 import axiosClient from '../../api/axiosClient';
 import ClassSectionModal from './ClassSectionModal';
 import ConfirmDialog from '../../components/shared/ConfirmDialog';
@@ -15,6 +15,7 @@ export default function Classes() {
   const [error, setError] = useState('');
   const [modalOpen, setModalOpen] = useState(false);
   const [editingSection, setEditingSection] = useState(null);
+  const [viewingSection, setViewingSection] = useState(null);
   const [deleteTarget, setDeleteTarget] = useState(null);
 
   const toast = useToast();
@@ -54,8 +55,9 @@ export default function Classes() {
     }
   };
 
-  const openAddModal = () => { setEditingSection(null); setModalOpen(true); };
-  const openEditModal = (section) => { setEditingSection(section); setModalOpen(true); };
+  const openAddModal = () => { setEditingSection(null); setViewingSection(null); setModalOpen(true); };
+  const openEditModal = (section) => { setEditingSection(section); setViewingSection(null); setModalOpen(true); };
+  const openViewModal = (section) => { setViewingSection(section); setEditingSection(null); setModalOpen(true); };
   const handleSaved = () => { setModalOpen(false); loadAll(); toast.success('Class saved successfully.'); };
 
   return (
@@ -118,9 +120,18 @@ export default function Classes() {
                               : <span className="text-slate-400">—</span>}
                         </td>
                         <td className="px-6 py-4 text-slate-600">{s.homeroomTeacherName || '—'}</td>
-                        <td className="px-6 py-4 text-right">
-                          <button onClick={() => openEditModal(s)} className="text-slate-500 hover:text-slate-700 font-medium mr-4 transition-colors">Edit</button>
-                          <button onClick={() => setDeleteTarget(s)} className="text-red-500 hover:text-red-600 font-medium transition-colors">Delete</button>
+                        <td className="px-6 py-4 text-right whitespace-nowrap">
+                          <div className="flex items-center justify-end gap-1">
+                            <button onClick={() => openViewModal(s)} title="View" className="p-2 rounded-lg text-slate-400 hover:text-slate-600 hover:bg-surface-100 transition-colors">
+                              <Eye size={16} />
+                            </button>
+                            <button onClick={() => openEditModal(s)} title="Edit" className="p-2 rounded-lg text-slate-400 hover:text-slate-600 hover:bg-surface-100 transition-colors">
+                              <Pencil size={16} />
+                            </button>
+                            <button onClick={() => setDeleteTarget(s)} title="Delete" className="p-2 rounded-lg text-red-400 hover:text-red-600 hover:bg-red-50 transition-colors">
+                              <Trash2 size={16} />
+                            </button>
+                          </div>
                         </td>
                       </tr>
                   ))}
@@ -132,9 +143,10 @@ export default function Classes() {
 
         {modalOpen && (
             <ClassSectionModal
-                initialData={editingSection}
+                initialData={editingSection || viewingSection}
                 gradeLevels={gradeLevels}
                 teachers={teachers}
+                readOnly={!!viewingSection}
                 onClose={() => setModalOpen(false)}
                 onSaved={handleSaved}
             />

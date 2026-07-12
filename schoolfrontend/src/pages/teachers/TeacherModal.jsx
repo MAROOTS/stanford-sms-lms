@@ -10,8 +10,9 @@ const PASSWORD_RULES = [
     { key: 'special', label: 'One special character', test: (p) => /[!@#$%^&*()_+\-=\[\]{};':"\\|,.<>\/?`~]/.test(p) },
 ];
 
-export default function TeacherModal({ initialData, onClose, onSaved }) {
+export default function TeacherModal({ initialData, onClose, onSaved, readOnly }) {
     const isEdit = Boolean(initialData);
+    const isView = readOnly && isEdit;
 
     const [firstName, setFirstName] = useState(initialData?.firstName || '');
     const [lastName, setLastName] = useState(initialData?.lastName || '');
@@ -96,7 +97,7 @@ export default function TeacherModal({ initialData, onClose, onSaved }) {
         <div className="fixed inset-0 bg-slate-900/40 flex items-center justify-center z-50 px-4" onClick={onClose}>
             <div className="bg-white rounded-xl w-full max-w-md p-6 shadow-xl max-h-[90vh] overflow-y-auto animate-fade-in" onClick={(e) => e.stopPropagation()}>
                 <div className="flex items-center justify-between mb-5">
-                    <h2 className="text-lg font-bold text-slate-900">{isEdit ? 'Edit teacher' : 'Add teacher'}</h2>
+                    <h2 className="text-lg font-bold text-slate-900">{isView ? 'View teacher' : isEdit ? 'Edit teacher' : 'Add teacher'}</h2>
                     <button onClick={onClose} className="text-slate-400 hover:text-slate-600">
                         <X size={20} />
                     </button>
@@ -109,6 +110,7 @@ export default function TeacherModal({ initialData, onClose, onSaved }) {
                             <input
                                 value={firstName}
                                 onChange={(e) => { setFirstName(e.target.value); setFieldErrors((p) => ({ ...p, firstName: undefined })); }}
+                                disabled={isView}
                                 className={inputClass('firstName')}
                             />
                             {fieldErrors.firstName && <p className="text-xs text-red-600 mt-1">{fieldErrors.firstName}</p>}
@@ -118,6 +120,7 @@ export default function TeacherModal({ initialData, onClose, onSaved }) {
                             <input
                                 value={lastName}
                                 onChange={(e) => { setLastName(e.target.value); setFieldErrors((p) => ({ ...p, lastName: undefined })); }}
+                                disabled={isView}
                                 className={inputClass('lastName')}
                             />
                             {fieldErrors.lastName && <p className="text-xs text-red-600 mt-1">{fieldErrors.lastName}</p>}
@@ -130,12 +133,13 @@ export default function TeacherModal({ initialData, onClose, onSaved }) {
                             type="email"
                             value={email}
                             onChange={(e) => { setEmail(e.target.value); setFieldErrors((p) => ({ ...p, email: undefined })); }}
+                            disabled={isView}
                             className={inputClass('email')}
                         />
                         {fieldErrors.email && <p className="text-xs text-red-600 mt-1">{fieldErrors.email}</p>}
                     </div>
 
-                    {!isEdit && (
+                    {!isEdit && !isView && (
                         <>
                             <div>
                                 <label className="block text-sm font-medium text-slate-700 mb-1.5">Password</label>
@@ -189,12 +193,14 @@ export default function TeacherModal({ initialData, onClose, onSaved }) {
                     <div className="flex gap-3 pt-2">
                         <button type="button" onClick={onClose}
                                 className="flex-1 py-2.5 rounded-lg border border-slate-200 text-sm font-medium text-slate-600 hover:bg-slate-50">
-                            Cancel
+                            {isView ? 'Close' : 'Cancel'}
                         </button>
-                        <button type="submit" disabled={saving}
-                                className="flex-1 py-2.5 rounded-lg bg-navy-900 hover:bg-navy-800 text-white text-sm font-medium disabled:opacity-60">
-                            {saving ? 'Saving...' : isEdit ? 'Save changes' : 'Add teacher'}
-                        </button>
+                        {!isView && (
+                            <button type="submit" disabled={saving}
+                                    className="flex-1 py-2.5 rounded-lg bg-navy-900 hover:bg-navy-800 text-white text-sm font-medium disabled:opacity-60">
+                                {saving ? 'Saving...' : isEdit ? 'Save changes' : 'Add teacher'}
+                            </button>
+                        )}
                     </div>
                 </form>
             </div>
