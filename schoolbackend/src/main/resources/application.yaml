@@ -20,3 +20,7 @@ app:
   jwt:
     secret: ${JWT_SECRET}
     expiration-ms: ${JWT_EXPIRATION_MS}
+
+
+library:
+  default-loan-days: 14
