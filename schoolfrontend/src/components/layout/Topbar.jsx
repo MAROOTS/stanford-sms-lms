@@ -1,5 +1,5 @@
 import { useState, useRef, useEffect } from "react";
-import { ChevronDown, Menu, LogOut, User, Settings, Sun, Moon } from "lucide-react";
+import { ChevronDown, Menu, LogOut, Sun, Moon } from "lucide-react";
 import { useAuth } from "../../context/AuthContext";
 import { useSidebar } from "../../context/SidebarContext";
 import { useTheme } from "../../context/ThemeContext";
@@ -76,20 +76,6 @@ export default function Topbar() {
                 <p className="text-sm font-semibold text-slate-800">{displayName}</p>
                 <p className="text-xs text-slate-500 truncate">{user?.email}</p>
               </div>
-              <button
-                onClick={() => setProfileOpen(false)}
-                className="w-full flex items-center gap-3 px-3 py-2.5 text-sm text-slate-600 hover:bg-surface-50 transition-colors"
-              >
-                <User size={16} className="text-slate-400" />
-                Profile
-              </button>
-              <button
-                onClick={() => setProfileOpen(false)}
-                className="w-full flex items-center gap-3 px-3 py-2.5 text-sm text-slate-600 hover:bg-surface-50 transition-colors"
-              >
-                <Settings size={16} className="text-slate-400" />
-                Settings
-              </button>
               <button
                 onClick={toggleTheme}
                 className="w-full flex items-center gap-3 px-3 py-2.5 text-sm text-slate-600 hover:bg-surface-50 transition-colors"

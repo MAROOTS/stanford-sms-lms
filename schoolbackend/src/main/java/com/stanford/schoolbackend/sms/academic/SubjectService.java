@@ -18,6 +18,9 @@ public class SubjectService {
         Subject subject = Subject.builder()
                 .name(request.getName())
                 .code(request.getCode())
+                .description(request.getDescription())
+                .category(request.getCategory())
+                .credits(request.getCredits())
                 .build();
         return toResponse(subjectRepository.save(subject));
     }
@@ -26,6 +29,9 @@ public class SubjectService {
         Subject subject = getOrThrow(id);
         subject.setName(request.getName());
         subject.setCode(request.getCode());
+        subject.setDescription(request.getDescription());
+        subject.setCategory(request.getCategory());
+        subject.setCredits(request.getCredits());
         return toResponse(subjectRepository.save(subject));
     }
 
@@ -43,6 +49,7 @@ public class SubjectService {
     }
 
     private SubjectResponse toResponse(Subject s) {
-        return SubjectResponse.builder().id(s.getId()).name(s.getName()).code(s.getCode()).build();
+        return SubjectResponse.builder().id(s.getId()).name(s.getName()).code(s.getCode())
+                .description(s.getDescription()).category(s.getCategory()).credits(s.getCredits()).build();
     }
 }

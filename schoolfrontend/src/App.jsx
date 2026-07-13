@@ -19,6 +19,10 @@ import Attendance from './pages/attendance/Attendance';
 import Dashboard from "./pages/dashboard/Dashboard";
 import FeeCollection from './pages/fees/FeeCollection';
 import FeeItems from './pages/fees/FeeItems';
+import Uploads from './pages/uploads/Uploads';
+import Courses from './pages/courses/Courses';
+import Books from './pages/library/Books';
+import Announcements from './pages/announcements/Announcements';
 import NotFound from './pages/NotFound';
 
 export default function App() {
@@ -51,6 +55,10 @@ export default function App() {
                 <Route path="/attendance" element={<Attendance />} />
                 <Route path="/fees" element={<FeeCollection />} />
                 <Route path="/fee-items" element={<FeeItems />} />
+                <Route path="/uploads" element={<Uploads />} />
+                <Route path="/courses" element={<Courses />} />
+                <Route path="/library" element={<Books />} />
+                <Route path="/announcements" element={<Announcements />} />
               </Route>
 
               <Route path="/" element={<Navigate to="/dashboard" replace />} />

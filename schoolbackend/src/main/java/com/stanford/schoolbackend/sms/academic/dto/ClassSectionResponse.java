@@ -13,4 +13,8 @@ public class ClassSectionResponse {
     private String gradeLevelStage;
     private Long homeroomTeacherId;
     private String homeroomTeacherName;
+    private Integer capacity;
+    private String roomNumber;
+    private String academicYear;
+    private String description;
 }

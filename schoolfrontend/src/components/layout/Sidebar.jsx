@@ -14,6 +14,10 @@ import {
   ClipboardList,
   Calendar,
   Sparkles,
+  Upload,
+  Shield,
+  Library,
+  Megaphone,
 } from "lucide-react";
 import { useSidebar } from "../../context/SidebarContext";
 
@@ -40,6 +44,25 @@ const navSections = [
     label: 'Operations',
     items: [
       { to: '/fees', icon: CreditCard, label: 'Fee Collection' },
+    ],
+  },
+  {
+    label: 'LMS',
+    items: [
+      { to: '/courses', icon: BookOpen, label: 'Courses' },
+      { to: '/announcements', icon: Megaphone, label: 'Announcements' },
+    ],
+  },
+  {
+    label: 'Library',
+    items: [
+      { to: '/library', icon: Library, label: 'Books' },
+    ],
+  },
+  {
+    label: 'Administration',
+    items: [
+      { to: '/uploads', icon: Upload, label: 'Uploads' },
     ],
   },
 ];

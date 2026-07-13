@@ -13,4 +13,8 @@ public class ClassSectionRequest {
     private Long gradeLevelId;
 
     private Long homeroomTeacherId; // optional
+    private Integer capacity;
+    private String roomNumber;
+    private String academicYear;
+    private String description;
 }

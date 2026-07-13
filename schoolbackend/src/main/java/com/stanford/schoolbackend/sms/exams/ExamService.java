@@ -33,6 +33,12 @@ public class ExamService {
                 .term(term)
                 .classSections(resolveClassSections(request.getClassSectionIds()))
                 .subjects(resolveSubjects(request.getSubjectIds()))
+                .startDate(request.getStartDate())
+                .endDate(request.getEndDate())
+                .maxScore(request.getMaxScore())
+                .weight(request.getWeight())
+                .description(request.getDescription())
+                .status(request.getStatus())
                 .build();
 
         return toResponse(examRepository.save(exam));
@@ -49,6 +55,12 @@ public class ExamService {
         exam.setTerm(term);
         exam.setClassSections(resolveClassSections(request.getClassSectionIds()));
         exam.setSubjects(resolveSubjects(request.getSubjectIds()));
+        exam.setStartDate(request.getStartDate());
+        exam.setEndDate(request.getEndDate());
+        exam.setMaxScore(request.getMaxScore());
+        exam.setWeight(request.getWeight());
+        exam.setDescription(request.getDescription());
+        exam.setStatus(request.getStatus());
 
         return toResponse(examRepository.save(exam));
     }
@@ -96,6 +108,12 @@ public class ExamService {
                 .classSections(e.getClassSections().stream()
                         .map(cs -> ExamResponse.NamedItem.builder().id(cs.getId()).name(cs.getName()).build())
                         .toList())
+                .startDate(e.getStartDate())
+                .endDate(e.getEndDate())
+                .maxScore(e.getMaxScore())
+                .weight(e.getWeight())
+                .description(e.getDescription())
+                .status(e.getStatus())
                 .subjects(e.getSubjects().stream()
                         .map(s -> ExamResponse.NamedItem.builder().id(s.getId()).name(s.getName()).build())
                         .toList())

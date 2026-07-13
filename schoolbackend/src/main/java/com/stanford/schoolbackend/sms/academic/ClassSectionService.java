@@ -32,6 +32,10 @@ public class ClassSectionService {
                 .name(request.getName())
                 .gradeLevel(gradeLevel)
                 .homeroomTeacher(homeroomTeacher)
+                .capacity(request.getCapacity())
+                .roomNumber(request.getRoomNumber())
+                .academicYear(request.getAcademicYear())
+                .description(request.getDescription())
                 .build();
 
         return toResponse(classSectionRepository.save(section));
@@ -64,6 +68,10 @@ public class ClassSectionService {
         section.setName(request.getName());
         section.setGradeLevel(gradeLevel);
         section.setHomeroomTeacher(homeroomTeacher);
+        section.setCapacity(request.getCapacity());
+        section.setRoomNumber(request.getRoomNumber());
+        section.setAcademicYear(request.getAcademicYear());
+        section.setDescription(request.getDescription());
 
         return toResponse(classSectionRepository.save(section));
     }
@@ -85,6 +93,10 @@ public class ClassSectionService {
                 .homeroomTeacherName(s.getHomeroomTeacher() != null
                         ? s.getHomeroomTeacher().getFirstName() + " " + s.getHomeroomTeacher().getLastName()
                         : null)
+                .capacity(s.getCapacity())
+                .roomNumber(s.getRoomNumber())
+                .academicYear(s.getAcademicYear())
+                .description(s.getDescription())
                 .build();
     }
 }

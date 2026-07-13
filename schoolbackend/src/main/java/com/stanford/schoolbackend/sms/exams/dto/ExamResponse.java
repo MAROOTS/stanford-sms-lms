@@ -3,6 +3,7 @@ package com.stanford.schoolbackend.sms.exams.dto;
 import lombok.Builder;
 import lombok.Data;
 
+import java.time.LocalDate;
 import java.util.List;
 
 @Data
@@ -13,6 +14,12 @@ public class ExamResponse {
     private String examType;
     private Long termId;
     private String termName;
+    private LocalDate startDate;
+    private LocalDate endDate;
+    private Double maxScore;
+    private Double weight;
+    private String description;
+    private String status;
     private List<NamedItem> classSections;
     private List<NamedItem> subjects;
 
