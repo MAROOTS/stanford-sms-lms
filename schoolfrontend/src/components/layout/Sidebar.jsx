@@ -14,6 +14,8 @@ import {
   ClipboardList,
   Calendar,
   Sparkles,
+  Library,
+
 } from "lucide-react";
 import { useSidebar } from "../../context/SidebarContext";
 
@@ -40,6 +42,7 @@ const navSections = [
     label: 'Operations',
     items: [
       { to: '/fees', icon: CreditCard, label: 'Fee Collection' },
+      { to: '/library', icon: Library, label: 'Library' },
     ],
   },
 ];

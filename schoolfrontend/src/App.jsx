@@ -20,6 +20,8 @@ import Dashboard from "./pages/dashboard/Dashboard";
 import FeeCollection from './pages/fees/FeeCollection';
 import FeeItems from './pages/fees/FeeItems';
 import NotFound from './pages/NotFound';
+import Library from './pages/library/Library';
+import Loans from './pages/library/Loans';
 
 export default function App() {
   return (
@@ -51,6 +53,8 @@ export default function App() {
                 <Route path="/attendance" element={<Attendance />} />
                 <Route path="/fees" element={<FeeCollection />} />
                 <Route path="/fee-items" element={<FeeItems />} />
+                <Route path="/library" element={<Library />} />
+                <Route path="/library/loans" element={<Loans />} />
               </Route>
 
               <Route path="/" element={<Navigate to="/dashboard" replace />} />
