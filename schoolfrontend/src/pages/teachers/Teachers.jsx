@@ -5,7 +5,7 @@ import TeacherModal from './TeacherModal';
 import ConfirmDialog from '../../components/shared/ConfirmDialog';
 import EmptyState from '../../components/shared/EmptyState';
 import { TableSkeleton } from '../../components/shared/LoadingSkeleton';
-import { useToast } from '../../context/ToastContext';
+import { useToast } from '../../context/useToast';
 
 export default function Teachers() {
     const [teachers, setTeachers] = useState([]);

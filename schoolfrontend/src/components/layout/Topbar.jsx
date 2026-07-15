@@ -1,8 +1,8 @@
 import { useState, useRef, useEffect } from "react";
 import { ChevronDown, Menu, LogOut, User, Settings, Sun, Moon } from "lucide-react";
 import { useAuth } from "../../context/AuthContext";
-import { useSidebar } from "../../context/SidebarContext";
-import { useTheme } from "../../context/ThemeContext";
+import { useSidebar } from "../../context/useSidebar";
+import { useTheme } from '../../context/useTheme';
 import GlobalSearch from "../shared/GlobalSearch";
 import NotificationDropdown from "../shared/NotificationDropdown";
 

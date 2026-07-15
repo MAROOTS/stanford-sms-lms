@@ -2,7 +2,7 @@ import { useEffect, useState } from 'react';
 import { FileDown, FileText } from 'lucide-react';
 import axiosClient from '../../api/axiosClient';
 import EmptyState from '../../components/shared/EmptyState';
-import { useToast } from '../../context/ToastContext';
+import { useToast } from '../../context/useToast';
 
 export default function ReportCards() {
     const [exams, setExams] = useState([]);

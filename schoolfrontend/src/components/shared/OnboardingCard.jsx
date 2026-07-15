@@ -15,7 +15,9 @@ export default function OnboardingCard() {
 
   const dismiss = () => {
     setDismissed(true);
-    try { localStorage.setItem('onboardingDismissed', 'true'); } catch {}
+    try { localStorage.setItem('onboardingDismissed', 'true'); } catch {
+      // Fall back silently if localStorage is unavailable
+    }
   };
 
   if (dismissed) return null;

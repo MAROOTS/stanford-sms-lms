@@ -5,7 +5,7 @@ import TermModal from './TermModal';
 import ConfirmDialog from '../../components/shared/ConfirmDialog';
 import EmptyState from '../../components/shared/EmptyState';
 import { TableSkeleton } from '../../components/shared/LoadingSkeleton';
-import { useToast } from '../../context/ToastContext';
+import { useToast } from '../../context/useToast';
 
 export default function Terms() {
     const [terms, setTerms] = useState([]);

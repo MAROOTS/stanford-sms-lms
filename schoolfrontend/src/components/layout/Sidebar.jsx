@@ -17,7 +17,7 @@ import {
   Library,
 
 } from "lucide-react";
-import { useSidebar } from "../../context/SidebarContext";
+import { useSidebar } from "../../context/useSidebar";
 
 const navSections = [
   { label: 'Overview', items: [

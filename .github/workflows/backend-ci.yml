@@ -51,4 +51,5 @@ jobs:
           DB_USERNAME: postgres
           DB_PASSWORD: postgres123
           JWT_SECRET: ${{ secrets.JWT_SECRET_CI }}
+          JWT_EXPIRATION_MS: 86400000
         run: mvn -B clean verify
