@@ -36,7 +36,7 @@ export default function Students() {
         }
     }, []);
 
-    useEffect(() => {queueMicrotask(() => loadAll()); }, [loadAll()]);
+    useEffect(() => {queueMicrotask(() => loadAll()); }, [loadAll]);
 
     const handleDelete = async () => {
         if (!deleteTarget) return;

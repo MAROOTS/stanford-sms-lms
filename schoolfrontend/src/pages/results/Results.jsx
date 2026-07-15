@@ -26,9 +26,9 @@ export default function Results() {
     }, []);
 
     useEffect(() => {
-        if (!examId) { setSelectedExam(null); return; }
+        if (!examId) { queueMicrotask(() => setSelectedExam(null)); return; }
         axiosClient.get(`/exams/${examId}`).then((res) => setSelectedExam(res.data));
-        setClassSectionId(''); setRows([]);
+        queueMicrotask(() => { setClassSectionId(''); setRows([]); });
     }, [examId]);
 
     const loadResults = useCallback(async () => {
@@ -41,7 +41,7 @@ export default function Results() {
         finally { setLoading(false); }
     }, [examId, classSectionId]);
 
-    useEffect(() => {queueMicrotask(() => loadResults()); }, [loadResults()]);
+    useEffect(() => {queueMicrotask(() => loadResults()); }, [loadResults]);
 
     const getGradeStyle = (grade) => {
         if (!grade) return 'bg-slate-100 text-slate-600';

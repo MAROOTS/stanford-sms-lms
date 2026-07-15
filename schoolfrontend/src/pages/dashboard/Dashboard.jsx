@@ -68,7 +68,7 @@ export default function Dashboard() {
         }
     }, [range, selectedTermId]);
 
-    useEffect(() => {queueMicrotask(() => loadTrend()); }, [loadTrend()]);
+    useEffect(() => {queueMicrotask(() => loadTrend()); }, [loadTrend]);
 
     const handleExport = () => {
         if (!summary) return;

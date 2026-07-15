@@ -22,9 +22,9 @@ export default function MarksEntry() {
     }, []);
 
     useEffect(() => {
-        if (!examId) { setSelectedExam(null); return; }
+        if (!examId) { queueMicrotask(() => setSelectedExam(null)); return; }
         axiosClient.get(`/exams/${examId}`).then((res) => setSelectedExam(res.data));
-        setSubjectId(''); setClassSectionId(''); setRows([]);
+        queueMicrotask(() => { setSubjectId(''); setClassSectionId(''); setRows([]); });
     }, [examId]);
 
     const loadSheet = useCallback(async () => {
@@ -38,7 +38,7 @@ export default function MarksEntry() {
         } finally { setLoadingSheet(false); }
     }, [examId, subjectId, classSectionId]);
 
-    useEffect(() => {queueMicrotask(() => loadSheet()); }, [loadSheet()]);
+    useEffect(() => {queueMicrotask(() => loadSheet()); }, [loadSheet]);
 
     const updateScore = (studentId, value) => {
         setRows((prev) => prev.map((r) => (r.studentId === studentId ? { ...r, score: value } : r)));
@@ -55,7 +55,7 @@ export default function MarksEntry() {
 
             await axiosClient.post('/marks', { examId: Number(examId), subjectId: Number(subjectId), entries });
             toast.success('Marks saved successfully');
-            loadSheet();
+            await loadSheet();
         } catch (err) {
             setError(err.response?.data?.message || 'Could not save marks');
         } finally { setSaving(false); }
