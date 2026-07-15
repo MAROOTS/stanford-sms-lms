@@ -1,6 +1,6 @@
 import { useEffect, useState, useCallback } from "react";
 import { Link } from "react-router-dom";
-import { Plus, BookOpen, PackagePlus, Send } from "lucide-react";
+import { Plus, BookOpen, Send } from "lucide-react";
 import axiosClient from "../../api/axiosClient";
 import BookModal from "./BookModal";
 import CopiesModal from "./CopiesModal";

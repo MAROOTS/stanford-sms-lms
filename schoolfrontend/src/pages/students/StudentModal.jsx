@@ -7,8 +7,7 @@ const PASSWORD_RULES = [
     { key: 'uppercase', label: 'One uppercase letter', test: (p) => /[A-Z]/.test(p) },
     { key: 'lowercase', label: 'One lowercase letter', test: (p) => /[a-z]/.test(p) },
     { key: 'digit', label: 'One digit', test: (p) => /[0-9]/.test(p) },
-    { key: 'special', label: 'One special character', test: (p) => /[!@#$%^&*()_+\-=\[\]{};':"\\|,.<>\/?`~]/.test(p) },
-];
+    { key: 'special', label: 'One special character', test: (p) => /[!@#$%^&*()_+\-=[\]{};':"\\|,./<>?`~]/.test(p) },];
 
 export default function StudentModal({ initialData, classSections, onClose, onSaved, readOnly }) {
     const isEdit = Boolean(initialData);
