@@ -41,7 +41,7 @@ export default function Results() {
         finally { setLoading(false); }
     }, [examId, classSectionId]);
 
-    useEffect(() => { loadResults(); }, [loadResults]);
+    useEffect(() => {queueMicrotask(() => loadResults()); }, [loadResults()]);
 
     const getGradeStyle = (grade) => {
         if (!grade) return 'bg-slate-100 text-slate-600';

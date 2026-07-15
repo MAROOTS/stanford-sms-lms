@@ -50,7 +50,7 @@ export default function FeeCollection() {
         } finally { setLoading(false); }
     }, [termId]);
 
-    useEffect(() => { loadTermData(); }, [loadTermData]);
+    useEffect(() => {queueMicrotask(() => loadTermData()); }, [loadTermData()]);
 
     const formatKES = (value) => `KES ${Number(value).toLocaleString()}`;
 

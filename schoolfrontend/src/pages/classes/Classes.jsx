@@ -39,8 +39,7 @@ export default function Classes() {
     }
   }, []);
 
-  useEffect(() => { loadAll(); }, [loadAll]);
-
+  useEffect(() => { queueMicrotask(() => loadAll()); }, [loadAll]);
   const handleDelete = async () => {
     if (!deleteTarget) return;
     const id = deleteTarget.id;

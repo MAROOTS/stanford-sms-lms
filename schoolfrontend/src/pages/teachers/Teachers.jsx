@@ -31,7 +31,7 @@ export default function Teachers() {
         }
     }, []);
 
-    useEffect(() => { loadAll(); }, [loadAll]);
+    useEffect(() => {queueMicrotask(() => loadAll()); }, [loadAll()]);
 
     const handleDelete = async () => {
         if (!deleteTarget) return;

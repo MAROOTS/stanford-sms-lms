@@ -28,9 +28,7 @@ export default function Library() {
     }
   }, []);
 
-  useEffect(() => {
-    load();
-  }, [load]);
+  useEffect(() => {queueMicrotask(() => load()); }, [load]);
 
   const handleDelete = async (id) => {
     if (!window.confirm("Delete this book?")) return;

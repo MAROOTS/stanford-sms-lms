@@ -63,7 +63,7 @@ export default function FeeItems() {
         finally { setLoading(false); }
     }, []);
 
-    useEffect(() => { load(); }, [load]);
+    useEffect(() => {queueMicrotask(() => load()); }, [load]);
 
     const handleDelete = async (id) => {
         if (!window.confirm('Delete this fee item?')) return;

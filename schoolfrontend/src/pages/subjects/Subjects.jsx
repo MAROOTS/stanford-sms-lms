@@ -27,7 +27,7 @@ export default function Subjects() {
         finally { setLoading(false); }
     }, []);
 
-    useEffect(() => { load(); }, [load]);
+    useEffect(() => {queueMicrotask(() => load()); }, [load]);
 
     const handleDelete = async () => {
         if (!deleteTarget) return;

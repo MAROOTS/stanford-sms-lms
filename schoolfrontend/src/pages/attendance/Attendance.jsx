@@ -50,7 +50,7 @@ export default function Attendance() {
         } finally { setLoading(false); }
     }, [classSectionId, date]);
 
-    useEffect(() => { loadSheet(); }, [loadSheet]);
+    useEffect(() => {queueMicrotask(() => loadSheet()); }, [loadSheet]);
 
     const setStatus = (studentId, status) => {
         setRows((prev) => prev.map((r) => (r.studentId === studentId ? { ...r, status } : r)));

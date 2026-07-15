@@ -25,12 +25,12 @@ export default function Loans() {
         finally { setLoading(false); }
     }, [filter]);
 
-    useEffect(() => { load(); }, [load]);
+    useEffect(() => {queueMicrotask(() => load()); }, [load]);
 
     const handleReturn = async (loanId) => {
         try {
             await axiosClient.post(`/library/loans/${loanId}/return`);
-            load();
+            await load();
         } catch (err) {
             alert(err.response?.data?.message || 'Could not mark this loan returned.');
         }

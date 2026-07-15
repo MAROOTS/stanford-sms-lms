@@ -38,7 +38,7 @@ export default function Exams() {
         finally { setLoading(false); }
     }, []);
 
-    useEffect(() => { load(); }, [load]);
+    useEffect(() => {queueMicrotask(() => load()); }, [load]);
 
     const handleDelete = async () => {
         if (!deleteTarget) return;

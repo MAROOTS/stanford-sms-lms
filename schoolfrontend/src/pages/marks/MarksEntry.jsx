@@ -38,7 +38,7 @@ export default function MarksEntry() {
         } finally { setLoadingSheet(false); }
     }, [examId, subjectId, classSectionId]);
 
-    useEffect(() => { loadSheet(); }, [loadSheet]);
+    useEffect(() => {queueMicrotask(() => loadSheet()); }, [loadSheet()]);
 
     const updateScore = (studentId, value) => {
         setRows((prev) => prev.map((r) => (r.studentId === studentId ? { ...r, score: value } : r)));

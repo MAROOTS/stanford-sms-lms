@@ -24,7 +24,7 @@ export default function CopiesModal({ book, onClose, onChanged }) {
         finally { setLoading(false); }
     }, [book.id]);
 
-    useEffect(() => { load(); }, [load]);
+    useEffect(() => {queueMicrotask(() => load()); }, [load]);
 
     const handleAdd = async (e) => {
         e.preventDefault();
@@ -33,7 +33,7 @@ export default function CopiesModal({ book, onClose, onChanged }) {
         try {
             await axiosClient.post(`/library/books/${book.id}/copies`, { copyCode: newCode });
             setNewCode('');
-            load(); onChanged();
+            await load(); onChanged();
         } catch (err) {
             setError(err.response?.data?.message || 'Could not add copy');
         }
@@ -43,7 +43,7 @@ export default function CopiesModal({ book, onClose, onChanged }) {
         setError('');
         try {
             await axiosClient.patch(`/library/copies/${copyId}/status`, { status });
-            load(); onChanged();
+            await load(); onChanged();
         } catch (err) {
             setError(err.response?.data?.message || 'Could not update status');
         }
@@ -54,7 +54,7 @@ export default function CopiesModal({ book, onClose, onChanged }) {
         setError('');
         try {
             await axiosClient.delete(`/library/copies/${copyId}`);
-            load(); onChanged();
+            await load(); onChanged();
         } catch (err) {
             setError(err.response?.data?.message || 'Could not delete this copy');
         }
