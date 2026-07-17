@@ -1,6 +1,8 @@
 package com.stanford.schoolbackend.sms.exams;
 
+import com.stanford.schoolbackend.core.enums.NotificationType;
 import com.stanford.schoolbackend.core.exception.ResourceNotFoundException;
+import com.stanford.schoolbackend.core.notification.NotificationService;
 import com.stanford.schoolbackend.sms.academic.ClassSection;
 import com.stanford.schoolbackend.sms.academic.ClassSectionOwnershipService;
 import com.stanford.schoolbackend.sms.academic.Subject;
@@ -27,6 +29,7 @@ public class MarkService {
     private final SubjectRepository subjectRepository;
     private final StudentRepository studentRepository;
     private final ClassSectionOwnershipService classSectionOwnershipService;
+    private final NotificationService notificationService;
 
     public List<MarkSheetRow> getEntrySheet(Long examId, Long subjectId, Long classSectionId) {
         classSectionOwnershipService.getOwnedClassSectionOrThrow(classSectionId);
@@ -97,7 +100,12 @@ public class MarkService {
 
                     mark.setScore(entry.getScore());
                     mark.setMaxScore(maxScore);
-                    return markRepository.save(mark);
+                    Mark savedMark = markRepository.save(mark);
+                    notificationService.notifyUser(student, NotificationType.EXAM_RESULT,
+                            "Your " + subject.getName() + " score for " + exam.getName() + " has been posted.",
+                            "/results");
+                    return savedMark;
+
                 })
                 .toList();
 

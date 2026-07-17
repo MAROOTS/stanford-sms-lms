@@ -1,6 +1,9 @@
 package com.stanford.schoolbackend.sms.attendance;
 
+import com.stanford.schoolbackend.core.enums.NotificationType;
+import com.stanford.schoolbackend.core.enums.UserRole;
 import com.stanford.schoolbackend.core.exception.ResourceNotFoundException;
+import com.stanford.schoolbackend.core.notification.NotificationService;
 import com.stanford.schoolbackend.core.security.SecurityUtils;
 import com.stanford.schoolbackend.sms.academic.ClassSection;
 import com.stanford.schoolbackend.sms.academic.ClassSectionOwnershipService;
@@ -25,7 +28,7 @@ public class ClassAttendanceService {
     private final ClassAttendanceRecordRepository classAttendanceRecordRepository;
     private final StudentRepository studentRepository;
     private final ClassSectionOwnershipService classSectionOwnershipService;
-
+private final NotificationService notificationService;
     public List<ClassAttendanceSheetRow> getEntrySheet(Long classSectionId, LocalDate date) {
         classSectionOwnershipService.getOwnedClassSectionOrThrow(classSectionId);
 
@@ -68,6 +71,9 @@ public class ClassAttendanceService {
                     return classAttendanceRecordRepository.save(record);
                 })
                 .toList();
+        notificationService.notifyRole(UserRole.ADMIN, NotificationType.ATTENDANCE_TAKEN,
+                "Attendance taken for " + classSection.getName() + " on " + date + ".",
+                "/attendance");
 
         return saved.stream().map(this::toRecordResponse).toList();
     }
