@@ -15,6 +15,9 @@ public class MarkEntryRequest {
     @NotNull(message = "subjectId is required")
     private Long subjectId;
 
+    @NotNull(message = "classSectionId is required")
+    private Long classSectionId;
+
     @NotEmpty(message = "entries cannot be empty")
     @Valid
     private List<Entry> entries;

@@ -53,7 +53,11 @@ export default function MarksEntry() {
 
             if (entries.length === 0) { setError('Enter at least one score before saving'); setSaving(false); return; }
 
-            await axiosClient.post('/marks', { examId: Number(examId), subjectId: Number(subjectId), entries });
+            await axiosClient.post('/marks',
+                { examId: Number(examId),
+                    subjectId: Number(subjectId),
+                    classSectionId: Number(classSectionId),
+                    entries });
             toast.success('Marks saved successfully');
             await loadSheet();
         } catch (err) {

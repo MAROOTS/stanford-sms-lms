@@ -3,7 +3,7 @@ package com.stanford.schoolbackend.sms.attendance;
 import com.stanford.schoolbackend.core.exception.ResourceNotFoundException;
 import com.stanford.schoolbackend.core.security.SecurityUtils;
 import com.stanford.schoolbackend.sms.academic.ClassSection;
-import com.stanford.schoolbackend.sms.academic.ClassSectionRepository;
+import com.stanford.schoolbackend.sms.academic.ClassSectionOwnershipService;
 import com.stanford.schoolbackend.sms.attendance.dto.*;
 import com.stanford.schoolbackend.sms.student.Student;
 import com.stanford.schoolbackend.sms.student.StudentRepository;
@@ -23,11 +23,11 @@ public class ClassAttendanceService {
 
     private final ClassSessionRepository classSessionRepository;
     private final ClassAttendanceRecordRepository classAttendanceRecordRepository;
-    private final ClassSectionRepository classSectionRepository;
     private final StudentRepository studentRepository;
+    private final ClassSectionOwnershipService classSectionOwnershipService;
 
     public List<ClassAttendanceSheetRow> getEntrySheet(Long classSectionId, LocalDate date) {
-        getOwnedClassSectionOrThrow(classSectionId);
+        classSectionOwnershipService.getOwnedClassSectionOrThrow(classSectionId);
 
         List<Student> students = studentRepository.findByClassSectionId(classSectionId);
 
@@ -49,7 +49,7 @@ public class ClassAttendanceService {
     public List<ClassAttendanceRecordResponse> markAttendance(
             Long classSectionId, LocalDate date, MarkClassAttendanceRequest request) {
 
-        ClassSection classSection = getOwnedClassSectionOrThrow(classSectionId);
+        ClassSection classSection = classSectionOwnershipService.getOwnedClassSectionOrThrow(classSectionId);
         ClassSession session = getOrCreateSession(classSection, date);
 
         List<ClassAttendanceRecord> saved = request.getEntries().stream()
@@ -73,7 +73,7 @@ public class ClassAttendanceService {
     }
 
     public List<ClassSessionResponse> listSessions(Long classSectionId) {
-        getOwnedClassSectionOrThrow(classSectionId);
+        classSectionOwnershipService.getOwnedClassSectionOrThrow(classSectionId);
         return classSessionRepository.findByClassSectionIdOrderBySessionDateDesc(classSectionId).stream()
                 .map(this::toSessionResponse)
                 .toList();
@@ -100,19 +100,7 @@ public class ClassAttendanceService {
                         ClassSession.builder().classSection(classSection).sessionDate(date).build()));
     }
 
-    private ClassSection getOwnedClassSectionOrThrow(Long classSectionId) {
-        ClassSection classSection = classSectionRepository.findById(classSectionId)
-                .orElseThrow(() -> new ResourceNotFoundException("Class section not found"));
 
-        boolean isAdmin = SecurityUtils.currentUserHasRole("ADMIN");
-        boolean isHomeroomTeacher = classSection.getHomeroomTeacher() != null
-                && classSection.getHomeroomTeacher().getEmail().equals(SecurityUtils.currentUserEmail());
-
-        if (!isAdmin && !isHomeroomTeacher) {
-            throw new AccessDeniedException("You are not the homeroom teacher for this class");
-        }
-        return classSection;
-    }
 
     private ClassSessionResponse toSessionResponse(ClassSession s) {
         return ClassSessionResponse.builder()
