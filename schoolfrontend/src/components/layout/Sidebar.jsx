@@ -14,12 +14,10 @@ import {
   ClipboardList,
   Calendar,
   Sparkles,
-  Upload,
-  Shield,
   Library,
-  Megaphone,
+
 } from "lucide-react";
-import { useSidebar } from "../../context/SidebarContext";
+import { useSidebar } from "../../context/useSidebar";
 
 const navSections = [
   { label: 'Overview', items: [
@@ -44,6 +42,7 @@ const navSections = [
     label: 'Operations',
     items: [
       { to: '/fees', icon: CreditCard, label: 'Fee Collection' },
+      { to: '/library', icon: Library, label: 'Library' },
     ],
   },
   {

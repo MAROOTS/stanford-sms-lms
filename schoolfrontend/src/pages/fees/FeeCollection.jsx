@@ -1,7 +1,7 @@
 import { useEffect, useState, useCallback } from 'react';
 import { Link } from 'react-router-dom';
 import { Plus, Settings, Wallet, TrendingDown, CheckCircle2 } from 'lucide-react';
-import { PieChart, Pie, Cell, Tooltip, ResponsiveContainer } from 'recharts';
+import { PieChart, Pie, Bar, Tooltip, ResponsiveContainer } from 'recharts';
 import axiosClient from '../../api/axiosClient';
 import InvoiceModal from './InvoiceModal';
 import PaymentModal from './PaymentModal';
@@ -50,7 +50,7 @@ export default function FeeCollection() {
         } finally { setLoading(false); }
     }, [termId]);
 
-    useEffect(() => { loadTermData(); }, [loadTermData]);
+    useEffect(() => {queueMicrotask(() => loadTermData()); }, [loadTermData]);
 
     const formatKES = (value) => `KES ${Number(value).toLocaleString()}`;
 
@@ -147,7 +147,7 @@ export default function FeeCollection() {
                                 <PieChart>
                                     <Pie data={summary.collectionByMethod} dataKey="amount" nameKey="method" innerRadius={55} outerRadius={80} paddingAngle={2}>
                                         {summary.collectionByMethod.map((_, index) => (
-                                            <Cell key={index} fill={CHART_COLORS[index % CHART_COLORS.length]} />
+                                            <Bar key={index} fill={CHART_COLORS[index % CHART_COLORS.length]} />
                                         ))}
                                     </Pie>
                                     <Tooltip formatter={(value) => formatKES(value)} />

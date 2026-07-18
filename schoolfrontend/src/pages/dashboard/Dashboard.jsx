@@ -1,8 +1,8 @@
 import { useEffect, useState, useCallback } from 'react';
 import { Users, GraduationCap, Layers3, ShieldCheck, Download, ChevronDown, ArrowUp, ArrowDown, RefreshCw, TrendingUp, Calendar } from 'lucide-react';
-import { LineChart, Line, XAxis, YAxis, CartesianGrid, Tooltip, ResponsiveContainer, Area, AreaChart } from 'recharts';
+import { XAxis, YAxis, CartesianGrid, Tooltip, ResponsiveContainer, Area, AreaChart } from 'recharts';
 import axiosClient from '../../api/axiosClient';
-import { useAuth } from '../../context/AuthContext';
+import { useAuth } from "../../context/useAuth";
 import { CardSkeleton } from '../../components/shared/LoadingSkeleton';
 import OnboardingCard from '../../components/shared/OnboardingCard';
 
@@ -68,7 +68,7 @@ export default function Dashboard() {
         }
     }, [range, selectedTermId]);
 
-    useEffect(() => { loadTrend(); }, [loadTrend]);
+    useEffect(() => {queueMicrotask(() => loadTrend()); }, [loadTrend]);
 
     const handleExport = () => {
         if (!summary) return;
@@ -152,7 +152,7 @@ export default function Dashboard() {
 
             {/* Stat cards */}
             <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-5 mb-8">
-                {statConfig.map(({ key, label, icon: Icon, gradient, bg, text, suffix }) => {
+                {statConfig.map(({ key, label, icon: Icon, gradient}) => {
                     const value = summary?.[key];
                     const change = summary?.[`${key}ChangePercent`];
                     const displayValue = key === 'attendanceToday' && value !== null && value !== undefined

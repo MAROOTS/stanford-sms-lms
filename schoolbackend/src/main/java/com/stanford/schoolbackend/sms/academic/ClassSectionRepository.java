@@ -6,4 +6,5 @@ import java.util.List;
 
 public interface ClassSectionRepository extends JpaRepository<ClassSection, Long> {
     List<ClassSection> findByGradeLevelId(Long gradeLevelId);
+    List<ClassSection> findByHomeroomTeacherId(Long teacherId);
 }

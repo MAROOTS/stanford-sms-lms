@@ -2,7 +2,7 @@ import { useEffect, useState, useCallback } from 'react';
 import { Save, ClipboardList } from 'lucide-react';
 import axiosClient from '../../api/axiosClient';
 import EmptyState from '../../components/shared/EmptyState';
-import { useToast } from '../../context/ToastContext';
+import { useToast } from '../../context/useToast';
 
 export default function MarksEntry() {
     const [exams, setExams] = useState([]);
@@ -22,9 +22,9 @@ export default function MarksEntry() {
     }, []);
 
     useEffect(() => {
-        if (!examId) { setSelectedExam(null); return; }
+        if (!examId) { queueMicrotask(() => setSelectedExam(null)); return; }
         axiosClient.get(`/exams/${examId}`).then((res) => setSelectedExam(res.data));
-        setSubjectId(''); setClassSectionId(''); setRows([]);
+        queueMicrotask(() => { setSubjectId(''); setClassSectionId(''); setRows([]); });
     }, [examId]);
 
     const loadSheet = useCallback(async () => {
@@ -38,7 +38,7 @@ export default function MarksEntry() {
         } finally { setLoadingSheet(false); }
     }, [examId, subjectId, classSectionId]);
 
-    useEffect(() => { loadSheet(); }, [loadSheet]);
+    useEffect(() => {queueMicrotask(() => loadSheet()); }, [loadSheet]);
 
     const updateScore = (studentId, value) => {
         setRows((prev) => prev.map((r) => (r.studentId === studentId ? { ...r, score: value } : r)));
@@ -53,9 +53,13 @@ export default function MarksEntry() {
 
             if (entries.length === 0) { setError('Enter at least one score before saving'); setSaving(false); return; }
 
-            await axiosClient.post('/marks', { examId: Number(examId), subjectId: Number(subjectId), entries });
+            await axiosClient.post('/marks',
+                { examId: Number(examId),
+                    subjectId: Number(subjectId),
+                    classSectionId: Number(classSectionId),
+                    entries });
             toast.success('Marks saved successfully');
-            loadSheet();
+            await loadSheet();
         } catch (err) {
             setError(err.response?.data?.message || 'Could not save marks');
         } finally { setSaving(false); }

@@ -5,7 +5,7 @@ import TermModal from './TermModal';
 import ConfirmDialog from '../../components/shared/ConfirmDialog';
 import EmptyState from '../../components/shared/EmptyState';
 import { TableSkeleton } from '../../components/shared/LoadingSkeleton';
-import { useToast } from '../../context/ToastContext';
+import { useToast } from '../../context/useToast';
 
 export default function Terms() {
     const [terms, setTerms] = useState([]);
@@ -27,7 +27,7 @@ export default function Terms() {
         finally { setLoading(false); }
     }, []);
 
-    useEffect(() => { load(); }, [load]);
+    useEffect(() => {queueMicrotask(() => load()); }, [load]);
 
     const handleDelete = async () => {
         if (!deleteTarget) return;

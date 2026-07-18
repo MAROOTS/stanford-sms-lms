@@ -2,7 +2,7 @@ import { useEffect, useState, useCallback } from 'react';
 import { Save, CheckCheck, ClipboardCheck } from 'lucide-react';
 import axiosClient from '../../api/axiosClient';
 import EmptyState from '../../components/shared/EmptyState';
-import { useToast } from '../../context/ToastContext';
+import { useToast } from '../../context/useToast';
 
 const STATUS_OPTIONS = ['PRESENT', 'ABSENT', 'LATE', 'EXCUSED'];
 const STATUS_STYLES = {
@@ -50,7 +50,7 @@ export default function Attendance() {
         } finally { setLoading(false); }
     }, [classSectionId, date]);
 
-    useEffect(() => { loadSheet(); }, [loadSheet]);
+    useEffect(() => {queueMicrotask(() => loadSheet()); }, [loadSheet]);
 
     const setStatus = (studentId, status) => {
         setRows((prev) => prev.map((r) => (r.studentId === studentId ? { ...r, status } : r)));

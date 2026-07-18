@@ -1,0 +1,55 @@
+name: Backend CI
+
+on:
+  push:
+    branches: [ master ]
+    paths:
+      - 'schoolbackend/**'
+      - '.github/workflows/backend-ci.yml'
+  pull_request:
+    branches: [ master ]
+    paths:
+      - 'schoolbackend/**'
+      - '.github/workflows/backend-ci.yml'
+
+jobs:
+  build-and-test:
+    runs-on: ubuntu-latest
+
+    services:
+      postgres:
+        image: postgres:16
+        env:
+          POSTGRES_USER: postgres
+          POSTGRES_PASSWORD: postgres123
+          POSTGRES_DB: school_db
+        ports:
+          - 5432:5432
+        options: >-
+          --health-cmd="pg_isready -U postgres"
+          --health-interval=10s
+          --health-timeout=5s
+          --health-retries=5
+
+    defaults:
+      run:
+        working-directory: schoolbackend
+
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v4
+
+      - name: Set up JDK 21
+        uses: actions/setup-java@v4
+        with:
+          java-version: '21'
+          distribution: 'temurin'
+          cache: maven
+
+      - name: Build and run tests
+        env:
+          DB_USERNAME: postgres
+          DB_PASSWORD: postgres123
+          JWT_SECRET: ${{ secrets.JWT_SECRET_CI }}
+          JWT_EXPIRATION_MS: 86400000
+        run: mvn -B clean verify

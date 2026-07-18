@@ -54,7 +54,7 @@ export function useApi(url, options = {}) {
 
   useEffect(() => {
     mountedRef.current = true;
-    fetchData();
+    queueMicrotask(() => fetchData());
     return () => { mountedRef.current = false; };
   }, [fetchData]);
 

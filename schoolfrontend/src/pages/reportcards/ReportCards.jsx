@@ -2,7 +2,7 @@ import { useEffect, useState } from 'react';
 import { FileDown, FileText } from 'lucide-react';
 import axiosClient from '../../api/axiosClient';
 import EmptyState from '../../components/shared/EmptyState';
-import { useToast } from '../../context/ToastContext';
+import { useToast } from '../../context/useToast';
 
 export default function ReportCards() {
     const [exams, setExams] = useState([]);
@@ -21,17 +21,16 @@ export default function ReportCards() {
     }, []);
 
     useEffect(() => {
-        if (!examId) { setSelectedExam(null); return; }
+        if (!examId) { queueMicrotask(() => setSelectedExam(null)); return; }
         axiosClient.get(`/exams/${examId}`).then((res) => setSelectedExam(res.data));
-        setClassSectionId(''); setStudentId(''); setStudents([]);
+        queueMicrotask(() => { setClassSectionId(''); setStudentId(''); setStudents([]); });
     }, [examId]);
 
     useEffect(() => {
-        if (!classSectionId) { setStudents([]); return; }
+        if (!classSectionId) { queueMicrotask(() => setStudents([])); return; }
         axiosClient.get('/students').then((res) => {
             setStudents(res.data.filter((s) => s.classSectionId === Number(classSectionId)));
         });
-        setStudentId('');
     }, [classSectionId]);
 
     const handleGenerate = async () => {

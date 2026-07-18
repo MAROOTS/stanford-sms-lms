@@ -2,9 +2,11 @@ package com.stanford.schoolbackend.core.admin;
 
 import com.stanford.schoolbackend.core.admin.dto.CreatedUserResponse;
 import com.stanford.schoolbackend.core.auth.dto.RegisterRequest;
+import com.stanford.schoolbackend.core.enums.NotificationType;
 import com.stanford.schoolbackend.core.enums.UserRole;
 import com.stanford.schoolbackend.core.exception.EmailAlreadyExistsException;
 import com.stanford.schoolbackend.core.exception.PasswordMismatchException;
+import com.stanford.schoolbackend.core.notification.NotificationService;
 import com.stanford.schoolbackend.core.user.User;
 import com.stanford.schoolbackend.core.user.UserRepository;
 import com.stanford.schoolbackend.sms.student.Student;
@@ -23,6 +25,7 @@ public class AdminUserService {
     private final StudentRepository studentRepository;
     private final TeacherRepository teacherRepository;
     private final PasswordEncoder passwordEncoder;
+    private final NotificationService  notificationService;
 
     public CreatedUserResponse createUser(RegisterRequest request) {
         if (!request.getPassword().equals(request.getConfirmPassword())) {
@@ -45,6 +48,9 @@ public class AdminUserService {
                         .role(UserRole.STUDENT)
                         .build();
                 saved = studentRepository.save(student);
+                notificationService.notifyRole(UserRole.ADMIN, NotificationType.STUDENT_REGISTERED,
+                        student.getFirstName() + " " + student.getLastName() + " has been registered as a new student.",
+                        "/students");
             }
             case TEACHER -> {
                 Teacher teacher = Teacher.builder()

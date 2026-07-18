@@ -1,6 +1,8 @@
 package com.stanford.schoolbackend.sms.fees;
 
+import com.stanford.schoolbackend.core.enums.NotificationType;
 import com.stanford.schoolbackend.core.exception.ResourceNotFoundException;
+import com.stanford.schoolbackend.core.notification.NotificationService;
 import com.stanford.schoolbackend.sms.fees.dto.FeePaymentResponse;
 import com.stanford.schoolbackend.sms.fees.dto.RecordPaymentRequest;
 import lombok.RequiredArgsConstructor;
@@ -14,7 +16,7 @@ public class FeePaymentService {
 
     private final FeePaymentRepository feePaymentRepository;
     private final FeeInvoiceRepository feeInvoiceRepository;
-
+    private final NotificationService notificationService;
     public FeePaymentResponse recordPayment(Long invoiceId, RecordPaymentRequest request) {
         FeeInvoice invoice = feeInvoiceRepository.findById(invoiceId)
                 .orElseThrow(() -> new ResourceNotFoundException("Invoice not found"));
@@ -26,8 +28,11 @@ public class FeePaymentService {
                 .paymentDate(request.getPaymentDate())
                 .reference(request.getReference())
                 .build();
-
-        return toResponse(feePaymentRepository.save(payment));
+        FeePayment saved = feePaymentRepository.save(payment);
+        notificationService.notifyUser(invoice.getStudent(), NotificationType.FEE_PAYMENT,
+                "Payment of KES " + request.getAmount() + " received via " + request.getMethod() + ".",
+                "/fees");
+        return toResponse(saved);
     }
 
     public List<FeePaymentResponse> listByInvoice(Long invoiceId) {

@@ -5,7 +5,8 @@ import StudentModal from './StudentModal';
 import ConfirmDialog from '../../components/shared/ConfirmDialog';
 import EmptyState from '../../components/shared/EmptyState';
 import { TableSkeleton } from '../../components/shared/LoadingSkeleton';
-import { useToast } from '../../context/ToastContext';
+import { useToast } from '../../context/useToast';
+import {useAuth} from "../../context/useAuth.js";
 
 export default function Students() {
     const [students, setStudents] = useState([]);
@@ -18,7 +19,7 @@ export default function Students() {
     const [deleteTarget, setDeleteTarget] = useState(null);
 
     const toast = useToast();
-
+    const {user} = useAuth();
     const loadAll = useCallback(async () => {
         setLoading(true);
         setError('');
@@ -36,7 +37,7 @@ export default function Students() {
         }
     }, []);
 
-    useEffect(() => { loadAll(); }, [loadAll]);
+    useEffect(() => {queueMicrotask(() => loadAll()); }, [loadAll]);
 
     const handleDelete = async () => {
         if (!deleteTarget) return;
@@ -64,12 +65,14 @@ export default function Students() {
                     <h1 className="text-2xl font-bold text-slate-900">Students</h1>
                     <p className="text-sm text-slate-500 mt-1">All students enrolled at your school.</p>
                 </div>
-                <button
-                    onClick={openAddModal}
-                    className="flex items-center gap-1.5 bg-navy-900 hover:bg-navy-800 text-white text-sm font-medium px-4 py-2.5 rounded-lg transition-colors"
-                >
+
+                    {user?.role === 'ADMIN' && (
+                    <button onClick={openAddModal}
+                            className="flex items-center gap-1.5 bg-navy-900 hover:bg-navy-800 text-white text-sm font-medium px-4 py-2.5 rounded-lg transition-colors"
+                    >
                     <Plus size={16} /> Add student
-                </button>
+                    </button>
+                    )}
             </div>
 
             {loading && <TableSkeleton columns={4} rows={6} />}
@@ -85,12 +88,18 @@ export default function Students() {
                 <EmptyState
                     icon={Users}
                     title="No students yet"
-                    description="Add your first student to get started."
+                    description={
+                        user?.role === 'ADMIN'
+                            ? 'Add your first student to get started.'
+                            : "You don't have any students in your homeroom class yet."
+                    }
                     action={
-                        <button onClick={openAddModal}
-                                className="flex items-center gap-1.5 bg-navy-900 hover:bg-navy-800 text-white text-sm font-medium px-4 py-2.5 rounded-lg transition-colors">
-                            <Plus size={16} /> Add student
-                        </button>
+                        user?.role === 'ADMIN' ? (
+                            <button onClick={openAddModal}
+                                    className="flex items-center gap-1.5 bg-navy-900 hover:bg-navy-800 text-white text-sm font-medium px-4 py-2.5 rounded-lg transition-colors">
+                                <Plus size={16} /> Add student
+                            </button>
+                        ) : null
                     }
                 />
             )}
@@ -129,12 +138,16 @@ export default function Students() {
                                             <button onClick={() => openViewModal(s)} title="View" className="p-2 rounded-lg text-slate-400 hover:text-slate-600 hover:bg-surface-100 transition-colors">
                                                 <Eye size={16} />
                                             </button>
-                                            <button onClick={() => openEditModal(s)} title="Edit" className="p-2 rounded-lg text-slate-400 hover:text-slate-600 hover:bg-surface-100 transition-colors">
-                                                <Pencil size={16} />
-                                            </button>
-                                            <button onClick={() => setDeleteTarget(s)} title="Delete" className="p-2 rounded-lg text-red-400 hover:text-red-600 hover:bg-red-50 transition-colors">
-                                                <Trash2 size={16} />
-                                            </button>
+                                            {user?.role === 'ADMIN' && (
+                                                <>
+                                                    <button onClick={() => openEditModal(s)} title="Edit" className="p-2 rounded-lg text-slate-400 hover:text-slate-600 hover:bg-surface-100 transition-colors">
+                                                        <Pencil size={16} />
+                                                    </button>
+                                                    <button onClick={() => setDeleteTarget(s)} title="Delete" className="p-2 rounded-lg text-red-400 hover:text-red-600 hover:bg-red-50 transition-colors">
+                                                        <Trash2 size={16} />
+                                                    </button>
+                                                </>
+                                            )}
                                         </div>
                                     </td>
                                 </tr>
@@ -167,3 +180,4 @@ export default function Students() {
         </div>
     );
 }
+//                                className="flex items-center gap-1.5 bg-navy-900 hover:bg-navy-800 text-white text-sm font-medium px-4 py-2.5 rounded-lg transition-colors">

@@ -1,7 +1,7 @@
 import { useState } from "react";
 import { useNavigate } from "react-router-dom";
 import { Mail, Lock, Eye, EyeOff, Sparkles, ShieldCheck, Loader2, ArrowRight } from "lucide-react";
-import { useAuth } from "../../context/AuthContext";
+import { useAuth } from "../../context/useAuth";
 
 export default function Login() {
   const [email, setEmail] = useState("");
@@ -186,10 +186,7 @@ export default function Login() {
         <div className="absolute -bottom-32 -left-32 w-96 h-96 bg-primary-500/10 rounded-full blur-3xl pointer-events-none" />
 
         <div className="relative max-w-lg">
-          <div className="inline-flex items-center gap-2 text-xs font-medium text-accent-400 bg-accent-400/10 border border-accent-400/20 rounded-full px-3.5 py-1.5 mb-10">
-            <ShieldCheck size={14} />
-            Trusted by schools worldwide
-          </div>
+
 
           <h2 className="text-[42px] font-bold text-white leading-[1.15] mb-6 tracking-tight">
             Run your entire school from one calm, connected dashboard.

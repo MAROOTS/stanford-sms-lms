@@ -1,7 +1,6 @@
-import { createContext, useContext, useState, useCallback } from 'react';
+import { useState, useCallback } from 'react';
 import { CheckCircle, XCircle, AlertTriangle, Info, X } from 'lucide-react';
-
-const ToastContext = createContext(null);
+import { ToastContext } from './toastContext';
 
 const ICONS = {
     success: CheckCircle,
@@ -42,14 +41,12 @@ export function ToastProvider({ children }) {
         error: (msg) => addToast(msg, 'error', 7000),
         warning: (msg) => addToast(msg, 'warning'),
         info: (msg) => addToast(msg, 'info'),
-        // Undo toast (#13) — stays until user dismisses or clicks undo
         undo: (msg, onUndo) => addToast(msg, 'info', 0, onUndo),
     };
 
     return (
         <ToastContext.Provider value={toast}>
             {children}
-            {/* Toast container — fixed bottom-right */}
             <div className="fixed bottom-6 right-6 z-[9999] flex flex-col gap-2 pointer-events-none">
                 {toasts.map((t) => {
                     const Icon = ICONS[t.type];
@@ -80,10 +77,4 @@ export function ToastProvider({ children }) {
             </div>
         </ToastContext.Provider>
     );
-}
-
-export function useToast() {
-    const ctx = useContext(ToastContext);
-    if (!ctx) throw new Error('useToast must be used within ToastProvider');
-    return ctx;
 }

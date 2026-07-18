@@ -1,6 +1,10 @@
 package com.stanford.schoolbackend.sms.exams;
 
+import com.stanford.schoolbackend.core.enums.NotificationType;
 import com.stanford.schoolbackend.core.exception.ResourceNotFoundException;
+import com.stanford.schoolbackend.core.notification.NotificationService;
+import com.stanford.schoolbackend.sms.academic.ClassSection;
+import com.stanford.schoolbackend.sms.academic.ClassSectionOwnershipService;
 import com.stanford.schoolbackend.sms.academic.Subject;
 import com.stanford.schoolbackend.sms.academic.SubjectRepository;
 import com.stanford.schoolbackend.sms.exams.dto.MarkEntryRequest;
@@ -24,8 +28,11 @@ public class MarkService {
     private final ExamRepository examRepository;
     private final SubjectRepository subjectRepository;
     private final StudentRepository studentRepository;
+    private final ClassSectionOwnershipService classSectionOwnershipService;
+    private final NotificationService notificationService;
 
     public List<MarkSheetRow> getEntrySheet(Long examId, Long subjectId, Long classSectionId) {
+        classSectionOwnershipService.getOwnedClassSectionOrThrow(classSectionId);
         Exam exam = examRepository.findById(examId)
                 .orElseThrow(() -> new ResourceNotFoundException("Exam not found"));
 
@@ -55,6 +62,8 @@ public class MarkService {
     }
 
     public List<MarkResponse> saveMarks(MarkEntryRequest request) {
+        ClassSection classSection = classSectionOwnershipService.getOwnedClassSectionOrThrow(request.getClassSectionId());
+
         Exam exam = examRepository.findById(request.getExamId())
                 .orElseThrow(() -> new ResourceNotFoundException("Exam not found"));
 
@@ -62,8 +71,9 @@ public class MarkService {
                 .orElseThrow(() -> new ResourceNotFoundException("Subject not found"));
 
         boolean examCoversSubject = exam.getSubjects().stream().anyMatch(s -> s.getId().equals(subject.getId()));
-        if (!examCoversSubject) {
-            throw new IllegalArgumentException("This exam does not cover the given subject");
+        boolean examCoversClass = exam.getClassSections().stream().anyMatch(cs -> cs.getId().equals(classSection.getId()));
+        if (!examCoversSubject || !examCoversClass) {
+            throw new IllegalArgumentException("This exam does not cover the given subject/class combination");
         }
 
         List<Mark> saved = request.getEntries().stream()
@@ -71,6 +81,12 @@ public class MarkService {
                     Student student = studentRepository.findById(entry.getStudentId())
                             .orElseThrow(() -> new ResourceNotFoundException(
                                     "Student not found: " + entry.getStudentId()));
+
+                    if (student.getClassSection() == null
+                            || !student.getClassSection().getId().equals(classSection.getId())) {
+                        throw new IllegalArgumentException(
+                                "Student " + entry.getStudentId() + " does not belong to the selected class");
+                    }
 
                     double maxScore = entry.getMaxScore() != null ? entry.getMaxScore() : 100.0;
                     if (entry.getScore() < 0 || entry.getScore() > maxScore) {
@@ -84,7 +100,12 @@ public class MarkService {
 
                     mark.setScore(entry.getScore());
                     mark.setMaxScore(maxScore);
-                    return markRepository.save(mark);
+                    Mark savedMark = markRepository.save(mark);
+                    notificationService.notifyUser(student, NotificationType.EXAM_RESULT,
+                            "Your " + subject.getName() + " score for " + exam.getName() + " has been posted.",
+                            "/results");
+                    return savedMark;
+
                 })
                 .toList();
 
