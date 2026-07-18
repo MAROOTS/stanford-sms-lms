@@ -38,13 +38,13 @@ public class ExamController {
     }
 
     @GetMapping
-    @PreAuthorize("hasAnyRole('ADMIN','TEACHER')")
+    @PreAuthorize("hasAnyRole('STUDENT','ADMIN','TEACHER')")
     public ResponseEntity<List<ExamResponse>> listAll() {
         return ResponseEntity.ok(examService.listAll());
     }
 
     @GetMapping("/{id}")
-    @PreAuthorize("hasAnyRole('ADMIN','TEACHER')")
+    @PreAuthorize("hasAnyRole('STUDENT','ADMIN','TEACHER')")
     public ResponseEntity<ExamResponse> getById(@PathVariable Long id) {
         return ResponseEntity.ok(examService.getById(id));
     }

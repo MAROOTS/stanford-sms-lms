@@ -26,6 +26,7 @@ public class StudentController {
     }
 
     @GetMapping("/{studentId}")
+    @PreAuthorize("hasAnyRole('STUDENT','TEACHER','ADMIN')")
     public ResponseEntity<StudentResponse> getById(@PathVariable Long studentId) {
         return ResponseEntity.ok(studentService.getById(studentId));
     }
