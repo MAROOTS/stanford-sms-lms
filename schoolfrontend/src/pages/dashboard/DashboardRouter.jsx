@@ -1,4 +1,4 @@
-import { useAuth } from '../../context/useAuth';
+import { useAuth } from '../../context/AuthContext';
 import Dashboard from './Dashboard';
 import StudentHome from '../students/StudentHome';
 

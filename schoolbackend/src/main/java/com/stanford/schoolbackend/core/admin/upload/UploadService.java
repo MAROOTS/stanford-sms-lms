@@ -191,39 +191,39 @@ public class UploadService {
             throw new RuntimeException("Email already exists: " + email);
 
         Student s = Student.builder()
-                .firstName(getRequired(r, "firstname", "first_name", "first name"))
-                .middleName(nullIfBlank(getOrDefault(r, "middlename", "middle_name", "middle name")))
-                .lastName(getRequired(r, "lastname", "last_name", "last name"))
+                .firstName(getRequired(r, "firstName", "firstname", "first_name", "first name"))
+                .middleName(nullIfBlank(getOrDefault(r, "middleName", "middlename", "middle_name", "middle name")))
+                .lastName(getRequired(r, "lastName", "lastname", "last_name", "last name"))
                 .email(email)
                 .password(passwordEncoder.encode(DEFAULT_PASSWORD))
                 .role(UserRole.STUDENT)
                 // Personal
-                .dateOfBirth(parseDate(getOrDefault(r, "dateofbirth", "date_of_birth", "dob")))
+                .dateOfBirth(parseDate(getOrDefault(r, "dateOfBirth", "dateofbirth", "date_of_birth", "dob")))
                 .gender(nullIfBlank(getOrDefault(r, "gender", "sex")))
                 .nationality(nullIfBlank(getOrDefault(r, "nationality")))
                 .religion(nullIfBlank(getOrDefault(r, "religion")))
                 // Contact & Address
-                .address(nullIfBlank(getOrDefault(r, "address", "street", "streetaddress")))
+                .address(nullIfBlank(getOrDefault(r, "address", "street", "streetAddress")))
                 .city(nullIfBlank(getOrDefault(r, "city")))
-                .stateProvince(nullIfBlank(getOrDefault(r, "stateprovince", "state_province", "state", "province")))
-                .postalCode(nullIfBlank(getOrDefault(r, "postalcode", "postal_code", "zip", "zipcode")))
+                .stateProvince(nullIfBlank(getOrDefault(r, "stateProvince", "stateprovince", "state_province", "state", "province")))
+                .postalCode(nullIfBlank(getOrDefault(r, "postalCode", "postalcode", "postal_code", "zip", "zipCode")))
                 .country(nullIfBlank(getOrDefault(r, "country")))
-                .phoneNumber(nullIfBlank(getOrDefault(r, "phonenumber", "phone_number", "phone")))
+                .phoneNumber(nullIfBlank(getOrDefault(r, "phoneNumber", "phonenumber", "phone_number", "phone")))
                 // Guardian
-                .guardianName(nullIfBlank(getOrDefault(r, "guardianname", "guardian_name", "parentname", "parent_name", "fathername", "mothername")))
-                .guardianRelationship(nullIfBlank(getOrDefault(r, "guardianrelationship", "guardian_relationship", "relationship", "relation")))
-                .guardianEmail(nullIfBlank(getOrDefault(r, "guardianemail", "guardian_email", "parentemail", "parent_email")))
-                .guardianPhone(nullIfBlank(getOrDefault(r, "guardianphone", "guardian_phone", "parentphone", "parent_phone", "parentcontact", "parent_contact")))
-                .emergencyContactName(nullIfBlank(getOrDefault(r, "emergencycontactname", "emergency_contact_name", "emergencyname", "emergency_name")))
-                .emergencyContactPhone(nullIfBlank(getOrDefault(r, "emergencycontactphone", "emergency_contact_phone", "emergencyphone", "emergency_phone")))
+                .guardianName(nullIfBlank(getOrDefault(r, "guardianName", "guardianname", "guardian_name", "parentName", "parentname", "parent_name")))
+                .guardianRelationship(nullIfBlank(getOrDefault(r, "guardianRelationship", "guardianrelationship", "guardian_relationship", "relationship")))
+                .guardianEmail(nullIfBlank(getOrDefault(r, "guardianEmail", "guardianemail", "guardian_email", "parentEmail", "parentemail")))
+                .guardianPhone(nullIfBlank(getOrDefault(r, "guardianPhone", "guardianphone", "guardian_phone", "parentPhone", "parentphone", "parentContact")))
+                .emergencyContactName(nullIfBlank(getOrDefault(r, "emergencyContactName", "emergencycontactname", "emergency_contact_name")))
+                .emergencyContactPhone(nullIfBlank(getOrDefault(r, "emergencyContactPhone", "emergencycontactphone", "emergency_contact_phone")))
                 // Medical
-                .bloodGroup(nullIfBlank(getOrDefault(r, "bloodgroup", "blood_group", "bloodtype", "blood_type")))
-                .medicalNotes(nullIfBlank(getOrDefault(r, "medicalnotes", "medical_notes", "medical", "allergies", "conditions")))
+                .bloodGroup(nullIfBlank(getOrDefault(r, "bloodGroup", "bloodgroup", "blood_group", "bloodType")))
+                .medicalNotes(nullIfBlank(getOrDefault(r, "medicalNotes", "medicalnotes", "medical_notes", "medical")))
                 // Academic
-                .admissionNumber(nullIfBlank(getOrDefault(r, "admissionnumber", "admission_number", "admission no", "admission")))
-                .rollNumber(nullIfBlank(getOrDefault(r, "rollnumber", "roll_number", "roll no", "roll")))
-                .enrollmentDate(parseDate(getOrDefault(r, "enrollmentdate", "enrollment_date", "enrolmentdate", "enrolled")))
-                .previousSchool(nullIfBlank(getOrDefault(r, "previousschool", "previous_school", "lastschool", "last_school")))
+                .admissionNumber(nullIfBlank(getOrDefault(r, "admissionNumber", "admissionnumber", "admission_number", "admission no")))
+                .rollNumber(nullIfBlank(getOrDefault(r, "rollNumber", "rollnumber", "roll_number", "roll no")))
+                .enrollmentDate(parseDate(getOrDefault(r, "enrollmentDate", "enrollmentdate", "enrollment_date", "enrolled")))
+                .previousSchool(nullIfBlank(getOrDefault(r, "previousSchool", "previousschool", "previous_school")))
                 .build();
 
         studentRepository.save(s);
@@ -240,34 +240,52 @@ public class UploadService {
         if (teacherRepository.findByEmail(email).isPresent() || userRepository.findByEmail(email).isPresent())
             throw new RuntimeException("Email already exists: " + email);
         teacherRepository.save(Teacher.builder()
-                .firstName(getRequired(r, "firstname", "first_name", "first name"))
-                .lastName(getRequired(r, "lastname", "last_name", "last name"))
+                .firstName(getRequired(r, "firstName", "firstname", "first_name", "first name"))
+                .lastName(getRequired(r, "lastName", "lastname", "last_name", "last name"))
                 .email(email)
                 .password(passwordEncoder.encode(DEFAULT_PASSWORD))
                 .role(UserRole.TEACHER)
+                .employeeId(nullIfBlank(getOrDefault(r, "employeeId", "employeeid", "employee_id")))
                 .qualification(nullIfBlank(getOrDefault(r, "qualification", "qualifications")))
                 .department(nullIfBlank(getOrDefault(r, "department", "dept")))
+                .designation(nullIfBlank(getOrDefault(r, "designation")))
+                .joinDate(parseDate(getOrDefault(r, "joinDate", "joindate", "join_date")))
+                .dateOfBirth(parseDate(getOrDefault(r, "dateOfBirth", "dateofbirth", "date_of_birth", "dob")))
+                .gender(nullIfBlank(getOrDefault(r, "gender")))
+                .nationality(nullIfBlank(getOrDefault(r, "nationality")))
+                .phoneNumber(nullIfBlank(getOrDefault(r, "phoneNumber", "phonenumber", "phone_number", "phone")))
+                .address(nullIfBlank(getOrDefault(r, "address")))
+                .city(nullIfBlank(getOrDefault(r, "city")))
+                .stateProvince(nullIfBlank(getOrDefault(r, "stateProvince", "stateprovince", "state")))
+                .postalCode(nullIfBlank(getOrDefault(r, "postalCode", "postalcode", "postal_code", "zip")))
+                .country(nullIfBlank(getOrDefault(r, "country")))
+                .emergencyContactName(nullIfBlank(getOrDefault(r, "emergencyContactName", "emergencycontactname")))
+                .emergencyContactPhone(nullIfBlank(getOrDefault(r, "emergencyContactPhone", "emergencycontactphone")))
+                .bio(nullIfBlank(getOrDefault(r, "bio", "notes")))
                 .build());
     }
 
     // ── Subject ──
     private void createSubject(Map<String, String> r) {
-        String name = getRequired(r, "name", "subjectname", "subject_name", "subject");
+        String name = getRequired(r, "name", "subjectName", "subjectname", "subject_name", "subject");
         if (subjectRepository.findByName(name).isPresent())
             throw new RuntimeException("Subject already exists: " + name);
         subjectRepository.save(Subject.builder()
                 .name(name)
-                .code(nullIfBlank(getOrDefault(r, "code", "subjectcode", "subject_code")))
+                .code(nullIfBlank(getOrDefault(r, "code", "subjectCode", "subjectcode", "subject_code")))
+                .description(nullIfBlank(getOrDefault(r, "description")))
+                .category(nullIfBlank(getOrDefault(r, "category")))
+                .credits(parseIntOrNull(getOrDefault(r, "credits")))
                 .build());
     }
 
     // ── Marks ──
     private void createMark(Map<String, String> r) {
-        long examId = Long.parseLong(getRequired(r, "examid", "exam_id", "exam id"));
-        long subjectId = Long.parseLong(getRequired(r, "subjectid", "subject_id", "subject id"));
-        String studentEmail = getRequired(r, "studentemail", "student_email", "student email", "email");
+        long examId = Long.parseLong(getRequired(r, "examId", "examid", "exam_id", "exam id"));
+        long subjectId = Long.parseLong(getRequired(r, "subjectId", "subjectid", "subject_id", "subject id"));
+        String studentEmail = getRequired(r, "studentEmail", "studentemail", "student_email", "student email", "email");
         double score = Double.parseDouble(getRequired(r, "score", "marks", "mark"));
-        double maxScore = Double.parseDouble(getOrDefault(r, "maxscore", "max_score", "max score", "outof", "out of", "100"));
+        double maxScore = Double.parseDouble(getOrDefault(r, "maxScore", "maxscore", "max_score", "max score", "outOf", "outof", "out of", "100"));
 
         Exam exam = examRepository.findById(examId)
                 .orElseThrow(() -> new RuntimeException("Exam not found: " + examId));
@@ -290,7 +308,7 @@ public class UploadService {
         if (isbn != null && bookRepository.findByIsbn(isbn).isPresent())
             throw new RuntimeException("Book with ISBN already exists: " + isbn);
         bookRepository.save(Book.builder()
-                .title(getRequired(r, "title", "booktitle", "book_title", "book name"))
+                .title(getRequired(r, "title", "bookTitle", "booktitle", "book_title", "book name"))
                 .author(nullIfBlank(getOrDefault(r, "author")))
                 .isbn(isbn)
                 .publisher(nullIfBlank(getOrDefault(r, "publisher")))
@@ -299,9 +317,9 @@ public class UploadService {
 
     // ── Attendance ──
     private void createAttendance(Map<String, String> r) {
-        long sessionId = Long.parseLong(getRequired(r, "sessionid", "session_id", "session id"));
-        String studentEmail = getRequired(r, "studentemail", "student_email", "student email", "email");
-        String statusStr = getRequired(r, "status", "attendancestatus", "attendance_status");
+        long sessionId = Long.parseLong(getRequired(r, "sessionId", "sessionid", "session_id", "session id"));
+        String studentEmail = getRequired(r, "studentEmail", "studentemail", "student_email", "student email", "email");
+        String statusStr = getRequired(r, "status", "attendanceStatus", "attendancestatus", "attendance_status");
 
         Session session = sessionRepository.findById(sessionId)
                 .orElseThrow(() -> new RuntimeException("Session not found: " + sessionId));
@@ -321,10 +339,15 @@ public class UploadService {
 
     // ── Fee Items ──
     private void createFeeItem(Map<String, String> r) {
-        String name = getRequired(r, "name", "feeitemname", "fee_item_name", "fee name", "item");
+        String name = getRequired(r, "name", "feeItemName", "feeitemname", "fee_item_name", "fee name", "item");
         if (feeItemRepository.findByName(name).isPresent())
             throw new RuntimeException("Fee item already exists: " + name);
         feeItemRepository.save(FeeItem.builder().name(name).build());
+    }
+
+    private Integer parseIntOrNull(String val) {
+        if (val == null || val.isBlank()) return null;
+        try { return Integer.parseInt(val); } catch (NumberFormatException e) { return null; }
     }
 
     // ── Helpers ──

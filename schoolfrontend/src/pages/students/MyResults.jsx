@@ -1,6 +1,6 @@
 import { useEffect, useState, useCallback } from 'react';
 import axiosClient from '../../api/axiosClient';
-import { useAuth } from '../../context/useAuth';
+import { useAuth } from '../../context/AuthContext';
 
 export default function MyResults() {
     const { user } = useAuth();

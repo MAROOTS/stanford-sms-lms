@@ -1,6 +1,6 @@
 import { useEffect, useState } from 'react';
 import axiosClient from '../../api/axiosClient';
-import { useAuth } from '../../context/useAuth';
+import { useAuth } from '../../context/AuthContext';
 
 const STATUS_STYLES = {
     BORROWED: 'bg-slate-100 text-slate-600',

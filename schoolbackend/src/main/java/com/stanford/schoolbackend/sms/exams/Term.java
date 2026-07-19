@@ -33,5 +33,5 @@ public class Term {
     private boolean isCurrent = false;
 
     @Builder.Default
-    private boolean endingSoonNotified = false;
+    private Boolean endingSoonNotified = false;
 }
