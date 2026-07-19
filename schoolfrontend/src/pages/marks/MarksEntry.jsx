@@ -2,7 +2,7 @@ import { useEffect, useState, useCallback } from 'react';
 import { Save, ClipboardList } from 'lucide-react';
 import axiosClient from '../../api/axiosClient';
 import EmptyState from '../../components/shared/EmptyState';
-import { useToast } from '../../context/useToast';
+import { useToast } from '../../context/ToastContext';
 
 export default function MarksEntry() {
     const [exams, setExams] = useState([]);

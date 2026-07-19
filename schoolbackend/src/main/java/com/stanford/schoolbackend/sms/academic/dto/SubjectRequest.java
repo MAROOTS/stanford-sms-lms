@@ -9,4 +9,7 @@ public class SubjectRequest {
     private String name;
 
     private String code;
+    private String description;
+    private String category;
+    private Integer credits;
 }

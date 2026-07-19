@@ -19,7 +19,7 @@ public class CourseController {
     private final CourseService courseService;
 
     @PostMapping
-    @PreAuthorize("hasRole('TEACHER')")
+    @PreAuthorize("hasAnyRole('ADMIN','TEACHER')")
     public ResponseEntity<CourseResponse> create(@Valid @RequestBody CourseRequest request) {
         return ResponseEntity.status(HttpStatus.CREATED).body(courseService.create(request));
     }
@@ -38,11 +38,13 @@ public class CourseController {
     }
 
     @GetMapping("/{courseId}")
+    @PreAuthorize("isAuthenticated()")
     public ResponseEntity<CourseResponse> getById(@PathVariable Long courseId) {
         return ResponseEntity.ok(courseService.getById(courseId));
     }
 
     @GetMapping
+    @PreAuthorize("isAuthenticated()")
     public ResponseEntity<List<CourseResponse>> listAll() {
         return ResponseEntity.ok(courseService.listAll());
     }

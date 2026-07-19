@@ -2,7 +2,7 @@ import { useEffect, useState, useCallback } from 'react';
 import { Users, GraduationCap, Layers3, ShieldCheck, Download, ChevronDown, ArrowUp, ArrowDown, RefreshCw, TrendingUp, Calendar } from 'lucide-react';
 import { XAxis, YAxis, CartesianGrid, Tooltip, ResponsiveContainer, Area, AreaChart } from 'recharts';
 import axiosClient from '../../api/axiosClient';
-import { useAuth } from "../../context/useAuth";
+import { useAuth } from '../../context/AuthContext';
 import { CardSkeleton } from '../../components/shared/LoadingSkeleton';
 import OnboardingCard from '../../components/shared/OnboardingCard';
 
@@ -79,7 +79,12 @@ export default function Dashboard() {
             ['Active Classes', summary.activeClasses, summary.activeClassesChangePercent ?? ''],
             ['Attendance Today (%)', summary.attendanceToday ?? '', summary.attendanceTodayChangePercent ?? ''],
         ];
-        const csv = rows.map((r) => r.join(',')).join('\n');
+        // Escape CSV formula injection: prefix values starting with =, +, -, @
+        const escapeCsv = (val) => {
+            const s = String(val ?? '');
+            return /^[=+\-@]/.test(s) ? "'" + s : s;
+        };
+        const csv = rows.map((r) => r.map(escapeCsv).join(',')).join('\n');
         const blob = new Blob([csv], { type: 'text/csv' });
         const url = URL.createObjectURL(blob);
         const a = document.createElement('a');

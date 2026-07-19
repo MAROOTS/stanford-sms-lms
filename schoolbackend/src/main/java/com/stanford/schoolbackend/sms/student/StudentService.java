@@ -94,9 +94,32 @@ public class StudentService {
         }
 
         student.setFirstName(request.getFirstName());
+        student.setMiddleName(request.getMiddleName());
         student.setLastName(request.getLastName());
         student.setEmail(request.getEmail());
+        student.setRollNumber(request.getRollNumber());
         student.setAdmissionNumber(request.getAdmissionNumber());
+        student.setDateOfBirth(request.getDateOfBirth());
+        student.setGender(request.getGender());
+        student.setNationality(request.getNationality());
+        student.setReligion(request.getReligion());
+        student.setAddress(request.getAddress());
+        student.setCity(request.getCity());
+        student.setStateProvince(request.getStateProvince());
+        student.setPostalCode(request.getPostalCode());
+        student.setCountry(request.getCountry());
+        student.setPhoneNumber(request.getPhoneNumber());
+        student.setGuardianName(request.getGuardianName());
+        student.setGuardianRelationship(request.getGuardianRelationship());
+        student.setGuardianEmail(request.getGuardianEmail());
+        student.setGuardianPhone(request.getGuardianPhone());
+        student.setEmergencyContactName(request.getEmergencyContactName());
+        student.setEmergencyContactPhone(request.getEmergencyContactPhone());
+        student.setBloodGroup(request.getBloodGroup());
+        student.setMedicalNotes(request.getMedicalNotes());
+        student.setEnrollmentDate(request.getEnrollmentDate());
+        student.setPreviousSchool(request.getPreviousSchool());
+        student.setPhotoUrl(request.getPhotoUrl());
 
         if (request.getClassSectionId() != null) {
             ClassSection section = classSectionRepository.findById(request.getClassSectionId())
@@ -119,12 +142,36 @@ public class StudentService {
         return StudentResponse.builder()
                 .id(s.getId())
                 .firstName(s.getFirstName())
+                .middleName(s.getMiddleName())
                 .lastName(s.getLastName())
                 .email(s.getEmail())
+                .rollNumber(s.getRollNumber())
                 .admissionNumber(s.getAdmissionNumber())
                 .classSectionId(s.getClassSection() != null ? s.getClassSection().getId() : null)
                 .classSectionName(s.getClassSection() != null ? s.getClassSection().getName() : null)
                 .gradeLevelName(s.getClassSection() != null ? s.getClassSection().getGradeLevel().getName() : null)
+                .dateOfBirth(s.getDateOfBirth())
+                .gender(s.getGender())
+                .nationality(s.getNationality())
+                .religion(s.getReligion())
+                .address(s.getAddress())
+                .city(s.getCity())
+                .stateProvince(s.getStateProvince())
+                .postalCode(s.getPostalCode())
+                .country(s.getCountry())
+                .phoneNumber(s.getPhoneNumber())
+                .guardianName(s.getGuardianName())
+                .guardianRelationship(s.getGuardianRelationship())
+                .guardianEmail(s.getGuardianEmail())
+                .guardianPhone(s.getGuardianPhone())
+                .emergencyContactName(s.getEmergencyContactName())
+                .emergencyContactPhone(s.getEmergencyContactPhone())
+                .bloodGroup(s.getBloodGroup())
+                .medicalNotes(s.getMedicalNotes())
+                .enrollmentDate(s.getEnrollmentDate())
+                .enrollmentStatus(s.getEnrollmentStatus() != null ? s.getEnrollmentStatus().name() : null)
+                .previousSchool(s.getPreviousSchool())
+                .photoUrl(s.getPhotoUrl())
                 .build();
     }
 }

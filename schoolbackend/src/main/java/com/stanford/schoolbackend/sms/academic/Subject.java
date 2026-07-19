@@ -20,4 +20,11 @@ public class Subject {
     private String name; // e.g. "Mathematics"
 
     private String code; // optional short code, e.g. "MATH"
+
+    @Column(columnDefinition = "TEXT")
+    private String description;
+
+    private String category; // e.g. "Sciences", "Humanities", "Languages"
+
+    private Integer credits; // credit hours/units
 }

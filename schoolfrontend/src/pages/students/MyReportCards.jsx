@@ -1,7 +1,7 @@
 import { useEffect, useState } from 'react';
 import { FileDown } from 'lucide-react';
 import axiosClient from '../../api/axiosClient';
-import { useAuth } from '../../context/useAuth';
+import { useAuth } from '../../context/AuthContext';
 
 export default function MyReportCards() {
     const { user } = useAuth();

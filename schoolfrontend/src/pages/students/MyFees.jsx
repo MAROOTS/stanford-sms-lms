@@ -1,7 +1,7 @@
 import { useEffect, useState, useCallback } from 'react';
 import { ChevronDown, ChevronUp } from 'lucide-react';
 import axiosClient from '../../api/axiosClient';
-import { useAuth } from '../../context/useAuth';
+import { useAuth } from '../../context/AuthContext';
 
 function InvoiceCard({ invoice }) {
     const [expanded, setExpanded] = useState(false);

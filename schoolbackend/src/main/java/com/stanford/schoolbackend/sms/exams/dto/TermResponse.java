@@ -12,5 +12,7 @@ public class TermResponse {
     private String name;
     private LocalDate startDate;
     private LocalDate endDate;
+    private String academicYear;
+    private String description;
     private boolean isCurrent;
 }

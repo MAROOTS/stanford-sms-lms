@@ -25,6 +25,8 @@ public class TermService {
                 .name(request.getName())
                 .startDate(request.getStartDate())
                 .endDate(request.getEndDate())
+                .academicYear(request.getAcademicYear())
+                .description(request.getDescription())
                 .isCurrent(request.isCurrent())
                 .build();
 
@@ -42,6 +44,8 @@ public class TermService {
         term.setName(request.getName());
         term.setStartDate(request.getStartDate());
         term.setEndDate(request.getEndDate());
+        term.setAcademicYear(request.getAcademicYear());
+        term.setDescription(request.getDescription());
         term.setCurrent(request.isCurrent());
 
         return toResponse(termRepository.save(term));
@@ -73,6 +77,8 @@ public class TermService {
                 .name(t.getName())
                 .startDate(t.getStartDate())
                 .endDate(t.getEndDate())
+                .academicYear(t.getAcademicYear())
+                .description(t.getDescription())
                 .isCurrent(t.isCurrent())
                 .build();
     }

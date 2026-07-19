@@ -10,6 +10,7 @@ import lombok.RequiredArgsConstructor;
 import org.springframework.security.access.AccessDeniedException;
 import org.springframework.stereotype.Service;
 
+import java.math.BigDecimal;
 import java.util.List;
 
 @Service
@@ -20,8 +21,27 @@ public class FeePaymentService {
     private final FeeInvoiceRepository feeInvoiceRepository;
     private final NotificationService notificationService;
     public FeePaymentResponse recordPayment(Long invoiceId, RecordPaymentRequest request) {
+        if (request.getAmount().compareTo(BigDecimal.ZERO) <= 0) {
+            throw new IllegalArgumentException("Payment amount must be greater than zero");
+        }
+
         FeeInvoice invoice = feeInvoiceRepository.findById(invoiceId)
                 .orElseThrow(() -> new ResourceNotFoundException("Invoice not found"));
+
+        // Validate payment doesn't exceed outstanding balance
+        BigDecimal totalBilled = invoice.getLineItems().stream()
+                .map(FeeInvoiceLineItem::getAmount)
+                .reduce(BigDecimal.ZERO, BigDecimal::add);
+        BigDecimal totalPaid = feePaymentRepository.findByInvoiceId(invoiceId).stream()
+                .map(FeePayment::getAmount)
+                .reduce(BigDecimal.ZERO, BigDecimal::add);
+        BigDecimal outstanding = totalBilled.subtract(totalPaid);
+
+        if (request.getAmount().compareTo(outstanding) > 0) {
+            throw new IllegalArgumentException(
+                    String.format("Payment (KES %.2f) exceeds outstanding balance (KES %.2f)",
+                            request.getAmount(), outstanding));
+        }
 
         FeePayment payment = FeePayment.builder()
                 .invoice(invoice)

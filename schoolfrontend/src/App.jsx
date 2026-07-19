@@ -18,6 +18,9 @@ import ReportCards from "./pages/reportcards/ReportCards";
 import Attendance from './pages/attendance/Attendance';
 import FeeCollection from './pages/fees/FeeCollection';
 import FeeItems from './pages/fees/FeeItems';
+import Uploads from './pages/uploads/Uploads';
+import Courses from './pages/courses/Courses';
+import Announcements from './pages/announcements/Announcements';
 import NotFound from './pages/NotFound';
 import Library from './pages/library/Library';
 import Loans from './pages/library/Loans';
@@ -58,6 +61,9 @@ export default function App() {
                 <Route path="/attendance" element={<Attendance />} />
                 <Route path="/fees" element={<FeeCollection />} />
                 <Route path="/fee-items" element={<FeeItems />} />
+                <Route path="/uploads" element={<Uploads />} />
+                <Route path="/courses" element={<Courses />} />
+                <Route path="/announcements" element={<Announcements />} />
                 <Route path="/library" element={<Library />} />
                 <Route path="/library/loans" element={<Loans />} />
 

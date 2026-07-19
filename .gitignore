@@ -4,7 +4,7 @@ target/
 !**/src/main/**/target/
 !**/src/test/**/target/
 schoolbackend/.env
-uploads/
+schoolbackend/uploads/
 
 ### STS ###
 .apt_generated

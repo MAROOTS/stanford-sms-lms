@@ -5,6 +5,7 @@ import com.stanford.schoolbackend.sms.academic.Subject;
 import jakarta.persistence.*;
 import lombok.*;
 
+import java.time.LocalDate;
 import java.util.HashSet;
 import java.util.Set;
 
@@ -22,10 +23,10 @@ public class Exam {
     private Long id;
 
     @Column(nullable = false)
-    private String name; // e.g. "Opening Term 2"
+    private String name;
 
     @Column(nullable = false)
-    private String examType; // free text, e.g. "CAT (Continuous Assessment Test)"
+    private String examType;
 
     @ManyToOne(fetch = FetchType.LAZY)
     @JoinColumn(name = "term_id", nullable = false)
@@ -48,5 +49,15 @@ public class Exam {
     )
     @Builder.Default
     private Set<Subject> subjects = new HashSet<>();
+
+    // ── Schedule & Scoring ──
+    private LocalDate startDate;
+    private LocalDate endDate;
+    private Double maxScore;
+    private Double weight;
+
+    @Column(columnDefinition = "TEXT")
+    private String description;
+
+    private String status; // DRAFT, PUBLISHED, COMPLETED, ARCHIVED
 }
-//Two many-to-many relationships: Exam ↔ ClassSection and Exam ↔ Subject. Admin-managed, same as Term/Subject.

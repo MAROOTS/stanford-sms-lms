@@ -26,5 +26,14 @@ public class ClassSection {
 
     @ManyToOne(fetch = FetchType.LAZY)
     @JoinColumn(name = "homeroom_teacher_id")
-    private Teacher homeroomTeacher; // nullable — not every section needs one
+    private Teacher homeroomTeacher;
+
+    private Integer capacity; // max students
+
+    private String roomNumber;
+
+    private String academicYear; // e.g. "2026"
+
+    @Column(columnDefinition = "TEXT")
+    private String description;
 }

@@ -5,7 +5,7 @@ import ExamModal from './ExamModal';
 import ConfirmDialog from '../../components/shared/ConfirmDialog';
 import EmptyState from '../../components/shared/EmptyState';
 import { TableSkeleton } from '../../components/shared/LoadingSkeleton';
-import { useToast } from '../../context/useToast';
+import { useToast } from '../../context/ToastContext';
 
 export default function Exams() {
     const [exams, setExams] = useState([]);

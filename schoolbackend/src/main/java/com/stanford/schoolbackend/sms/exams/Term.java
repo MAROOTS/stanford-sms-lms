@@ -24,9 +24,14 @@ public class Term {
     private LocalDate startDate;
     private LocalDate endDate;
 
+    private String academicYear; // e.g. "2026"
+
+    @Column(columnDefinition = "TEXT")
+    private String description;
+
     @Builder.Default
     private boolean isCurrent = false;
 
     @Builder.Default
-    private boolean endingSoonNotified = false;
+    private Boolean endingSoonNotified = false;
 }

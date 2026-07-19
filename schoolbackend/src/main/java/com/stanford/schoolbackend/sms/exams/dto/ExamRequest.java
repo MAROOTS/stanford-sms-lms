@@ -5,6 +5,7 @@ import jakarta.validation.constraints.NotEmpty;
 import jakarta.validation.constraints.NotNull;
 import lombok.Data;
 
+import java.time.LocalDate;
 import java.util.List;
 
 @Data
@@ -23,4 +24,11 @@ public class ExamRequest {
 
     @NotEmpty(message = "at least one subjectId is required")
     private List<Long> subjectIds;
+
+    private LocalDate startDate;
+    private LocalDate endDate;
+    private Double maxScore;
+    private Double weight;
+    private String description;
+    private String status;
 }
