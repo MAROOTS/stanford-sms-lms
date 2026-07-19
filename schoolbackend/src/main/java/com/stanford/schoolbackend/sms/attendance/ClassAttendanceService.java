@@ -122,6 +122,7 @@ private final NotificationService notificationService;
         return ClassAttendanceRecordResponse.builder()
                 .id(r.getId())
                 .classSessionId(r.getClassSession().getId())
+                .sessionDate(r.getClassSession().getSessionDate())
                 .studentId(r.getStudent().getId())
                 .studentName(r.getStudent().getFirstName() + " " + r.getStudent().getLastName())
                 .status(r.getStatus())

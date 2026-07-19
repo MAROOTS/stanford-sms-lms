@@ -3,9 +3,11 @@ package com.stanford.schoolbackend.sms.fees;
 import com.stanford.schoolbackend.core.enums.NotificationType;
 import com.stanford.schoolbackend.core.exception.ResourceNotFoundException;
 import com.stanford.schoolbackend.core.notification.NotificationService;
+import com.stanford.schoolbackend.core.security.SecurityUtils;
 import com.stanford.schoolbackend.sms.fees.dto.FeePaymentResponse;
 import com.stanford.schoolbackend.sms.fees.dto.RecordPaymentRequest;
 import lombok.RequiredArgsConstructor;
+import org.springframework.security.access.AccessDeniedException;
 import org.springframework.stereotype.Service;
 
 import java.math.BigDecimal;
@@ -56,6 +58,14 @@ public class FeePaymentService {
     }
 
     public List<FeePaymentResponse> listByInvoice(Long invoiceId) {
+        FeeInvoice invoice = feeInvoiceRepository.findById(invoiceId)
+                .orElseThrow(() -> new ResourceNotFoundException("Invoice not found"));
+
+        boolean isAdmin = SecurityUtils.currentUserHasRole("ADMIN");
+        if (!isAdmin && !invoice.getStudent().getEmail().equals(SecurityUtils.currentUserEmail())) {
+            throw new AccessDeniedException("You can only view your own payment history");
+        }
+
         return feePaymentRepository.findByInvoiceId(invoiceId).stream().map(this::toResponse).toList();
     }
 

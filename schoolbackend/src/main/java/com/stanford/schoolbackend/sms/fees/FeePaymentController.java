@@ -26,7 +26,7 @@ public class FeePaymentController {
     }
 
     @GetMapping
-    @PreAuthorize("hasRole('ADMIN')")
+    @PreAuthorize("hasRole('STUDENT','ADMIN')")
     public ResponseEntity<List<FeePaymentResponse>> listByInvoice(@PathVariable Long invoiceId) {
         return ResponseEntity.ok(feePaymentService.listByInvoice(invoiceId));
     }

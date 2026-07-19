@@ -63,17 +63,21 @@ public class StudentService {
                 .orElseThrow(() -> new ResourceNotFoundException("Student not found"));
 
         boolean isAdmin = SecurityUtils.currentUserHasRole("ADMIN");
+        boolean isTeacher = SecurityUtils.currentUserHasRole("TEACHER");
+        boolean isStudent = SecurityUtils.currentUserHasRole("STUDENT");
 
-        if (!isAdmin && SecurityUtils.currentUserHasRole("TEACHER")) {
+        if (isTeacher && !isAdmin) {
             Teacher teacher = teacherRepository.findByEmail(SecurityUtils.currentUserEmail())
                     .orElseThrow(() -> new ResourceNotFoundException("Teacher profile not found"));
-
             boolean isHomeroomTeacher = student.getClassSection() != null
                     && student.getClassSection().getHomeroomTeacher() != null
                     && student.getClassSection().getHomeroomTeacher().getId().equals(teacher.getId());
-
             if (!isHomeroomTeacher) {
                 throw new AccessDeniedException("You can only view students in your homeroom class");
+            }
+        } else if (isStudent && !isAdmin) {
+            if (!student.getEmail().equals(SecurityUtils.currentUserEmail())) {
+                throw new AccessDeniedException("You can only view your own profile");
             }
         }
 

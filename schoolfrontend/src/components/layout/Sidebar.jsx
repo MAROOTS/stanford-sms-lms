@@ -18,12 +18,11 @@ import {
   Megaphone,
   Upload,
 } from "lucide-react";
+import { useAuth } from "../../context/AuthContext";
 import { useSidebar } from "../../context/SidebarContext";
 
-const navSections = [
-  { label: 'Overview', items: [
-    { to: '/dashboard', icon: LayoutDashboard, label: 'Dashboard' },
-  ]},
+const adminTeacherNav = [
+  { label: 'Overview', items: [{ to: '/dashboard', icon: LayoutDashboard, label: 'Dashboard' }] },
   {
     label: 'Academics',
     items: [
@@ -61,8 +60,39 @@ const navSections = [
   },
 ];
 
+const studentNav = [
+  { label: 'Overview', items: [{ to: '/dashboard', icon: LayoutDashboard, label: 'My Dashboard' }] },
+  {
+    label: 'Academics',
+    items: [
+      { to: '/my-attendance', icon: ClipboardCheck, label: 'My Attendance' },
+      { to: '/my-results', icon: TrendingUp, label: 'My Results' },
+      { to: '/my-report-cards', icon: FileDown, label: 'Report Cards' },
+    ],
+  },
+  {
+    label: 'Other',
+    items: [
+      { to: '/my-fees', icon: CreditCard, label: 'My Fees' },
+      { to: '/my-library', icon: Library, label: 'Library' },
+    ],
+  },
+  {
+    label: 'LMS',
+    items: [
+      { to: '/courses', icon: BookOpen, label: 'Courses' },
+      { to: '/announcements', icon: Megaphone, label: 'Announcements' },
+    ],
+  },
+];
+
 export default function Sidebar() {
+  const { user } = useAuth();
   const { collapsed, toggle } = useSidebar();
+
+  const navSections = user?.role === 'STUDENT' ? studentNav : adminTeacherNav;
+  const displayName = user?.firstName || user?.email?.split('@')[0] || 'User';
+  const initials = displayName ? displayName.slice(0, 2).toUpperCase() : '??';
 
   return (
     <aside
@@ -84,6 +114,21 @@ export default function Sidebar() {
         )}
       </div>
 
+      {/* User profile */}
+      <div className={`${collapsed ? 'mx-3' : 'mx-3'} my-3`}>
+        <div className="flex items-center gap-3 bg-white/5 hover:bg-white/8 rounded-xl px-3 py-2.5 transition-colors backdrop-blur-sm border border-white/5">
+          <div className="w-8 h-8 rounded-lg bg-gradient-to-br from-accent-400 to-accent-500 flex items-center justify-center text-xs font-bold text-white shadow-md shadow-accent-500/20 shrink-0">
+            {initials}
+          </div>
+          {!collapsed && (
+            <div className="overflow-hidden">
+              <p className="text-sm font-semibold leading-tight truncate">{displayName}</p>
+              <p className="text-[11px] text-slate-400 leading-tight truncate">{user?.email}</p>
+            </div>
+          )}
+        </div>
+      </div>
+
       {/* Navigation */}
       <nav className="flex-1 overflow-y-auto px-3 space-y-6 py-2">
         {navSections.map((section) => (
@@ -98,34 +143,36 @@ export default function Sidebar() {
               </div>
             )}
             <ul className="space-y-0.5">
-              {section.items.map(({ to, icon: Icon, label }) => (
-                <li key={to}>
-                  <NavLink
-                    to={to}
-                    title={collapsed ? label : undefined}
-                    className={({ isActive }) =>
-                      `flex items-center gap-3 px-3 py-2.5 rounded-lg text-sm font-medium transition-all duration-200 group relative ${
-                        isActive
-                          ? 'bg-accent-500/15 text-accent-400 shadow-sm shadow-accent-500/5'
-                          : 'text-slate-400 hover:text-white hover:bg-white/5'
-                      } ${collapsed ? 'justify-center' : ''}`
-                    }
-                  >
-                    {({ isActive }) => (
-                      <>
-                        {isActive && !collapsed && (
-                          <span className="absolute left-0 top-1/2 -translate-y-1/2 w-[3px] h-5 bg-accent-400 rounded-r-full" />
-                        )}
-                        <Icon size={18} aria-hidden="true" className="shrink-0" />
-                        {!collapsed && <span>{label}</span>}
-                        {isActive && collapsed && (
-                          <span className="absolute right-0 top-1/2 -translate-y-1/2 w-[3px] h-5 bg-accent-400 rounded-l-full" />
-                        )}
-                      </>
-                    )}
-                  </NavLink>
-                </li>
-              ))}
+              {section.items
+                .filter((item) => !item.roles || item.roles.includes(user?.role))
+                .map(({ to, icon: Icon, label }) => (
+                  <li key={to}>
+                    <NavLink
+                      to={to}
+                      title={collapsed ? label : undefined}
+                      className={({ isActive }) =>
+                        `flex items-center gap-3 px-3 py-2.5 rounded-lg text-sm font-medium transition-all duration-200 group relative ${
+                          isActive
+                            ? 'bg-accent-500/15 text-accent-400 shadow-sm shadow-accent-500/5'
+                            : 'text-slate-400 hover:text-white hover:bg-white/5'
+                        } ${collapsed ? 'justify-center' : ''}`
+                      }
+                    >
+                      {({ isActive }) => (
+                        <>
+                          {isActive && !collapsed && (
+                            <span className="absolute left-0 top-1/2 -translate-y-1/2 w-[3px] h-5 bg-accent-400 rounded-r-full" />
+                          )}
+                          <Icon size={18} aria-hidden="true" className="shrink-0" />
+                          {!collapsed && <span>{label}</span>}
+                          {isActive && collapsed && (
+                            <span className="absolute right-0 top-1/2 -translate-y-1/2 w-[3px] h-5 bg-accent-400 rounded-l-full" />
+                          )}
+                        </>
+                      )}
+                    </NavLink>
+                  </li>
+                ))}
             </ul>
           </div>
         ))}

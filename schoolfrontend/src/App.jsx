@@ -16,7 +16,6 @@ import MarksEntry from "./pages/marks/MarksEntry";
 import Results from "./pages/results/Results";
 import ReportCards from "./pages/reportcards/ReportCards";
 import Attendance from './pages/attendance/Attendance';
-import Dashboard from "./pages/dashboard/Dashboard";
 import FeeCollection from './pages/fees/FeeCollection';
 import FeeItems from './pages/fees/FeeItems';
 import Uploads from './pages/uploads/Uploads';
@@ -26,6 +25,12 @@ import Announcements from './pages/announcements/Announcements';
 import NotFound from './pages/NotFound';
 import Library from './pages/library/Library';
 import Loans from './pages/library/Loans';
+import DashboardRouter from "./pages/dashboard/DashboardRouter";
+import MyAttendance from './pages/students/MyAttendance';
+import MyResults from './pages/students/MyResults';
+import MyReportCards from './pages/students/MyReportCards';
+import MyFees from './pages/students/MyFees';
+import MyLibrary from './pages/students/MyLibrary';
 
 export default function App() {
   return (
@@ -44,7 +49,7 @@ export default function App() {
                   </ProtectedRoute>
                 }
               >
-                <Route path="/dashboard" element={<Dashboard />} />
+                <Route path="/dashboard" element={<DashboardRouter />} />
                 <Route path="/classes" element={<Classes />} />
                 <Route path="/students" element={<Students />} />
                 <Route path="/teachers" element={<Teachers />} />
@@ -62,6 +67,12 @@ export default function App() {
                 <Route path="/announcements" element={<Announcements />} />
                 <Route path="/library" element={<Library />} />
                 <Route path="/library/loans" element={<Loans />} />
+
+                <Route path="/my-attendance" element={<MyAttendance />} />
+                <Route path="/my-results" element={<MyResults />} />
+                <Route path="/my-report-cards" element={<MyReportCards />} />
+                <Route path="/my-fees" element={<MyFees />} />
+                <Route path="/my-library" element={<MyLibrary />} />
               </Route>
 
               <Route path="/" element={<Navigate to="/dashboard" replace />} />
