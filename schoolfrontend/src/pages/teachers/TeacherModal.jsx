@@ -117,13 +117,6 @@ export default function TeacherModal({ initialData, onClose, onSaved, readOnly }
             fieldErrors[f] ? 'border-red-300 bg-red-50/50' : 'border-slate-200'}`;
     const labelClass = 'block text-xs font-medium text-slate-500 mb-1';
 
-    const SectionHeader = ({ title, sectionKey }) => (
-        <button type="button" onClick={() => toggleSection(sectionKey)}
-            className="w-full flex items-center justify-between py-2.5 px-3 rounded-lg hover:bg-surface-50 transition-colors">
-            <span className="text-xs font-bold text-slate-500 uppercase tracking-wider">{title}</span>
-            {sections[sectionKey] ? <ChevronUp size={14} className="text-slate-400" /> : <ChevronDown size={14} className="text-slate-400" />}
-        </button>
-    );
 
     return (
         <div className="fixed inset-0 bg-slate-900/40 flex items-center justify-center z-50 px-4" onClick={onClose}>
@@ -136,7 +129,7 @@ export default function TeacherModal({ initialData, onClose, onSaved, readOnly }
                 <form onSubmit={handleSubmit} noValidate className="divide-y divide-surface-100">
                     {/* Basic */}
                     <div className="px-6 py-4">
-                        <SectionHeader title="Basic Information" sectionKey="basic" />
+                        <button type="button" onClick={() => toggleSection("basic")} className="w-full flex items-center justify-between py-2.5 px-3 rounded-lg hover:bg-surface-50 transition-colors"><span className="text-xs font-bold text-slate-500 uppercase tracking-wider">Basic Information</span>{sections.basic ? <ChevronUp size={14} className="text-slate-400" /> : <ChevronDown size={14} className="text-slate-400" />}</button>
                         {sections.basic && (
                             <div className="space-y-3 mt-2">
                                 <div className="grid grid-cols-2 gap-3">
@@ -178,7 +171,7 @@ export default function TeacherModal({ initialData, onClose, onSaved, readOnly }
 
                     {/* Professional */}
                     <div className="px-6 py-4">
-                        <SectionHeader title="Professional Details" sectionKey="professional" />
+                        <button type="button" onClick={() => toggleSection("professional")} className="w-full flex items-center justify-between py-2.5 px-3 rounded-lg hover:bg-surface-50 transition-colors"><span className="text-xs font-bold text-slate-500 uppercase tracking-wider">Professional Details</span>{sections.professional ? <ChevronUp size={14} className="text-slate-400" /> : <ChevronDown size={14} className="text-slate-400" />}</button>
                         {sections.professional && (
                             <div className="space-y-3 mt-2">
                                 <div className="grid grid-cols-2 gap-3">
@@ -211,7 +204,7 @@ export default function TeacherModal({ initialData, onClose, onSaved, readOnly }
 
                     {/* Contact */}
                     <div className="px-6 py-4">
-                        <SectionHeader title="Contact & Address" sectionKey="contact" />
+                        <button type="button" onClick={() => toggleSection("contact")} className="w-full flex items-center justify-between py-2.5 px-3 rounded-lg hover:bg-surface-50 transition-colors"><span className="text-xs font-bold text-slate-500 uppercase tracking-wider">Contact & Address</span>{sections.contact ? <ChevronUp size={14} className="text-slate-400" /> : <ChevronDown size={14} className="text-slate-400" />}</button>
                         {sections.contact && (
                             <div className="space-y-3 mt-2">
                                 <div>
@@ -234,7 +227,7 @@ export default function TeacherModal({ initialData, onClose, onSaved, readOnly }
 
                     {/* Emergency */}
                     <div className="px-6 py-4">
-                        <SectionHeader title="Emergency Contact" sectionKey="emergency" />
+                        <button type="button" onClick={() => toggleSection("emergency")} className="w-full flex items-center justify-between py-2.5 px-3 rounded-lg hover:bg-surface-50 transition-colors"><span className="text-xs font-bold text-slate-500 uppercase tracking-wider">Emergency Contact</span>{sections.emergency ? <ChevronUp size={14} className="text-slate-400" /> : <ChevronDown size={14} className="text-slate-400" />}</button>
                         {sections.emergency && (
                             <div className="space-y-3 mt-2">
                                 <div className="grid grid-cols-2 gap-3">
@@ -252,7 +245,7 @@ export default function TeacherModal({ initialData, onClose, onSaved, readOnly }
                     {/* Password (create only) */}
                     {!isEdit && !isView && (
                         <div className="px-6 py-4">
-                            <SectionHeader title="Account Password" sectionKey="password" />
+                            <button type="button" onClick={() => toggleSection("password")} className="w-full flex items-center justify-between py-2.5 px-3 rounded-lg hover:bg-surface-50 transition-colors"><span className="text-xs font-bold text-slate-500 uppercase tracking-wider">Account Password</span>{sections.password ? <ChevronUp size={14} className="text-slate-400" /> : <ChevronDown size={14} className="text-slate-400" />}</button>
                             <div className="space-y-3 mt-2">
                                 <div>
                                     <label className={labelClass}>Password *</label>

@@ -20,7 +20,7 @@
  *   </Card>
  */
 
-function CardRoot({ children, className = '', padding = false, hover = false }) {
+function CardRoot({ children, className = "", hover = false }) {
   return (
     <div
       className={[

@@ -1,5 +1,5 @@
 import { useEffect, useState, useCallback } from 'react';
-import { Plus, Library, Eye, Pencil, Trash2, X, Copy, Bookmark } from 'lucide-react';
+import { Plus, Library, Eye, Pencil, Trash2, X } from 'lucide-react';
 import axiosClient from '../../api/axiosClient';
 import ConfirmDialog from '../../components/shared/ConfirmDialog';
 import EmptyState from '../../components/shared/EmptyState';

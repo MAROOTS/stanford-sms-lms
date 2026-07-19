@@ -1,3 +1,4 @@
+/* eslint-disable react-refresh/only-export-components */
 import { createContext, useContext, useEffect, useState } from "react";
 
 const SidebarContext = createContext();
@@ -13,7 +14,7 @@ export function SidebarProvider({ children }) {
   });
 
   useEffect(() => {
-    try { localStorage.setItem("sidebarCollapsed", JSON.stringify(collapsed)); } catch {}
+    try { localStorage.setItem("sidebarCollapsed", JSON.stringify(collapsed)); } catch { /* intentionally empty */ }
   }, [collapsed]);
 
   const toggle = () => setCollapsed((s) => !s);

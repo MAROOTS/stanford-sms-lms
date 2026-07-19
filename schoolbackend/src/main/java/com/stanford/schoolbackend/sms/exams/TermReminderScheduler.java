@@ -23,7 +23,7 @@ public class TermReminderScheduler {
         LocalDate cutoff = today.plusDays(14);
 
         for (Term term : termRepository.findAll()) {
-            if (term.isEndingSoonNotified() || term.getEndDate() == null) continue;
+            if (Boolean.TRUE.equals(term.getEndingSoonNotified()) || term.getEndDate() == null) continue;
             if (term.getEndDate().isBefore(today) || term.getEndDate().isAfter(cutoff)) continue;
 
             long daysLeft = ChronoUnit.DAYS.between(today, term.getEndDate());

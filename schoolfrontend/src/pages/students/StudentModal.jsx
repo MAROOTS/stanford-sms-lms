@@ -169,16 +169,6 @@ export default function StudentModal({ initialData, classSections, onClose, onSa
 
     const labelClass = 'block text-xs font-medium text-slate-500 mb-1';
 
-    const SectionHeader = ({ title, sectionKey }) => (
-        <button
-            type="button"
-            onClick={() => toggleSection(sectionKey)}
-            className="w-full flex items-center justify-between py-2.5 px-3 rounded-lg hover:bg-surface-50 transition-colors"
-        >
-            <span className="text-xs font-bold text-slate-500 uppercase tracking-wider">{title}</span>
-            {sections[sectionKey] ? <ChevronUp size={14} className="text-slate-400" /> : <ChevronDown size={14} className="text-slate-400" />}
-        </button>
-    );
 
     return (
         <div className="fixed inset-0 bg-slate-900/40 flex items-center justify-center z-50 px-4" onClick={onClose}>
@@ -194,7 +184,7 @@ export default function StudentModal({ initialData, classSections, onClose, onSa
                 <form onSubmit={handleSubmit} noValidate className="divide-y divide-surface-100">
                     {/* ── Basic Info Section ── */}
                     <div className="px-6 py-4">
-                        <SectionHeader title="Basic Information" sectionKey="basic" />
+                        <button type="button" onClick={() => toggleSection("basic")} className="w-full flex items-center justify-between py-2.5 px-3 rounded-lg hover:bg-surface-50 transition-colors"><span className="text-xs font-bold text-slate-500 uppercase tracking-wider">Basic Information</span>{sections.basic ? <ChevronUp size={14} className="text-slate-400" /> : <ChevronDown size={14} className="text-slate-400" />}</button>
                         {sections.basic && (
                             <div className="space-y-3 mt-2">
                                 <div className="grid grid-cols-3 gap-3">
@@ -268,7 +258,7 @@ export default function StudentModal({ initialData, classSections, onClose, onSa
 
                     {/* ── Contact & Address Section ── */}
                     <div className="px-6 py-4">
-                        <SectionHeader title="Contact & Address" sectionKey="contact" />
+                        <button type="button" onClick={() => toggleSection("contact")} className="w-full flex items-center justify-between py-2.5 px-3 rounded-lg hover:bg-surface-50 transition-colors"><span className="text-xs font-bold text-slate-500 uppercase tracking-wider">Contact & Address</span>{sections.contact ? <ChevronUp size={14} className="text-slate-400" /> : <ChevronDown size={14} className="text-slate-400" />}</button>
                         {sections.contact && (
                             <div className="space-y-3 mt-2">
                                 <div>
@@ -309,7 +299,7 @@ export default function StudentModal({ initialData, classSections, onClose, onSa
 
                     {/* ── Guardian Section ── */}
                     <div className="px-6 py-4">
-                        <SectionHeader title="Parent / Guardian" sectionKey="guardian" />
+                        <button type="button" onClick={() => toggleSection("guardian")} className="w-full flex items-center justify-between py-2.5 px-3 rounded-lg hover:bg-surface-50 transition-colors"><span className="text-xs font-bold text-slate-500 uppercase tracking-wider">Parent / Guardian</span>{sections.guardian ? <ChevronUp size={14} className="text-slate-400" /> : <ChevronDown size={14} className="text-slate-400" />}</button>
                         {sections.guardian && (
                             <div className="space-y-3 mt-2">
                                 <div className="grid grid-cols-2 gap-3">
@@ -360,7 +350,7 @@ export default function StudentModal({ initialData, classSections, onClose, onSa
 
                     {/* ── Medical Section ── */}
                     <div className="px-6 py-4">
-                        <SectionHeader title="Medical Information" sectionKey="medical" />
+                        <button type="button" onClick={() => toggleSection("medical")} className="w-full flex items-center justify-between py-2.5 px-3 rounded-lg hover:bg-surface-50 transition-colors"><span className="text-xs font-bold text-slate-500 uppercase tracking-wider">Medical Information</span>{sections.medical ? <ChevronUp size={14} className="text-slate-400" /> : <ChevronDown size={14} className="text-slate-400" />}</button>
                         {sections.medical && (
                             <div className="space-y-3 mt-2">
                                 <div>
@@ -385,7 +375,7 @@ export default function StudentModal({ initialData, classSections, onClose, onSa
 
                     {/* ── Academic Section ── */}
                     <div className="px-6 py-4">
-                        <SectionHeader title="Academic & Enrollment" sectionKey="academic" />
+                        <button type="button" onClick={() => toggleSection("academic")} className="w-full flex items-center justify-between py-2.5 px-3 rounded-lg hover:bg-surface-50 transition-colors"><span className="text-xs font-bold text-slate-500 uppercase tracking-wider">Academic & Enrollment</span>{sections.academic ? <ChevronUp size={14} className="text-slate-400" /> : <ChevronDown size={14} className="text-slate-400" />}</button>
                         {sections.academic && (
                             <div className="space-y-3 mt-2">
                                 <div className="grid grid-cols-2 gap-3">
@@ -442,7 +432,7 @@ export default function StudentModal({ initialData, classSections, onClose, onSa
                     {/* ── Password (create only) ── */}
                     {!isEdit && !isView && (
                         <div className="px-6 py-4">
-                            <SectionHeader title="Account Password" sectionKey="password" />
+                            <button type="button" onClick={() => toggleSection("password")} className="w-full flex items-center justify-between py-2.5 px-3 rounded-lg hover:bg-surface-50 transition-colors"><span className="text-xs font-bold text-slate-500 uppercase tracking-wider">Account Password</span>{sections.password ? <ChevronUp size={14} className="text-slate-400" /> : <ChevronDown size={14} className="text-slate-400" />}</button>
                             <div className="space-y-3 mt-2">
                                 <div className="relative">
                                     <label className={labelClass}>Password *</label>

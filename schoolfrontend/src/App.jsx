@@ -20,7 +20,6 @@ import FeeCollection from './pages/fees/FeeCollection';
 import FeeItems from './pages/fees/FeeItems';
 import Uploads from './pages/uploads/Uploads';
 import Courses from './pages/courses/Courses';
-import Books from './pages/library/Books';
 import Announcements from './pages/announcements/Announcements';
 import NotFound from './pages/NotFound';
 import Library from './pages/library/Library';
