@@ -5,7 +5,7 @@ import SubjectModal from './SubjectModal';
 import ConfirmDialog from '../../components/shared/ConfirmDialog';
 import EmptyState from '../../components/shared/EmptyState';
 import { TableSkeleton } from '../../components/shared/LoadingSkeleton';
-import { useToast } from '../../context/useToast';
+import { useToast } from '../../context/ToastContext';
 
 export default function Subjects() {
     const [subjects, setSubjects] = useState([]);

@@ -40,10 +40,11 @@ public class GlobalExceptionHandler {
         return build(HttpStatus.NOT_FOUND, ex.getMessage(), null);
     }
 
-    // Catch-all — keep last
+    // Catch-all — keep last. Sanitize message to prevent information leakage.
     @ExceptionHandler(RuntimeException.class)
     public ResponseEntity<Map<String, Object>> handleGeneric(RuntimeException ex) {
-        return build(HttpStatus.INTERNAL_SERVER_ERROR, ex.getMessage(), null);
+        // Log the real error for debugging, but return a sanitized message
+        return build(HttpStatus.INTERNAL_SERVER_ERROR, "An unexpected error occurred. Please try again later.", null);
     }
     @ExceptionHandler(DuplicateEnrollmentException.class)
     public ResponseEntity<Map<String, Object>> handleDuplicateEnrollment(DuplicateEnrollmentException ex) {

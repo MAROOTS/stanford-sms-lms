@@ -5,9 +5,11 @@ import TeacherModal from './TeacherModal';
 import ConfirmDialog from '../../components/shared/ConfirmDialog';
 import EmptyState from '../../components/shared/EmptyState';
 import { TableSkeleton } from '../../components/shared/LoadingSkeleton';
-import { useToast } from '../../context/useToast';
+import { useToast } from '../../context/ToastContext';
+import { useAuth } from '../../context/AuthContext';
 
 export default function Teachers() {
+    const { user } = useAuth();
     const [teachers, setTeachers] = useState([]);
     const [loading, setLoading] = useState(true);
     const [error, setError] = useState('');
@@ -59,12 +61,14 @@ export default function Teachers() {
                     <h1 className="text-2xl font-bold text-slate-900">Teachers</h1>
                     <p className="text-sm text-slate-500 mt-1">All teaching staff at your school.</p>
                 </div>
-                <button
-                    onClick={openAddModal}
-                    className="flex items-center gap-1.5 bg-navy-900 hover:bg-navy-800 text-white text-sm font-medium px-4 py-2.5 rounded-lg transition-colors"
-                >
-                    <Plus size={16} /> Add teacher
-                </button>
+                {user?.role === 'ADMIN' && (
+                    <button
+                        onClick={openAddModal}
+                        className="flex items-center gap-1.5 bg-navy-900 hover:bg-navy-800 text-white text-sm font-medium px-4 py-2.5 rounded-lg transition-colors"
+                    >
+                        <Plus size={16} /> Add teacher
+                    </button>
+                )}
             </div>
 
             {loading && <TableSkeleton columns={3} rows={5} />}

@@ -48,17 +48,43 @@ public class UploadService {
     private final FeeItemRepository feeItemRepository;
     private final PasswordEncoder passwordEncoder;
 
-    private static final String DEFAULT_PASSWORD = "changeme123";
+    private static final String DEFAULT_PASSWORD = generateRandomPassword();
+
+    private static String generateRandomPassword() {
+        // Generate a random 12-char password at class load time
+        String chars = "ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz0123456789!@#$";
+        StringBuilder sb = new StringBuilder();
+        java.security.SecureRandom random = new java.security.SecureRandom();
+        for (int i = 0; i < 12; i++) {
+            sb.append(chars.charAt(random.nextInt(chars.length())));
+        }
+        return sb.toString();
+    }
 
     @Transactional
     public UploadResult processFile(MultipartFile file, String entityType) {
         String filename = file.getOriginalFilename();
         if (filename == null) throw new IllegalArgumentException("File name is missing");
 
+        // Validate content type in addition to extension
+        String contentType = file.getContentType();
+        boolean validCsv = "text/csv".equals(contentType) || "application/csv".equals(contentType)
+                || "text/comma-separated-values".equals(contentType);
+        boolean validExcel = "application/vnd.openxmlformats-officedocument.spreadsheetml.sheet".equals(contentType)
+                || "application/vnd.ms-excel".equals(contentType);
+
         List<Map<String, String>> rows;
         if (filename.endsWith(".csv")) {
+            // For CSV, content type is less reliable (browsers send varied types), so we still parse
+            if (contentType != null && !validCsv && !contentType.startsWith("text/")
+                    && !contentType.startsWith("application/")) {
+                throw new IllegalArgumentException("File content type does not match .csv format");
+            }
             rows = parseCSV(file);
         } else if (filename.endsWith(".xlsx") || filename.endsWith(".xls")) {
+            if (contentType != null && !validExcel && !contentType.startsWith("application/")) {
+                throw new IllegalArgumentException("File content type does not match Excel format");
+            }
             rows = parseExcel(file);
         } else {
             throw new IllegalArgumentException("Unsupported file type. Please upload a .csv or .xlsx file.");

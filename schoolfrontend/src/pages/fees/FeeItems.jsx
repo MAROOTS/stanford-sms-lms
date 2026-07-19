@@ -68,7 +68,7 @@ export default function FeeItems() {
         finally { setLoading(false); }
     }, []);
 
-    useEffect(() => {queueMicrotask(() => load()); }, [load]);
+    useEffect(() => { load(); }, [load]);
 
     const handleDelete = async () => {
         if (!deleteTarget) return;

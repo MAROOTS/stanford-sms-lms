@@ -5,8 +5,8 @@ import StudentModal from './StudentModal';
 import ConfirmDialog from '../../components/shared/ConfirmDialog';
 import EmptyState from '../../components/shared/EmptyState';
 import { TableSkeleton } from '../../components/shared/LoadingSkeleton';
-import { useToast } from '../../context/useToast';
-import {useAuth} from "../../context/useAuth.js";
+import { useToast } from '../../context/ToastContext';
+import {useAuth} from '../../context/AuthContext';
 
 export default function Students() {
     const [students, setStudents] = useState([]);

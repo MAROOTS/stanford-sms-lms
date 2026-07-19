@@ -38,11 +38,13 @@ public class CourseController {
     }
 
     @GetMapping("/{courseId}")
+    @PreAuthorize("isAuthenticated()")
     public ResponseEntity<CourseResponse> getById(@PathVariable Long courseId) {
         return ResponseEntity.ok(courseService.getById(courseId));
     }
 
     @GetMapping
+    @PreAuthorize("isAuthenticated()")
     public ResponseEntity<List<CourseResponse>> listAll() {
         return ResponseEntity.ok(courseService.listAll());
     }

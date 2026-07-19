@@ -34,7 +34,7 @@ public class MarkController {
     }
 
     @GetMapping("/student/{studentId}/exam/{examId}")
-    @PreAuthorize("hasAnyRole('STUDENT','TEACHER','ADMIN')")
+    @PreAuthorize("hasAnyRole('TEACHER','ADMIN') or (hasRole('STUDENT') and @securityUtils.isSelf(#studentId))")
     public ResponseEntity<List<MarkResponse>> listByStudentAndExam(
             @PathVariable Long studentId, @PathVariable Long examId) {
         return ResponseEntity.ok(markService.listByStudentAndExam(studentId, examId));

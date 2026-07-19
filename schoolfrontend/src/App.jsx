@@ -57,6 +57,9 @@ export default function App() {
                 <Route path="/attendance" element={<Attendance />} />
                 <Route path="/fees" element={<FeeCollection />} />
                 <Route path="/fee-items" element={<FeeItems />} />
+                <Route path="/uploads" element={<Uploads />} />
+                <Route path="/courses" element={<Courses />} />
+                <Route path="/announcements" element={<Announcements />} />
                 <Route path="/library" element={<Library />} />
                 <Route path="/library/loans" element={<Loans />} />
               </Route>

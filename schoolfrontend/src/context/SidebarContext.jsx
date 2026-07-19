@@ -1,5 +1,6 @@
-import { useEffect, useState } from "react";
-import SidebarContext from "./sidebarContext";
+import { createContext, useContext, useEffect, useState } from "react";
+
+const SidebarContext = createContext();
 
 export function SidebarProvider({ children }) {
   const [collapsed, setCollapsed] = useState(() => {
@@ -12,18 +13,20 @@ export function SidebarProvider({ children }) {
   });
 
   useEffect(() => {
-    try {
-      localStorage.setItem("sidebarCollapsed", JSON.stringify(collapsed));
-    } catch {
-      // Fall back silently if localStorage is unavailable
-    }
+    try { localStorage.setItem("sidebarCollapsed", JSON.stringify(collapsed)); } catch {}
   }, [collapsed]);
 
   const toggle = () => setCollapsed((s) => !s);
 
   return (
-      <SidebarContext.Provider value={{ collapsed, setCollapsed, toggle }}>
-        {children}
-      </SidebarContext.Provider>
+    <SidebarContext.Provider value={{ collapsed, setCollapsed, toggle }}>
+      {children}
+    </SidebarContext.Provider>
   );
+}
+
+export function useSidebar() {
+  const ctx = useContext(SidebarContext);
+  if (!ctx) throw new Error("useSidebar must be used within SidebarProvider");
+  return ctx;
 }

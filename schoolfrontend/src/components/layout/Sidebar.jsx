@@ -15,9 +15,10 @@ import {
   Calendar,
   Sparkles,
   Library,
-
+  Megaphone,
+  Upload,
 } from "lucide-react";
-import { useSidebar } from "../../context/useSidebar";
+import { useSidebar } from "../../context/SidebarContext";
 
 const navSections = [
   { label: 'Overview', items: [
@@ -50,12 +51,6 @@ const navSections = [
     items: [
       { to: '/courses', icon: BookOpen, label: 'Courses' },
       { to: '/announcements', icon: Megaphone, label: 'Announcements' },
-    ],
-  },
-  {
-    label: 'Library',
-    items: [
-      { to: '/library', icon: Library, label: 'Books' },
     ],
   },
   {
