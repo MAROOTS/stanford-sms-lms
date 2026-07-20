@@ -1,7 +1,7 @@
 import { NavLink } from 'react-router-dom';
 import {
   LayoutDashboard, Users, Calendar, ClipboardList, BarChart3, TrendingUp, FileDown,
-  GraduationCap, Layers3, BookOpen, ClipboardCheck, CreditCard, Library, ChevronsLeft,
+  GraduationCap, Layers3, BookOpen, ClipboardCheck, CreditCard, Library, ChevronsLeft, Megaphone
 } from 'lucide-react';
 import { useAuth } from '../../context/useAuth';
 
@@ -27,6 +27,7 @@ const adminTeacherNav = [
     items: [
       { to: '/fees', icon: CreditCard, label: 'Fee Collection' },
       { to: '/library', icon: Library, label: 'Library', roles: ['ADMIN', 'LIBRARIAN'] },
+      { to: '/announcements', icon: Megaphone, label: 'Announcements', roles: ['ADMIN', 'TEACHER'] },
     ],
   },
 ];
@@ -46,6 +47,7 @@ const studentNav = [
     items: [
       { to: '/my-fees', icon: CreditCard, label: 'My Fees' },
       { to: '/my-library', icon: Library, label: 'Library' },
+      { to: '/announcements', icon: Megaphone, label: 'Announcements' },
     ],
   },
 ];

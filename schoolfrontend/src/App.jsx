@@ -27,7 +27,7 @@ import MyResults from './pages/students/MyResults';
 import MyReportCards from './pages/students/MyReportCards';
 import MyFees from './pages/students/MyFees';
 import MyLibrary from './pages/students/MyLibrary';
-
+import AnnouncementsRouter from './pages/announcements/AnnouncementsRouter';
 export default function App() {
   return (
     <ThemeProvider>
@@ -60,12 +60,14 @@ export default function App() {
                 <Route path="/fee-items" element={<FeeItems />} />
                 <Route path="/library" element={<Library />} />
                 <Route path="/library/loans" element={<Loans />} />
+                <Route path="/announcements" element={<AnnouncementsRouter />} />
 
                 <Route path="/my-attendance" element={<MyAttendance />} />
                 <Route path="/my-results" element={<MyResults />} />
                 <Route path="/my-report-cards" element={<MyReportCards />} />
                 <Route path="/my-fees" element={<MyFees />} />
                 <Route path="/my-library" element={<MyLibrary />} />
+
               </Route>
 
               <Route path="/" element={<Navigate to="/dashboard" replace />} />

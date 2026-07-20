@@ -40,4 +40,10 @@ public class AnnouncementController {
     public ResponseEntity<List<AnnouncementResponse>> listSchoolWide() {
         return ResponseEntity.ok(announcementService.listSchoolWide());
     }
+
+    @GetMapping("/school-wide/for-me")
+    @PreAuthorize("hasAnyRole('STUDENT','TEACHER','ADMIN','LIBRARIAN')")
+    public ResponseEntity<List<AnnouncementResponse>> listSchoolWideForCurrentUser() {
+        return ResponseEntity.ok(announcementService.listSchoolWideForCurrentUser());
+    }
 }

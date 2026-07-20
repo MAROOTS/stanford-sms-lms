@@ -1,6 +1,16 @@
 import { useState, useRef, useEffect, useCallback } from 'react';
 import { useNavigate } from 'react-router-dom';
-import { Bell, UserPlus, BookOpen, ClipboardCheck, CreditCard, Calendar, CheckCheck, Loader2 } from 'lucide-react';
+import {
+  Bell,
+  UserPlus,
+  BookOpen,
+  ClipboardCheck,
+  CreditCard,
+  Calendar,
+  CheckCheck,
+  Loader2,
+  Megaphone
+} from 'lucide-react';
 import axiosClient from '../../api/axiosClient';
 
 const TYPE_CONFIG = {
@@ -10,6 +20,7 @@ const TYPE_CONFIG = {
   FEE_PAYMENT: { icon: CreditCard, color: 'text-emerald-500 bg-emerald-50' },
   TERM_REMINDER: { icon: Calendar, color: 'text-amber-500 bg-amber-50' },
   GENERAL: { icon: Bell, color: 'text-slate-500 bg-slate-100' },
+  ANNOUNCEMENT: { icon: Megaphone, color: 'text-amber-500 bg-amber-50' }
 };
 
 function timeAgo(isoString) {

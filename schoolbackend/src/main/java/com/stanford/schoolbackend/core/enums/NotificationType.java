@@ -6,5 +6,6 @@ public enum NotificationType {
     ATTENDANCE_TAKEN,
     FEE_PAYMENT,
     TERM_REMINDER,
-    GENERAL
+    GENERAL,
+    ANNOUNCEMENT,
 }

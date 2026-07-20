@@ -1,5 +1,6 @@
 package com.stanford.schoolbackend.lms.announcement.dto;
 
+import com.stanford.schoolbackend.core.enums.AnnouncementAudience;
 import jakarta.validation.constraints.NotBlank;
 import lombok.Data;
 
@@ -12,4 +13,6 @@ public class AnnouncementRequest {
     private String content;
 
     private Long courseId; // omit or null = school-wide
+
+    private AnnouncementAudience audience; // optional; only used when courseId is omitted
 }

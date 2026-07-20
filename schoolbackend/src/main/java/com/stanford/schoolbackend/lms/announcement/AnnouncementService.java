@@ -1,6 +1,10 @@
 package com.stanford.schoolbackend.lms.announcement;
 
+import com.stanford.schoolbackend.core.enums.AnnouncementAudience;
+import com.stanford.schoolbackend.core.enums.NotificationType;
+import com.stanford.schoolbackend.core.enums.UserRole;
 import com.stanford.schoolbackend.core.exception.ResourceNotFoundException;
+import com.stanford.schoolbackend.core.notification.NotificationService;
 import com.stanford.schoolbackend.core.security.SecurityUtils;
 import com.stanford.schoolbackend.lms.announcement.dto.AnnouncementRequest;
 import com.stanford.schoolbackend.lms.announcement.dto.AnnouncementResponse;
@@ -21,12 +25,14 @@ public class AnnouncementService {
     private final AnnouncementRepository announcementRepository;
     private final CourseRepository courseRepository;
     private final TeacherRepository teacherRepository;
+    private final NotificationService  notificationService;
 
     public AnnouncementResponse create(AnnouncementRequest request) {
-        // look up a teacher profile if one exists — admins often won't have one
         Teacher teacher = teacherRepository.findByEmail(SecurityUtils.currentUserEmail()).orElse(null);
 
         Course course = null;
+        AnnouncementAudience audience = null;
+
         if (request.getCourseId() != null) {
             course = courseRepository.findById(request.getCourseId())
                     .orElseThrow(() -> new ResourceNotFoundException("Course not found"));
@@ -37,10 +43,10 @@ public class AnnouncementService {
                 throw new AccessDeniedException("You do not own this course");
             }
         } else {
-            // school-wide announcement — admin only
             if (!SecurityUtils.currentUserHasRole("ADMIN")) {
                 throw new AccessDeniedException("Only admins can post school-wide announcements");
             }
+            audience = request.getAudience() != null ? request.getAudience() : AnnouncementAudience.ALL;
         }
 
         Announcement announcement = Announcement.builder()
@@ -48,10 +54,18 @@ public class AnnouncementService {
                 .content(request.getContent())
                 .course(course)
                 .teacher(teacher)
+                .audience(audience)
                 .build();
 
-        return toResponse(announcementRepository.save(announcement));
+        Announcement saved = announcementRepository.save(announcement);
+
+        if (course == null) {
+            notifyAudience(audience, request.getTitle());
+        }
+
+        return toResponse(saved);
     }
+
 
     public void delete(Long announcementId) {
         Announcement announcement = announcementRepository.findById(announcementId)
@@ -80,6 +94,30 @@ public class AnnouncementService {
                 .toList();
     }
 
+    public List<AnnouncementResponse> listSchoolWideForCurrentUser() {
+        List<AnnouncementAudience> allowed;
+        if (SecurityUtils.currentUserHasRole("TEACHER")) {
+            allowed = List.of(AnnouncementAudience.ALL, AnnouncementAudience.TEACHERS);
+        } else if (SecurityUtils.currentUserHasRole("STUDENT")) {
+            allowed = List.of(AnnouncementAudience.ALL, AnnouncementAudience.STUDENTS);
+        } else {
+            allowed = List.of(AnnouncementAudience.ALL, AnnouncementAudience.TEACHERS, AnnouncementAudience.STUDENTS);
+        }
+        return announcementRepository.findByCourseIsNullAndAudienceInOrderByPostedAtDesc(allowed).stream()
+                .map(this::toResponse)
+                .toList();
+    }
+
+    private void notifyAudience(AnnouncementAudience audience, String title) {
+        String message = "New announcement: " + title;
+        if (audience == AnnouncementAudience.ALL || audience == AnnouncementAudience.TEACHERS) {
+            notificationService.notifyRole(UserRole.TEACHER, NotificationType.ANNOUNCEMENT, message, "/announcements");
+        }
+        if (audience == AnnouncementAudience.ALL || audience == AnnouncementAudience.STUDENTS) {
+            notificationService.notifyRole(UserRole.STUDENT, NotificationType.ANNOUNCEMENT, message, "/announcements");
+        }
+    }
+
     private AnnouncementResponse toResponse(Announcement a) {
         return AnnouncementResponse.builder()
                 .id(a.getId())
@@ -91,6 +129,8 @@ public class AnnouncementService {
                         ? a.getTeacher().getFirstName() + " " + a.getTeacher().getLastName()
                         : "School Administration")
                 .postedAt(a.getPostedAt())
+                .audience(a.getAudience())
+
                 .build();
     }
 }

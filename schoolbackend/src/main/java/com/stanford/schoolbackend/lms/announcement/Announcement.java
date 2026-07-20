@@ -1,5 +1,6 @@
 package com.stanford.schoolbackend.lms.announcement;
 
+import com.stanford.schoolbackend.core.enums.AnnouncementAudience;
 import com.stanford.schoolbackend.lms.course.Course;
 import com.stanford.schoolbackend.sms.teacher.Teacher;
 import jakarta.persistence.*;
@@ -36,4 +37,7 @@ public class Announcement {
 
     @Builder.Default
     private Instant postedAt = Instant.now();
+
+    @Enumerated(EnumType.STRING)
+    private AnnouncementAudience audience;
 }
