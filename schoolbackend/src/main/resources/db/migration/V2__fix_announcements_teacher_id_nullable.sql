@@ -1,0 +1,1 @@
+ALTER TABLE announcements ALTER COLUMN teacher_id DROP NOT NULL;
