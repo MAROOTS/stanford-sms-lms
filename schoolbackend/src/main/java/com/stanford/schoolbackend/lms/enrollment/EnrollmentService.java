@@ -56,7 +56,7 @@ public class EnrollmentService {
         Course course = courseRepository.findById(courseId)
                 .orElseThrow(() -> new ResourceNotFoundException("Course not found"));
 
-        Student student = studentRepository.findByEmail(SecurityUtils.currentUserEmail())
+        Student student = studentRepository.findByUsername(SecurityUtils.currentUsername())
                 .orElseThrow(() -> new ResourceNotFoundException("Student profile not found"));
 
         if (enrollmentRepository.existsByStudentIdAndCourseId(student.getId(), courseId)) {
@@ -72,7 +72,7 @@ public class EnrollmentService {
     }
 
     public void selfDrop(Long courseId) {
-        Student student = studentRepository.findByEmail(SecurityUtils.currentUserEmail())
+        Student student = studentRepository.findByUsername(SecurityUtils.currentUsername())
                 .orElseThrow(() -> new ResourceNotFoundException("Student profile not found"));
 
         Enrollment enrollment = enrollmentRepository.findByStudentIdAndCourseId(student.getId(), courseId)
@@ -96,7 +96,7 @@ public class EnrollmentService {
         boolean isPrivileged = SecurityUtils.currentUserHasRole("TEACHER")
                 || SecurityUtils.currentUserHasRole("ADMIN");
 
-        if (!isPrivileged && !student.getEmail().equals(SecurityUtils.currentUserEmail())) {
+        if (!isPrivileged && !student.getUsername().equals(SecurityUtils.currentUsername())) {
             throw new AccessDeniedException("You can only view your own enrollments");
         }
 
@@ -110,7 +110,7 @@ public class EnrollmentService {
                 .orElseThrow(() -> new ResourceNotFoundException("Course not found"));
 
         boolean isAdmin = SecurityUtils.currentUserHasRole("ADMIN");
-        boolean ownsCourse = course.getTeacher().getEmail().equals(SecurityUtils.currentUserEmail());
+        boolean ownsCourse = course.getTeacher().getUsername().equals(SecurityUtils.currentUsername());
 
         if (!isAdmin && !ownsCourse) {
             throw new AccessDeniedException("You do not own this course");

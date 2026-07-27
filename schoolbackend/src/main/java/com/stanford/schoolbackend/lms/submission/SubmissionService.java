@@ -34,7 +34,7 @@ public class SubmissionService {
         Assignment assignment = assignmentRepository.findById(assignmentId)
                 .orElseThrow(() -> new ResourceNotFoundException("Assignment not found"));
 
-        Student student = studentRepository.findByEmail(SecurityUtils.currentUserEmail())
+        Student student = studentRepository.findByUsername(SecurityUtils.currentUsername())
                 .orElseThrow(() -> new ResourceNotFoundException("Student profile not found"));
 
         boolean enrolled = enrollmentRepository
@@ -79,7 +79,7 @@ public class SubmissionService {
     }
 
     public SubmissionResponse getMySubmission(Long assignmentId) {
-        Student student = studentRepository.findByEmail(SecurityUtils.currentUserEmail())
+        Student student = studentRepository.findByUsername(SecurityUtils.currentUsername())
                 .orElseThrow(() -> new ResourceNotFoundException("Student profile not found"));
 
         return submissionRepository.findByAssignmentIdAndStudentId(assignmentId, student.getId())

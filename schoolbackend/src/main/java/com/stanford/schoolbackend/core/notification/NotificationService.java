@@ -62,7 +62,7 @@ public class NotificationService {
     }
 
     private User getCurrentUser() {
-        return userRepository.findByEmail(SecurityUtils.currentUserEmail())
+        return userRepository.findByUsername(SecurityUtils.currentUsername())
                 .orElseThrow(() -> new ResourceNotFoundException("User not found"));
     }
 

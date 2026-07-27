@@ -1,5 +1,5 @@
 import { useEffect, useState, useCallback } from 'react';
-import { Plus, Users, Eye, Pencil, Trash2 } from 'lucide-react';
+import {Plus, Users, Eye, Pencil, Trash2, Unlock, KeyRound} from 'lucide-react';
 import axiosClient from '../../api/axiosClient';
 import StudentModal from './StudentModal';
 import ConfirmDialog from '../../components/shared/ConfirmDialog';
@@ -7,25 +7,30 @@ import EmptyState from '../../components/shared/EmptyState';
 import { TableSkeleton } from '../../components/shared/LoadingSkeleton';
 import { useToast } from '../../context/useToast';
 import {useAuth} from "../../context/useAuth.js";
+import TempPasswordModal from "../../components/shared/TempPasswordModal";
 
 export default function Students() {
     const [students, setStudents] = useState([]);
     const [classSections, setClassSections] = useState([]);
+    const [classFilter, setClassFilter] = useState('');
     const [loading, setLoading] = useState(true);
     const [error, setError] = useState('');
     const [modalOpen, setModalOpen] = useState(false);
     const [editingStudent, setEditingStudent] = useState(null);
     const [viewingStudent, setViewingStudent] = useState(null);
     const [deleteTarget, setDeleteTarget] = useState(null);
+    const [resetCredentials, setResetCredentials] = useState(null);
 
     const toast = useToast();
     const {user} = useAuth();
-    const loadAll = useCallback(async () => {
+    const loadAll = useCallback(async (currentClassFilter) => {
         setLoading(true);
         setError('');
         try {
             const [studentsRes, sectionsRes] = await Promise.all([
-                axiosClient.get('/students'),
+                axiosClient.get('/students', {
+                    params: currentClassFilter ? { classSectionId: currentClassFilter } : {},
+                }),
                 axiosClient.get('/class-sections'),
             ]);
             setStudents(studentsRes.data);
@@ -37,7 +42,7 @@ export default function Students() {
         }
     }, []);
 
-    useEffect(() => {queueMicrotask(() => loadAll()); }, [loadAll]);
+    useEffect(() => {queueMicrotask(() => loadAll(classFilter)); }, [classFilter, loadAll]);
 
     const handleDelete = async () => {
         if (!deleteTarget) return;
@@ -53,26 +58,62 @@ export default function Students() {
         }
     };
 
+    const handleResetPassword = async (studentId) => {
+        if (!window.confirm('Generate a new temporary password for this student?')) return;
+        try {
+            const { data } = await axiosClient.post(`/admin/users/${studentId}/reset-password`);
+            setResetCredentials(data);
+        } catch (err) {
+            toast.error(err.response?.data?.message || 'Could not reset password');
+        }
+    };
+
+    const handleUnlock = async (studentId) => {
+        try {
+            await axiosClient.post(`/admin/users/${studentId}/unlock`);
+            toast.success('Account unlocked.');
+        } catch (err) {
+            toast.error(err.response?.data?.message || 'Could not unlock account');
+        }
+    };
+
     const openAddModal = () => { setEditingStudent(null); setViewingStudent(null); setModalOpen(true); };
     const openEditModal = (student) => { setEditingStudent(student); setViewingStudent(null); setModalOpen(true); };
     const openViewModal = (student) => { setViewingStudent(student); setEditingStudent(null); setModalOpen(true); };
-    const handleSaved = () => { setModalOpen(false); loadAll(); toast.success('Student saved successfully.'); };
+    const handleSaved = () => { setModalOpen(false); loadAll(classFilter); toast.success('Student saved successfully.'); };
 
     return (
         <div>
-            <div className="flex items-center justify-between mb-6">
+            <div className="flex items-center justify-between mb-6 flex-wrap gap-4">
                 <div>
                     <h1 className="text-2xl font-bold text-slate-900">Students</h1>
-                    <p className="text-sm text-slate-500 mt-1">All students enrolled at your school.</p>
+                    <p className="text-sm text-slate-500 mt-1">
+                        {classFilter
+                            ? `Showing students in ${classSections.find((c) => c.id === Number(classFilter))?.name || 'selected class'}.`
+                            : 'All students enrolled at your school.'}
+                    </p>
                 </div>
 
-                    {user?.role === 'ADMIN' && (
-                    <button onClick={openAddModal}
-                            className="flex items-center gap-1.5 bg-navy-900 hover:bg-navy-800 text-white text-sm font-medium px-4 py-2.5 rounded-lg transition-colors"
+                <div className="flex items-center gap-3">
+                    <select
+                        value={classFilter}
+                        onChange={(e) => setClassFilter(e.target.value)}
+                        className="px-3.5 py-2.5 rounded-lg border border-slate-200 text-sm font-medium text-slate-700 bg-white focus:outline-none focus:ring-2 focus:ring-teal-accent"
                     >
-                    <Plus size={16} /> Add student
-                    </button>
+                        <option value="">All classes</option>
+                        {classSections.map((c) => (
+                            <option key={c.id} value={c.id}>{c.name} ({c.gradeLevelName})</option>
+                        ))}
+                    </select>
+
+                    {user?.role === 'ADMIN' && (
+                        <button onClick={openAddModal}
+                                className="flex items-center gap-1.5 bg-navy-900 hover:bg-navy-800 text-white text-sm font-medium px-4 py-2.5 rounded-lg transition-colors"
+                        >
+                            <Plus size={16} /> Add student
+                        </button>
                     )}
+                </div>
             </div>
 
             {loading && <TableSkeleton columns={4} rows={6} />}
@@ -80,21 +121,23 @@ export default function Students() {
             {error && !loading && (
                 <div className="bg-red-50 border border-red-100 rounded-xl p-6 text-center">
                     <p className="text-red-600 text-sm mb-3">{error}</p>
-                    <button onClick={loadAll} className="text-sm font-medium text-red-700 hover:text-red-800 underline">Try again</button>
+                    <button onClick={() => loadAll(classFilter)} className="text-sm font-medium text-red-700 hover:text-red-800 underline">Try again</button>
                 </div>
             )}
 
             {!loading && !error && students.length === 0 && (
                 <EmptyState
                     icon={Users}
-                    title="No students yet"
+                    title={classFilter ? 'No students in this class' : 'No students yet'}
                     description={
-                        user?.role === 'ADMIN'
-                            ? 'Add your first student to get started.'
-                            : "You don't have any students in your homeroom class yet."
+                        classFilter
+                            ? 'Try selecting a different class, or clear the filter.'
+                            : user?.role === 'ADMIN'
+                                ? 'Add your first student to get started.'
+                                : "You don't have any students in your homeroom class yet."
                     }
                     action={
-                        user?.role === 'ADMIN' ? (
+                        !classFilter && user?.role === 'ADMIN' ? (
                             <button onClick={openAddModal}
                                     className="flex items-center gap-1.5 bg-navy-900 hover:bg-navy-800 text-white text-sm font-medium px-4 py-2.5 rounded-lg transition-colors">
                                 <Plus size={16} /> Add student
@@ -140,6 +183,12 @@ export default function Students() {
                                             </button>
                                             {user?.role === 'ADMIN' && (
                                                 <>
+                                                    <button onClick={() => handleResetPassword(s.id)} title="Reset password" className="p-2 rounded-lg text-slate-400 hover:text-slate-600 hover:bg-surface-100 transition-colors">
+                                                        <KeyRound size={16} />
+                                                    </button>
+                                                    <button onClick={() => handleUnlock(s.id)} title="Unlock account" className="p-2 rounded-lg text-slate-400 hover:text-slate-600 hover:bg-surface-100 transition-colors">
+                                                        <Unlock size={16} />
+                                                    </button>
                                                     <button onClick={() => openEditModal(s)} title="Edit" className="p-2 rounded-lg text-slate-400 hover:text-slate-600 hover:bg-surface-100 transition-colors">
                                                         <Pencil size={16} />
                                                     </button>
@@ -168,6 +217,14 @@ export default function Students() {
                 />
             )}
 
+            {resetCredentials && (
+                <TempPasswordModal
+                    username={resetCredentials.username}
+                    temporaryPassword={resetCredentials.temporaryPassword}
+                    onClose={() => setResetCredentials(null)}
+                />
+            )}
+
             <ConfirmDialog
                 open={!!deleteTarget}
                 title="Delete student"
@@ -180,4 +237,3 @@ export default function Students() {
         </div>
     );
 }
-//                                className="flex items-center gap-1.5 bg-navy-900 hover:bg-navy-800 text-white text-sm font-medium px-4 py-2.5 rounded-lg transition-colors">

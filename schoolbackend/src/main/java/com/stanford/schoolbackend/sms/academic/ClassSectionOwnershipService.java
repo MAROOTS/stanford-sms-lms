@@ -18,7 +18,7 @@ public class ClassSectionOwnershipService {
 
         boolean isAdmin = SecurityUtils.currentUserHasRole("ADMIN");
         boolean isHomeroomTeacher = classSection.getHomeroomTeacher() != null
-                && classSection.getHomeroomTeacher().getEmail().equals(SecurityUtils.currentUserEmail());
+                && classSection.getHomeroomTeacher().getUsername().equals(SecurityUtils.currentUsername());
 
         if (!isAdmin && !isHomeroomTeacher) {
             throw new AccessDeniedException("You are not the homeroom teacher for this class");

@@ -91,7 +91,7 @@ private final NotificationService notificationService;
 
         boolean isPrivileged = SecurityUtils.currentUserHasRole("TEACHER")
                 || SecurityUtils.currentUserHasRole("ADMIN");
-        if (!isPrivileged && !student.getEmail().equals(SecurityUtils.currentUserEmail())) {
+        if (!isPrivileged && !student.getUsername().equals(SecurityUtils.currentUsername())) {
             throw new AccessDeniedException("You can only view your own attendance");
         }
 

@@ -18,7 +18,7 @@ public class TeacherController {
     private final TeacherService teacherService;
 
     @GetMapping
-    @PreAuthorize("hasAnyRole('ADMIN','TEACHER')")
+    @PreAuthorize("hasAnyRole('ADMIN','TEACHER','LIBRARIAN')")
     public ResponseEntity<List<TeacherResponse>> listAll() {
         return ResponseEntity.ok(teacherService.listAll());
     }

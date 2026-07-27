@@ -20,7 +20,7 @@ public class CourseService {
     private final TeacherRepository teacherRepository;
 
     public CourseResponse create(CourseRequest request) {
-        Teacher teacher = teacherRepository.findByEmail(SecurityUtils.currentUserEmail())
+        Teacher teacher = teacherRepository.findByUsername(SecurityUtils.currentUsername())
                 .orElseThrow(() -> new ResourceNotFoundException("Teacher profile not found"));
 
         Course course = Course.builder()
@@ -58,7 +58,7 @@ public class CourseService {
                 .orElseThrow(() -> new ResourceNotFoundException("Course not found"));
 
         boolean isAdmin = SecurityUtils.currentUserHasRole("ADMIN");
-        boolean ownsCourse = course.getTeacher().getEmail().equals(SecurityUtils.currentUserEmail());
+        boolean ownsCourse = course.getTeacher().getUsername().equals(SecurityUtils.currentUsername());
 
         if (!isAdmin && !ownsCourse) {
             throw new AccessDeniedException("You do not own this course");

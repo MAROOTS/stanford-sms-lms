@@ -18,19 +18,19 @@ public class BookController {
     private final BookService bookService;
 
     @PostMapping
-    @PreAuthorize("hasRole('ADMIN')")
+    @PreAuthorize("hasAnyRole('ADMIN','LIBRARIAN')")
     public ResponseEntity<BookResponse> create(@Valid @RequestBody BookRequest request) {
         return ResponseEntity.status(HttpStatus.CREATED).body(bookService.create(request));
     }
 
     @PutMapping("/{id}")
-    @PreAuthorize("hasRole('ADMIN')")
+    @PreAuthorize("hasAnyRole('ADMIN','LIBRARIAN')")
     public ResponseEntity<BookResponse> update(@PathVariable Long id, @Valid @RequestBody BookRequest request) {
         return ResponseEntity.ok(bookService.update(id, request));
     }
 
     @DeleteMapping("/{id}")
-    @PreAuthorize("hasRole('ADMIN')")
+    @PreAuthorize("hasAnyRole('ADMIN','LIBRARIAN')")
     public ResponseEntity<Void> delete(@PathVariable Long id) {
         bookService.delete(id);
         return ResponseEntity.noContent().build();
@@ -47,13 +47,13 @@ public class BookController {
     }
 
     @PostMapping("/{bookId}/copies")
-    @PreAuthorize("hasRole('ADMIN')")
+    @PreAuthorize("hasAnyRole('ADMIN','LIBRARIAN')")
     public ResponseEntity<BookCopyResponse> addCopy(@PathVariable Long bookId, @Valid @RequestBody AddCopyRequest request) {
         return ResponseEntity.status(HttpStatus.CREATED).body(bookService.addCopy(bookId, request));
     }
 
     @GetMapping("/{bookId}/copies")
-    @PreAuthorize("hasRole('ADMIN')")
+    @PreAuthorize("hasAnyRole('ADMIN','LIBRARIAN')")
     public ResponseEntity<List<BookCopyResponse>> listCopies(@PathVariable Long bookId) {
         return ResponseEntity.ok(bookService.listCopies(bookId));
     }

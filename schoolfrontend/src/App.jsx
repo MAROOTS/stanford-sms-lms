@@ -28,6 +28,12 @@ import MyReportCards from './pages/students/MyReportCards';
 import MyFees from './pages/students/MyFees';
 import MyLibrary from './pages/students/MyLibrary';
 import AnnouncementsRouter from './pages/announcements/AnnouncementsRouter';
+import Register from './pages/auth/Register';
+import ForgotPassword from './pages/auth/ForgotPassword';
+import ResetPassword from './pages/auth/ResetPassword';
+import VerifyEmail from './pages/auth/VerifyEmail';
+import ChangePassword from './pages/auth/ChangePassword';
+import Staff from './pages/staff/Staff';
 export default function App() {
   return (
     <ThemeProvider>
@@ -61,13 +67,18 @@ export default function App() {
                 <Route path="/library" element={<Library />} />
                 <Route path="/library/loans" element={<Loans />} />
                 <Route path="/announcements" element={<AnnouncementsRouter />} />
+                <Route path="/register" element={<Register />} />
+                <Route path="/forgot-password" element={<ForgotPassword />} />
+                <Route path="/reset-password" element={<ResetPassword />} />
+                <Route path="/verify-email" element={<VerifyEmail />} />
 
                 <Route path="/my-attendance" element={<MyAttendance />} />
                 <Route path="/my-results" element={<MyResults />} />
                 <Route path="/my-report-cards" element={<MyReportCards />} />
                 <Route path="/my-fees" element={<MyFees />} />
                 <Route path="/my-library" element={<MyLibrary />} />
-
+                <Route path="/change-password" element={<ChangePassword />} />
+                <Route path="/staff" element={<Staff />} />
               </Route>
 
               <Route path="/" element={<Navigate to="/dashboard" replace />} />

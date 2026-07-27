@@ -29,6 +29,26 @@ public class User {
     private UserRole role;
 
     private String firstName;
+
     private String lastName;
+
+    @Builder.Default
+    @Column(nullable = false)
+    private boolean enabled = true;
+
+    @Column(nullable = false, unique = true)
+    private String username;
+
+    @Builder.Default
+    @Column(nullable = false)
+    private boolean mustChangePassword = true;
+
+    @Builder.Default
+    @Column(nullable = false)
+    private int failedLoginAttempts = 0;
+
+    @Builder.Default
+    @Column(nullable = false)
+    private boolean accountLocked = false;
 }
 

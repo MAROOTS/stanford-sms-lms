@@ -1,7 +1,7 @@
 import { NavLink } from 'react-router-dom';
 import {
   LayoutDashboard, Users, Calendar, ClipboardList, BarChart3, TrendingUp, FileDown,
-  GraduationCap, Layers3, BookOpen, ClipboardCheck, CreditCard, Library, ChevronsLeft, Megaphone
+  GraduationCap, Layers3, BookOpen, ClipboardCheck, CreditCard, Library, ChevronsLeft, Megaphone, UserCog, Send
 } from 'lucide-react';
 import { useAuth } from '../../context/useAuth';
 
@@ -26,8 +26,9 @@ const adminTeacherNav = [
     label: 'OPERATIONS',
     items: [
       { to: '/fees', icon: CreditCard, label: 'Fee Collection' },
-      { to: '/library', icon: Library, label: 'Library', roles: ['ADMIN', 'LIBRARIAN'] },
+      { to: '/library', icon: Library, label: 'Library', roles: ['ADMIN'] },
       { to: '/announcements', icon: Megaphone, label: 'Announcements', roles: ['ADMIN', 'TEACHER'] },
+      { to: '/staff', icon: UserCog, label: 'Staff', roles: ['ADMIN'] },
     ],
   },
 ];
@@ -52,9 +53,44 @@ const studentNav = [
   },
 ];
 
+const librarianNav = [
+  {
+    label: 'LIBRARY',
+    items: [
+      { to: '/library', icon: Library, label: 'Catalog' },
+      { to: '/library/loans', icon: Send, label: 'Loans' },
+    ],
+  },
+  {
+    label: 'OTHER',
+    items: [
+      { to: '/announcements', icon: Megaphone, label: 'Announcements' },
+    ],
+  },
+];
+
+const accountantNav = [
+  {
+    label: 'FINANCE',
+    items: [
+      { to: '/fees', icon: CreditCard, label: 'Fee Collection' },
+    ],
+  },
+  {
+    label: 'OTHER',
+    items: [
+      { to: '/announcements', icon: Megaphone, label: 'Announcements' },
+    ],
+  },
+];
+
 export default function Sidebar() {
   const { user } = useAuth();
-  const navSections = user?.role === 'STUDENT' ? studentNav : adminTeacherNav;
+  const navSections =
+      user?.role === 'STUDENT' ? studentNav :
+      user?.role === 'LIBRARIAN' ? librarianNav :
+      user?.role === 'ACCOUNTANT' ? accountantNav :
+      adminTeacherNav;
 
   const initials = user?.email ? user.email.slice(0, 2).toUpperCase() : '??';
 

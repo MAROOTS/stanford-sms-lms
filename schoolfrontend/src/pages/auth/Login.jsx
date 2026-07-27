@@ -1,17 +1,27 @@
 import { useState } from "react";
-import { useNavigate } from "react-router-dom";
-import { Mail, Lock, Eye, EyeOff, Sparkles, ShieldCheck, Loader2, ArrowRight } from "lucide-react";
+import { useNavigate, Link } from "react-router-dom";
+import {
+  Lock,
+  Eye,
+  EyeOff,
+  Sparkles,
+  ShieldCheck,
+  Loader2,
+  ArrowRight, User,
+} from "lucide-react";
 import { useAuth } from "../../context/useAuth";
+import axiosClient from "../../api/axiosClient";
 
 export default function Login() {
-  const [email, setEmail] = useState("");
+  const [username, setUsername] = useState("");
   const [password, setPassword] = useState("");
   const [showPassword, setShowPassword] = useState(false);
   const [remember, setRemember] = useState(false);
   const [error, setError] = useState("");
   const [loading, setLoading] = useState(false);
-  const [showForgotMsg, setShowForgotMsg] = useState(false);
-
+  const [showResend, setShowResend] = useState(false);
+  const [resendSent, setResendSent] = useState(false);
+  const [resendLoading, setResendLoading] = useState(false);
   const { login } = useAuth();
   const navigate = useNavigate();
 
@@ -20,10 +30,13 @@ export default function Login() {
     setError("");
     setLoading(true);
     try {
-      await login(email, password, remember);
-      navigate("/dashboard");
+      const loggedInUser = await login(username, password, remember);
+      navigate(loggedInUser.mustChangePassword ? '/change-password' : '/dashboard');
     } catch (err) {
-      setError(err.response?.data?.message || "Invalid email or password");
+      const message =
+        err.response?.data?.message || "Invalid username or password";
+      setError(message);
+      setShowResend(message.toLowerCase().includes("verify"));
     } finally {
       setLoading(false);
     }
@@ -43,8 +56,12 @@ export default function Login() {
               <Sparkles size={20} className="text-white" />
             </div>
             <div>
-              <span className="text-lg font-bold text-slate-900 tracking-tight">StanfordOS</span>
-              <p className="text-[11px] text-slate-400 leading-tight">School Management Platform</p>
+              <span className="text-lg font-bold text-slate-900 tracking-tight">
+                StanfordOS
+              </span>
+              <p className="text-[11px] text-slate-400 leading-tight">
+                School Management Platform
+              </p>
             </div>
           </div>
 
@@ -52,27 +69,27 @@ export default function Login() {
             Welcome back
           </h1>
           <p className="text-sm text-slate-500 mb-8 leading-relaxed">
-            Sign in to manage your school — attendance, exams, fees, and more, all in one place.
+            Sign in to manage your school — attendance, exams, fees, and more,
+            all in one place.
           </p>
 
           <form onSubmit={handleSubmit} className="space-y-5">
-            {/* Email */}
             <div>
               <label className="block text-sm font-medium text-slate-700 mb-1.5">
-                Email address
+                UserName
               </label>
               <div className="relative">
-                <Mail
+                <User
                   size={16}
                   className="absolute left-3.5 top-1/2 -translate-y-1/2 text-slate-400"
                   aria-hidden="true"
                 />
                 <input
-                  type="email"
+                  type="username"
                   required
-                  value={email}
-                  onChange={(e) => setEmail(e.target.value)}
-                  placeholder="admin@admin.com"
+                  value={username}
+                  onChange={(e) => setUsername(e.target.value)}
+                  placeholder="ADM-2026-001"
                   className="w-full pl-10 pr-4 py-2.5 rounded-xl bg-surface-50 border border-surface-200 text-sm placeholder:text-slate-400 focus:outline-none focus:ring-2 focus:ring-accent-500/30 focus:border-accent-300 transition-all hover:bg-surface-50/50"
                 />
               </div>
@@ -84,13 +101,12 @@ export default function Login() {
                 <label className="block text-sm font-medium text-slate-700">
                   Password
                 </label>
-                <button
-                    type="button"
-                    onClick={() => setShowForgotMsg(!showForgotMsg)}
-                    className="text-xs font-medium text-accent-600 hover:text-accent-700 transition-colors"
+                <Link
+                  to="/forgot-password"
+                  className="text-sm font-medium text-teal-600 hover:text-teal-700"
                 >
                   Forgot password?
-                </button>
+                </Link>
               </div>
               <div className="relative">
                 <Lock
@@ -115,11 +131,6 @@ export default function Login() {
                   {showPassword ? <EyeOff size={16} /> : <Eye size={16} />}
                 </button>
               </div>
-              {showForgotMsg && (
-                  <div className="mt-2 text-xs text-slate-500 bg-surface-100 border border-surface-200 rounded-xl px-3.5 py-2.5 animate-fade-in">
-                    Password resets aren't self-service yet — please contact your school administrator.
-                  </div>
-              )}
             </div>
 
             {/* Remember me */}
@@ -139,6 +150,39 @@ export default function Login() {
                 <ShieldCheck size={16} className="text-red-400 shrink-0" />
                 {error}
               </div>
+            )}
+
+            {showResend && !resendSent && (
+              <button
+                type="button"
+                onClick={async () => {
+                  setError("");
+                  setResendLoading(true);
+                  try {
+                    await axiosClient.post("/auth/resend-verification", {
+                      email,
+                    });
+                    setShowResend(false);
+                    setResendSent(true);
+                  } catch (err) {
+                    setError(
+                      err.response?.data?.message ||
+                        "Unable to resend verification email. Please try again.",
+                    );
+                  } finally {
+                    setResendLoading(false);
+                  }
+                }}
+                disabled={resendLoading}
+                className="text-sm text-teal-600 hover:text-teal-700 font-medium disabled:opacity-60"
+              >
+                {resendLoading ? "Sending…" : "Resend verification email"}
+              </button>
+            )}
+            {resendSent && (
+              <p className="text-sm text-teal-700">
+                Verification email sent — check your inbox.
+              </p>
             )}
 
             {/* Submit */}
@@ -167,6 +211,15 @@ export default function Login() {
               Contact us to get started
             </span>
           </p>
+          <p className="text-center text-sm text-slate-500 mt-3">
+            New student?{" "}
+            <Link
+              to="/register"
+              className="text-teal-600 font-medium hover:text-teal-700"
+            >
+              Create an account
+            </Link>
+          </p>
         </div>
 
         <p className="text-center text-xs text-slate-400 mt-auto pt-8">
@@ -179,15 +232,17 @@ export default function Login() {
         {/* Dot pattern */}
         <div
           className="absolute inset-0 opacity-[0.04] pointer-events-none"
-          style={{ backgroundImage: 'radial-gradient(circle, rgba(255,255,255,0.8) 1px, transparent 1px)', backgroundSize: '20px 20px' }}
+          style={{
+            backgroundImage:
+              "radial-gradient(circle, rgba(255,255,255,0.8) 1px, transparent 1px)",
+            backgroundSize: "20px 20px",
+          }}
         />
         {/* Gradient orbs */}
         <div className="absolute -top-32 -right-32 w-96 h-96 bg-accent-500/10 rounded-full blur-3xl pointer-events-none" />
         <div className="absolute -bottom-32 -left-32 w-96 h-96 bg-primary-500/10 rounded-full blur-3xl pointer-events-none" />
 
         <div className="relative max-w-lg">
-
-
           <h2 className="text-[42px] font-bold text-white leading-[1.15] mb-6 tracking-tight">
             Run your entire school from one calm, connected dashboard.
           </h2>

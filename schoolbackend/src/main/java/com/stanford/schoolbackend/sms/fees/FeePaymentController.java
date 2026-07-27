@@ -19,14 +19,14 @@ public class FeePaymentController {
     private final FeePaymentService feePaymentService;
 
     @PostMapping
-    @PreAuthorize("hasRole('ADMIN')")
+@PreAuthorize("hasAnyRole('ADMIN','ACCOUNTANT')")
     public ResponseEntity<FeePaymentResponse> recordPayment(
             @PathVariable Long invoiceId, @Valid @RequestBody RecordPaymentRequest request) {
         return ResponseEntity.status(HttpStatus.CREATED).body(feePaymentService.recordPayment(invoiceId, request));
     }
 
     @GetMapping
-    @PreAuthorize("hasRole('STUDENT','ADMIN')")
+    @PreAuthorize("hasRole('STUDENT','ADMIN','ACCOUNTANT')")
     public ResponseEntity<List<FeePaymentResponse>> listByInvoice(@PathVariable Long invoiceId) {
         return ResponseEntity.ok(feePaymentService.listByInvoice(invoiceId));
     }

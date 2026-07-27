@@ -17,9 +17,14 @@ export function AuthProvider({ children }) {
   const [user, setUser] = useState(getStoredUser);
   const [isLoading] = useState(false);
 
-  const login = async (email, password, remember = false) => {
-    const { data } = await axiosClient.post('/auth/login', { email, password });
-    const userData = { userId: data.userId, firstName: data.firstName, email: data.email, role: data.role };
+  const login = async (username, password, remember = false) => {
+    const { data } = await axiosClient.post('/auth/login', { username, password });
+    const userData = { userId: data.userId,
+      firstName: data.firstName,
+      email: data.email,
+      role: data.role,
+      mustChangePassword: data.mustChangePassword,
+    };
     const storage = remember ? localStorage : sessionStorage;
     storage.setItem('accessToken', data.accessToken);
     storage.setItem('user', JSON.stringify(userData));
@@ -35,8 +40,18 @@ export function AuthProvider({ children }) {
     setUser(null);
   };
 
+  const clearMustChangePassword = () => {
+    setUser((prev) => {
+      if (!prev) return prev;
+      const updated = { ...prev, mustChangePassword: false };
+      const storage = localStorage.getItem('user') ? localStorage : sessionStorage;
+      storage.setItem('user', JSON.stringify(updated));
+      return updated;
+    });
+  };
+
   return (
-      <AuthContext.Provider value={{ user, isLoading, login, logout }}>
+      <AuthContext.Provider value={{ user, isLoading, login, logout, clearMustChangePassword }}>
         {children}
       </AuthContext.Provider>
   );

@@ -1,18 +1,12 @@
-import { Navigate } from "react-router-dom";
+import { Navigate,  useLocation } from "react-router-dom";
 import { useAuth } from "../context/useAuth";
 import { Loader2 } from "lucide-react";
 
-/**
- * Route guard with:
- * - Auth loading state (#7) — shows spinner while hydrating from storage
- * - Role-based access control (#6) — restricts routes by role
- * - Redirect to /login if unauthenticated
- * - Redirect to /dashboard if authenticated but unauthorized role
- */
 export default function ProtectedRoute({ children, allowedRoles }) {
   const { user, isLoading } = useAuth();
+  const location = useLocation();
 
-  // Still hydrating from localStorage
+
   if (isLoading) {
     return (
       <div className="min-h-screen flex items-center justify-center bg-surface-50">
@@ -27,6 +21,9 @@ export default function ProtectedRoute({ children, allowedRoles }) {
   // Not authenticated
   if (!user) {
     return <Navigate to="/login" replace />;
+  }
+  if (user.mustChangePassword && location.pathname !== '/change-password') {
+    return <Navigate to="/change-password" replace />;
   }
 
   // Role check

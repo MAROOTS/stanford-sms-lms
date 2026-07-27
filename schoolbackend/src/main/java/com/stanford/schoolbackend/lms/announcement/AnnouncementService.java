@@ -28,7 +28,7 @@ public class AnnouncementService {
     private final NotificationService  notificationService;
 
     public AnnouncementResponse create(AnnouncementRequest request) {
-        Teacher teacher = teacherRepository.findByEmail(SecurityUtils.currentUserEmail()).orElse(null);
+        Teacher teacher = teacherRepository.findByUsername(SecurityUtils.currentUsername()).orElse(null);
 
         Course course = null;
         AnnouncementAudience audience = null;
@@ -38,7 +38,7 @@ public class AnnouncementService {
                     .orElseThrow(() -> new ResourceNotFoundException("Course not found"));
 
             boolean isAdmin = SecurityUtils.currentUserHasRole("ADMIN");
-            boolean owns = course.getTeacher().getEmail().equals(SecurityUtils.currentUserEmail());
+            boolean owns = course.getTeacher().getUsername().equals(SecurityUtils.currentUsername());
             if (!isAdmin && !owns) {
                 throw new AccessDeniedException("You do not own this course");
             }
@@ -73,7 +73,7 @@ public class AnnouncementService {
 
         boolean isAdmin = SecurityUtils.currentUserHasRole("ADMIN");
         boolean owns = announcement.getTeacher() != null
-                && announcement.getTeacher().getEmail().equals(SecurityUtils.currentUserEmail());
+                && announcement.getTeacher().getUsername().equals(SecurityUtils.currentUsername());
 
         if (!isAdmin && !owns) {
             throw new AccessDeniedException("You do not own this announcement");

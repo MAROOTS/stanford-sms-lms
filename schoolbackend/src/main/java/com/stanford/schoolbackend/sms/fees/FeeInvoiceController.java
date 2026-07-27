@@ -18,43 +18,44 @@ public class FeeInvoiceController {
     private final FeeInvoiceService feeInvoiceService;
 
     @PostMapping
-    @PreAuthorize("hasRole('ADMIN')")
+    @PreAuthorize("hasAnyRole('ADMIN','ACCOUNTANT')")
+
     public ResponseEntity<FeeInvoiceResponse> create(@Valid @RequestBody CreateInvoiceRequest request) {
         return ResponseEntity.status(HttpStatus.CREATED).body(feeInvoiceService.create(request));
     }
 
     @PutMapping("/{invoiceId}")
-    @PreAuthorize("hasRole('ADMIN')")
+@PreAuthorize("hasAnyRole('ADMIN','ACCOUNTANT')")
     public ResponseEntity<FeeInvoiceResponse> update(@PathVariable Long invoiceId, @Valid @RequestBody CreateInvoiceRequest request) {
         return ResponseEntity.ok(feeInvoiceService.update(invoiceId, request));
     }
 
     @GetMapping("/{invoiceId}")
-    @PreAuthorize("hasRole('ADMIN')")
+@PreAuthorize("hasAnyRole('ADMIN','ACCOUNTANT')")
     public ResponseEntity<FeeInvoiceResponse> getById(@PathVariable Long invoiceId) {
         return ResponseEntity.ok(feeInvoiceService.getById(invoiceId));
     }
 
     @GetMapping("/term/{termId}")
-    @PreAuthorize("hasRole('ADMIN')")
+@PreAuthorize("hasAnyRole('ADMIN','ACCOUNTANT')")
     public ResponseEntity<List<FeeInvoiceResponse>> listByTerm(@PathVariable Long termId) {
         return ResponseEntity.ok(feeInvoiceService.listByTerm(termId));
     }
 
     @GetMapping("/student/{studentId}")
-    @PreAuthorize("hasAnyRole('STUDENT','ADMIN')")
+    @PreAuthorize("hasAnyRole('STUDENT','ADMIN','ACCOUNTANT')")
     public ResponseEntity<List<FeeInvoiceResponse>> listByStudent(@PathVariable Long studentId) {
         return ResponseEntity.ok(feeInvoiceService.listByStudent(studentId));
     }
 
     @GetMapping("/term/{termId}/summary")
-    @PreAuthorize("hasRole('ADMIN')")
+@PreAuthorize("hasAnyRole('ADMIN','ACCOUNTANT')")
     public ResponseEntity<FeeTermSummaryResponse> getTermSummary(@PathVariable Long termId) {
         return ResponseEntity.ok(feeInvoiceService.getTermSummary(termId));
     }
 
     @GetMapping("/summary/month-to-date")
-    @PreAuthorize("hasRole('ADMIN')")
+@PreAuthorize("hasAnyRole('ADMIN','ACCOUNTANT')")
     public ResponseEntity<MonthToDateCollectionResponse> getMonthToDateCollection() {
         return ResponseEntity.ok(feeInvoiceService.getMonthToDateCollection());
     }

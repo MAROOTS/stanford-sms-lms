@@ -69,7 +69,7 @@ public class FeeInvoiceService {
                 .orElseThrow(() -> new ResourceNotFoundException("Student not found"));
 
         boolean isPrivileged = SecurityUtils.currentUserHasRole("ADMIN");
-        if (!isPrivileged && !student.getEmail().equals(SecurityUtils.currentUserEmail())) {
+        if (!isPrivileged && !student.getUsername().equals(SecurityUtils.currentUsername())) {
             throw new AccessDeniedException("You can only view your own fee invoices");
         }
 

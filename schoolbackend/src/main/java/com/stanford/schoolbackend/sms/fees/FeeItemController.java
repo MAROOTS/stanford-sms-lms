@@ -19,26 +19,26 @@ public class FeeItemController {
     private final FeeItemService feeItemService;
 
     @PostMapping
-    @PreAuthorize("hasRole('ADMIN')")
+@PreAuthorize("hasAnyRole('ADMIN','ACCOUNTANT')")
     public ResponseEntity<FeeItemResponse> create(@Valid @RequestBody FeeItemRequest request) {
         return ResponseEntity.status(HttpStatus.CREATED).body(feeItemService.create(request));
     }
 
     @PutMapping("/{id}")
-    @PreAuthorize("hasRole('ADMIN')")
+@PreAuthorize("hasAnyRole('ADMIN','ACCOUNTANT')")
     public ResponseEntity<FeeItemResponse> update(@PathVariable Long id, @Valid @RequestBody FeeItemRequest request) {
         return ResponseEntity.ok(feeItemService.update(id, request));
     }
 
     @DeleteMapping("/{id}")
-    @PreAuthorize("hasRole('ADMIN')")
+@PreAuthorize("hasAnyRole('ADMIN','ACCOUNTANT')")
     public ResponseEntity<Void> delete(@PathVariable Long id) {
         feeItemService.delete(id);
         return ResponseEntity.noContent().build();
     }
 
     @GetMapping
-    @PreAuthorize("hasRole('ADMIN')")
+@PreAuthorize("hasAnyRole('ADMIN','ACCOUNTANT')")
     public ResponseEntity<List<FeeItemResponse>> listAll() {
         return ResponseEntity.ok(feeItemService.listAll());
     }

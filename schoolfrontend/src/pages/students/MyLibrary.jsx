@@ -26,7 +26,7 @@ export default function MyLibrary() {
         <div>
             <div className="mb-6">
                 <h1 className="text-2xl font-bold text-slate-900">My Library</h1>
-                <p className="text-sm text-slate-500 mt-1">Books you've borrowed brooo.......</p>
+                <p className="text-sm text-slate-500 mt-1">Books you've borrowed..</p>
             </div>
 
             {error && <p className="text-sm text-red-600 bg-red-50 border border-red-100 rounded-lg px-3 py-2 mb-4">{error}</p>}

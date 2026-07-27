@@ -62,7 +62,7 @@ public class AssignmentService {
                 .orElseThrow(() -> new ResourceNotFoundException("Assignment not found"));
 
         boolean isAdmin = SecurityUtils.currentUserHasRole("ADMIN");
-        boolean owns = assignment.getCourse().getTeacher().getEmail().equals(SecurityUtils.currentUserEmail());
+        boolean owns = assignment.getCourse().getTeacher().getUsername().equals(SecurityUtils.currentUsername());
 
         if (!isAdmin && !owns) {
             throw new AccessDeniedException("You do not own this assignment's course");
@@ -75,7 +75,7 @@ public class AssignmentService {
                 .orElseThrow(() -> new ResourceNotFoundException("Course not found"));
 
         boolean isAdmin = SecurityUtils.currentUserHasRole("ADMIN");
-        boolean owns = course.getTeacher().getEmail().equals(SecurityUtils.currentUserEmail());
+        boolean owns = course.getTeacher().getUsername().equals(SecurityUtils.currentUsername());
 
         if (!isAdmin && !owns) {
             throw new AccessDeniedException("You do not own this course");

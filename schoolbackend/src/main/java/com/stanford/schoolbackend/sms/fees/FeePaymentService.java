@@ -42,7 +42,7 @@ public class FeePaymentService {
                 .orElseThrow(() -> new ResourceNotFoundException("Invoice not found"));
 
         boolean isAdmin = SecurityUtils.currentUserHasRole("ADMIN");
-        if (!isAdmin && !invoice.getStudent().getEmail().equals(SecurityUtils.currentUserEmail())) {
+        if (!isAdmin && !invoice.getStudent().getUsername().equals(SecurityUtils.currentUsername())) {
             throw new AccessDeniedException("You can only view your own payment history");
         }
 

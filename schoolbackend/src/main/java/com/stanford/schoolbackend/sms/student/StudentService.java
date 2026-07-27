@@ -38,11 +38,20 @@ public class StudentService {
         studentRepository.save(student);
     }
 
-    public List<StudentResponse> listAll() {
+    public List<StudentResponse> listAll(Long classSectionId) {
         boolean isAdmin = SecurityUtils.currentUserHasRole("ADMIN");
+        boolean isLibrarianOrAccountant = SecurityUtils.currentUserHasRole("LIBRARIAN")
+                || SecurityUtils.currentUserHasRole("ACCOUNTANT");
 
-        if (!isAdmin && SecurityUtils.currentUserHasRole("TEACHER")) {
-            Teacher teacher = teacherRepository.findByEmail(SecurityUtils.currentUserEmail())
+        List<Student> baseList;
+
+        if (isAdmin || isLibrarianOrAccountant) {
+            baseList = (classSectionId != null)
+                    ? studentRepository.findByClassSectionId(classSectionId)
+                    : studentRepository.findAll();
+
+        } else if (SecurityUtils.currentUserHasRole("TEACHER")) {
+            Teacher teacher = teacherRepository.findByUsername(SecurityUtils.currentUsername())
                     .orElseThrow(() -> new ResourceNotFoundException("Teacher profile not found"));
 
             List<Long> homeroomSectionIds = classSectionRepository.findByHomeroomTeacherId(teacher.getId())
@@ -50,12 +59,19 @@ public class StudentService {
 
             if (homeroomSectionIds.isEmpty()) return List.of();
 
-            return studentRepository.findByClassSectionIdIn(homeroomSectionIds).stream()
-                    .map(this::toResponse)
-                    .toList();
+            if (classSectionId != null) {
+                // a teacher can only ever narrow within their own homeroom(s), never widen beyond it
+                if (!homeroomSectionIds.contains(classSectionId)) return List.of();
+                baseList = studentRepository.findByClassSectionId(classSectionId);
+            } else {
+                baseList = studentRepository.findByClassSectionIdIn(homeroomSectionIds);
+            }
+
+        } else {
+            baseList = List.of();
         }
 
-        return studentRepository.findAll().stream().map(this::toResponse).toList();
+        return baseList.stream().map(this::toResponse).toList();
     }
 
     public StudentResponse getById(Long studentId) {
@@ -67,7 +83,7 @@ public class StudentService {
         boolean isStudent = SecurityUtils.currentUserHasRole("STUDENT");
 
         if (isTeacher && !isAdmin) {
-            Teacher teacher = teacherRepository.findByEmail(SecurityUtils.currentUserEmail())
+            Teacher teacher = teacherRepository.findByUsername(SecurityUtils.currentUsername())
                     .orElseThrow(() -> new ResourceNotFoundException("Teacher profile not found"));
             boolean isHomeroomTeacher = student.getClassSection() != null
                     && student.getClassSection().getHomeroomTeacher() != null
@@ -76,7 +92,7 @@ public class StudentService {
                 throw new AccessDeniedException("You can only view students in your homeroom class");
             }
         } else if (isStudent && !isAdmin) {
-            if (!student.getEmail().equals(SecurityUtils.currentUserEmail())) {
+            if (!student.getUsername().equals(SecurityUtils.currentUsername())) {
                 throw new AccessDeniedException("You can only view your own profile");
             }
         }

@@ -1,11 +1,12 @@
 import { useEffect, useState, useCallback } from 'react';
-import { Plus, GraduationCap, Eye, Pencil, Trash2 } from 'lucide-react';
+import { Plus, GraduationCap, Eye, Pencil, Trash2, Unlock, KeyRound } from 'lucide-react';
 import axiosClient from '../../api/axiosClient';
 import TeacherModal from './TeacherModal';
 import ConfirmDialog from '../../components/shared/ConfirmDialog';
 import EmptyState from '../../components/shared/EmptyState';
 import { TableSkeleton } from '../../components/shared/LoadingSkeleton';
 import { useToast } from '../../context/useToast';
+import TempPasswordModal from "../../components/shared/TempPasswordModal";
 
 export default function Teachers() {
     const [teachers, setTeachers] = useState([]);
@@ -15,7 +16,7 @@ export default function Teachers() {
     const [editingTeacher, setEditingTeacher] = useState(null);
     const [viewingTeacher, setViewingTeacher] = useState(null);
     const [deleteTarget, setDeleteTarget] = useState(null);
-
+    const [resetCredentials, setResetCredentials] = useState(null);
     const toast = useToast();
 
     const loadAll = useCallback(async () => {
@@ -44,6 +45,25 @@ export default function Teachers() {
             toast.success(`${name} has been deleted.`);
         } catch (err) {
             toast.error(err.response?.data?.message || 'Could not delete this teacher.');
+        }
+    };
+
+    const handleResetPassword = async (studentId) => {
+        if (!window.confirm('Generate a new temporary password for this student?')) return;
+        try {
+            const { data } = await axiosClient.post(`/admin/users/${studentId}/reset-password`);
+            setResetCredentials(data);
+        } catch (err) {
+            toast.error(err.response?.data?.message || 'Could not reset password');
+        }
+    };
+
+    const handleUnlock = async (studentId) => {
+        try {
+            await axiosClient.post(`/admin/users/${studentId}/unlock`);
+            toast.success('Account unlocked.');
+        } catch (err) {
+            toast.error(err.response?.data?.message || 'Could not unlock account');
         }
     };
 
@@ -118,6 +138,12 @@ export default function Teachers() {
                                             <button onClick={() => openViewModal(t)} title="View" className="p-2 rounded-lg text-slate-400 hover:text-slate-600 hover:bg-surface-100 transition-colors">
                                                 <Eye size={16} />
                                             </button>
+                                            <button onClick={() => handleResetPassword(s.id)} title="Reset password" className="p-2 rounded-lg text-slate-400 hover:text-slate-600 hover:bg-surface-100 transition-colors">
+                                                <KeyRound size={16} />
+                                            </button>
+                                            <button onClick={() => handleUnlock(s.id)} title="Unlock account" className="p-2 rounded-lg text-slate-400 hover:text-slate-600 hover:bg-surface-100 transition-colors">
+                                                <Unlock size={16} />
+                                            </button>
                                             <button onClick={() => openEditModal(t)} title="Edit" className="p-2 rounded-lg text-slate-400 hover:text-slate-600 hover:bg-surface-100 transition-colors">
                                                 <Pencil size={16} />
                                             </button>
@@ -140,6 +166,14 @@ export default function Teachers() {
                     readOnly={!!viewingTeacher}
                     onClose={() => setModalOpen(false)}
                     onSaved={handleSaved}
+                />
+            )}
+
+            {resetCredentials && (
+                <TempPasswordModal
+                    username={resetCredentials.username}
+                    temporaryPassword={resetCredentials.temporaryPassword}
+                    onClose={() => setResetCredentials(null)}
                 />
             )}
 

@@ -19,31 +19,31 @@ public class BookLoanController {
     private final BookLoanService bookLoanService;
 
     @PostMapping
-    @PreAuthorize("hasRole('ADMIN')")
+    @PreAuthorize("hasAnyRole('ADMIN','LIBRARIAN')")
     public ResponseEntity<BookLoanResponse> issueLoan(@Valid @RequestBody IssueLoanRequest request) {
         return ResponseEntity.status(HttpStatus.CREATED).body(bookLoanService.issueLoan(request));
     }
 
     @PostMapping("/{loanId}/return")
-    @PreAuthorize("hasRole('ADMIN')")
+    @PreAuthorize("hasAnyRole('ADMIN','LIBRARIAN')")
     public ResponseEntity<BookLoanResponse> returnLoan(@PathVariable Long loanId) {
         return ResponseEntity.ok(bookLoanService.returnLoan(loanId));
     }
 
     @GetMapping
-    @PreAuthorize("hasRole('ADMIN')")
+    @PreAuthorize("hasAnyRole('ADMIN','LIBRARIAN')")
     public ResponseEntity<List<BookLoanResponse>> listAll() {
         return ResponseEntity.ok(bookLoanService.listAll());
     }
 
     @GetMapping("/active")
-    @PreAuthorize("hasRole('ADMIN')")
+    @PreAuthorize("hasAnyRole('ADMIN','LIBRARIAN')")
     public ResponseEntity<List<BookLoanResponse>> listActive() {
         return ResponseEntity.ok(bookLoanService.listActive());
     }
 
     @GetMapping("/borrower/{borrowerId}")
-    @PreAuthorize("hasAnyRole('STUDENT','TEACHER','ADMIN')")
+    @PreAuthorize("hasAnyRole('STUDENT','TEACHER','ADMIN','LIBRARIAN')")
     public ResponseEntity<List<BookLoanResponse>> listByBorrower(@PathVariable Long borrowerId) {
         return ResponseEntity.ok(bookLoanService.listByBorrower(borrowerId));
     }

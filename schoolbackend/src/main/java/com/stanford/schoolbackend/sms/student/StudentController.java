@@ -26,14 +26,14 @@ public class StudentController {
     }
 
     @GetMapping("/{studentId}")
-    @PreAuthorize("hasAnyRole('STUDENT','TEACHER','ADMIN')")
+    @PreAuthorize("hasAnyRole('STUDENT','TEACHER','ADMIN','LIBRARIAN','ACCOUNTANT')")
     public ResponseEntity<StudentResponse> getById(@PathVariable Long studentId) {
         return ResponseEntity.ok(studentService.getById(studentId));
     }
     @GetMapping
-    @PreAuthorize("hasAnyRole('ADMIN','TEACHER')")
-    public ResponseEntity<List<StudentResponse>> listAll() {
-        return ResponseEntity.ok(studentService.listAll());
+    @PreAuthorize("hasAnyRole('ADMIN','TEACHER','LIBRARIAN','ACCOUNTANT')")
+    public ResponseEntity<List<StudentResponse>> listAll(@RequestParam(required = false) Long classSectionId) {
+        return ResponseEntity.ok(studentService.listAll(classSectionId));
     }
 
     @PutMapping("/{studentId}")

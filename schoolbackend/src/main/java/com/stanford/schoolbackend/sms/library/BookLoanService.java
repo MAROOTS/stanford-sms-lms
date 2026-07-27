@@ -90,7 +90,7 @@ public class BookLoanService {
                 .orElseThrow(() -> new ResourceNotFoundException("Borrower not found"));
 
         boolean isPrivileged = SecurityUtils.currentUserHasRole("ADMIN");
-        if (!isPrivileged && !borrower.getEmail().equals(SecurityUtils.currentUserEmail())) {
+        if (!isPrivileged && !borrower.getUsername().equals(SecurityUtils.currentUsername())) {
             throw new AccessDeniedException("You can only view your own loan history");
         }
 

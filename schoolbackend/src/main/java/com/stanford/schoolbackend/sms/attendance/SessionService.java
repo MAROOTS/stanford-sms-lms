@@ -42,7 +42,7 @@ public class SessionService {
                 .orElseThrow(() -> new ResourceNotFoundException("Session not found"));
 
         boolean isAdmin = SecurityUtils.currentUserHasRole("ADMIN");
-        boolean owns = session.getCourse().getTeacher().getEmail().equals(SecurityUtils.currentUserEmail());
+        boolean owns = session.getCourse().getTeacher().getUsername().equals(SecurityUtils.currentUsername());
 
         if (!isAdmin && !owns) {
             throw new AccessDeniedException("You do not own this session's course");
@@ -55,7 +55,7 @@ public class SessionService {
                 .orElseThrow(() -> new ResourceNotFoundException("Course not found"));
 
         boolean isAdmin = SecurityUtils.currentUserHasRole("ADMIN");
-        boolean owns = course.getTeacher().getEmail().equals(SecurityUtils.currentUserEmail());
+        boolean owns = course.getTeacher().getUsername().equals(SecurityUtils.currentUsername());
 
         if (!isAdmin && !owns) {
             throw new AccessDeniedException("You do not own this course");
