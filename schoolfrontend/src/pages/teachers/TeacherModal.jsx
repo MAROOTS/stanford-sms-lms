@@ -49,7 +49,7 @@ export default function TeacherModal({
         });
         onSaved();
       } else {
-        const { data } = await axiosClient.post("/admin/users", {
+         await axiosClient.post("/admin/users", {
           firstName,
           lastName,
           username,

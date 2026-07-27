@@ -138,10 +138,10 @@ export default function Teachers() {
                                             <button onClick={() => openViewModal(t)} title="View" className="p-2 rounded-lg text-slate-400 hover:text-slate-600 hover:bg-surface-100 transition-colors">
                                                 <Eye size={16} />
                                             </button>
-                                            <button onClick={() => handleResetPassword(s.id)} title="Reset password" className="p-2 rounded-lg text-slate-400 hover:text-slate-600 hover:bg-surface-100 transition-colors">
+                                            <button onClick={() => handleResetPassword(t.id)} title="Reset password" className="p-2 rounded-lg text-slate-400 hover:text-slate-600 hover:bg-surface-100 transition-colors">
                                                 <KeyRound size={16} />
                                             </button>
-                                            <button onClick={() => handleUnlock(s.id)} title="Unlock account" className="p-2 rounded-lg text-slate-400 hover:text-slate-600 hover:bg-surface-100 transition-colors">
+                                            <button onClick={() => handleUnlock(t.id)} title="Unlock account" className="p-2 rounded-lg text-slate-400 hover:text-slate-600 hover:bg-surface-100 transition-colors">
                                                 <Unlock size={16} />
                                             </button>
                                             <button onClick={() => openEditModal(t)} title="Edit" className="p-2 rounded-lg text-slate-400 hover:text-slate-600 hover:bg-surface-100 transition-colors">

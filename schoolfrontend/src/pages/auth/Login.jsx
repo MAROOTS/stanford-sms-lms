@@ -1,4 +1,4 @@
-import { useState } from "react";
+import { use, useState } from "react";
 import { useNavigate, Link } from "react-router-dom";
 import {
   Lock,
@@ -160,7 +160,7 @@ export default function Login() {
                   setResendLoading(true);
                   try {
                     await axiosClient.post("/auth/resend-verification", {
-                      email,
+                      username,
                     });
                     setShowResend(false);
                     setResendSent(true);
