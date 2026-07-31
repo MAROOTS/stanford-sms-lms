@@ -5,10 +5,7 @@ import com.stanford.schoolbackend.core.auth.dto.AuthResponse;
 import com.stanford.schoolbackend.core.auth.dto.ChangePasswordRequest;
 import com.stanford.schoolbackend.core.auth.dto.RegisterRequest;
 import com.stanford.schoolbackend.core.enums.UserRole;
-import com.stanford.schoolbackend.core.exception.EmailAlreadyExistsException;
-import com.stanford.schoolbackend.core.exception.PasswordMismatchException;
-import com.stanford.schoolbackend.core.exception.ResourceNotFoundException;
-import com.stanford.schoolbackend.core.exception.UnsupportedRoleRegistrationException;
+import com.stanford.schoolbackend.core.exception.*;
 import com.stanford.schoolbackend.core.security.SecurityUtils;
 import com.stanford.schoolbackend.core.user.User;
 import com.stanford.schoolbackend.core.user.UserRepository;
@@ -128,7 +125,7 @@ public class AuthService {
                 .orElseThrow(() -> new ResourceNotFoundException("User not found"));
 
         if (!passwordEncoder.matches(request.getCurrentPassword(), user.getPassword())) {
-            throw new BadCredentialsException("Current password is incorrect");
+            throw new IncorrectPasswordException("Current password is incorrect");
         }
 
         user.setPassword(passwordEncoder.encode(request.getNewPassword()));

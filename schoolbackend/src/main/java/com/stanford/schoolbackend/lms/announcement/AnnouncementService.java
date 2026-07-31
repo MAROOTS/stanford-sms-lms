@@ -116,6 +116,11 @@ public class AnnouncementService {
         if (audience == AnnouncementAudience.ALL || audience == AnnouncementAudience.STUDENTS) {
             notificationService.notifyRole(UserRole.STUDENT, NotificationType.ANNOUNCEMENT, message, "/announcements");
         }
+        if (audience == AnnouncementAudience.ALL) {
+            notificationService.notifyRole(UserRole.ADMIN, NotificationType.ANNOUNCEMENT, message, "/announcements");
+            notificationService.notifyRole(UserRole.LIBRARIAN, NotificationType.ANNOUNCEMENT, message, "/announcements");
+            notificationService.notifyRole(UserRole.ACCOUNTANT, NotificationType.ANNOUNCEMENT, message, "/announcements");
+        }
     }
 
     private AnnouncementResponse toResponse(Announcement a) {

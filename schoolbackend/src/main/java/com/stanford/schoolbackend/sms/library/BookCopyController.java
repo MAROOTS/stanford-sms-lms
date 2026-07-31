@@ -16,13 +16,13 @@ public class BookCopyController {
     private final BookService bookService;
 
     @PatchMapping("/{copyId}/status")
-    @PreAuthorize("hasRole('ADMIN')")
+    @PreAuthorize("hasAnyRole('ADMIN','LIBRARIAN')")
     public ResponseEntity<BookCopyResponse> updateStatus(@PathVariable Long copyId, @Valid @RequestBody UpdateCopyStatusRequest request) {
         return ResponseEntity.ok(bookService.updateCopyStatus(copyId, request));
     }
 
     @DeleteMapping("/{copyId}")
-    @PreAuthorize("hasRole('ADMIN')")
+    @PreAuthorize("hasAnyRole('ADMIN','LIBRARIAN')")
     public ResponseEntity<Void> delete(@PathVariable Long copyId) {
         bookService.deleteCopy(copyId);
         return ResponseEntity.noContent().build();

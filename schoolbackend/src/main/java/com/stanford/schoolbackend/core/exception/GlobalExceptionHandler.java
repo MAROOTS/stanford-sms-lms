@@ -29,7 +29,7 @@ public class GlobalExceptionHandler {
 
     @ExceptionHandler({BadCredentialsException.class, UsernameNotFoundException.class})
     public ResponseEntity<Map<String, Object>> handleAuthFailure(RuntimeException ex) {
-        return build(HttpStatus.UNAUTHORIZED, "Invalid email or password", null);
+        return build(HttpStatus.UNAUTHORIZED, "Invalid username or password", null);
     }
 
     @ExceptionHandler(EmailAlreadyExistsException.class)
@@ -50,6 +50,10 @@ public class GlobalExceptionHandler {
     @ExceptionHandler(DuplicateEnrollmentException.class)
     public ResponseEntity<Map<String, Object>> handleDuplicateEnrollment(DuplicateEnrollmentException ex) {
         return build(HttpStatus.CONFLICT, ex.getMessage(), null);
+    }
+    @ExceptionHandler(IncorrectPasswordException.class)
+    public ResponseEntity<Map<String, Object>> handleIncorrectPassword(IncorrectPasswordException ex) {
+        return build(HttpStatus.BAD_REQUEST, ex.getMessage(), null);
     }
 
     @ExceptionHandler(AccessDeniedException.class)

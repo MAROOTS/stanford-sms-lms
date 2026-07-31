@@ -15,7 +15,13 @@ axiosClient.interceptors.request.use((config) => {
 axiosClient.interceptors.response.use(
     (response) => response,
     (error) => {
-        if (error.response?.status === 401) {
+        const isPublicAuthEndpoint =
+            error.config?.url?.includes('/auth/login') ||
+            error.config?.url?.includes('/auth/forgot-password') ||
+            error.config?.url?.includes('/auth/reset-password') ||
+            error.config?.url?.includes('/auth/resend-verification');
+
+        if (error.response?.status === 401  && !isPublicAuthEndpoint) {
             localStorage.removeItem('accessToken');
             localStorage.removeItem('user');
             sessionStorage.removeItem('accessToken');

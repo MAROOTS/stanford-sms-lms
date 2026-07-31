@@ -37,11 +37,13 @@ public class BookService {
 
     public void delete(Long id) {
         Book book = getOrThrow(id);
-        boolean hasCopiesOut = bookCopyRepository.findByBookId(id).stream()
-                .anyMatch(c -> c.getStatus() == CopyStatus.BORROWED);
-        if (hasCopiesOut) {
-            throw new IllegalArgumentException("Cannot delete a book with copies currently on loan");
+
+        List<BookCopy> copies = bookCopyRepository.findByBookId(id);
+        if (!copies.isEmpty()) {
+            throw new IllegalArgumentException(
+                    "Cannot delete a book that still has copies — delete all copies first");
         }
+
         bookRepository.delete(book);
     }
 
@@ -61,9 +63,15 @@ public class BookService {
 
     public void deleteCopy(Long copyId) {
         BookCopy copy = getCopyOrThrow(copyId);
+
         if (copy.getStatus() == CopyStatus.BORROWED) {
             throw new IllegalArgumentException("Cannot delete a copy that is currently on loan");
         }
+        if (bookLoanRepository.existsByBookCopyId(copyId)) {
+            throw new IllegalArgumentException(
+                    "This copy has loan history and cannot be deleted — mark it as LOST or DAMAGED instead");
+        }
+
         bookCopyRepository.delete(copy);
     }
 
