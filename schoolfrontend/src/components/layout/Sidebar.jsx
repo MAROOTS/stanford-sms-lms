@@ -26,6 +26,7 @@ const adminTeacherNav = [
     label: 'OPERATIONS',
     items: [
       { to: '/fees', icon: CreditCard, label: 'Fee Collection' },
+      { to: '/parents', icon: Users, label: 'Parents', roles: ['ADMIN'] },
       { to: '/library', icon: Library, label: 'Library', roles: ['ADMIN'] },
       { to: '/announcements', icon: Megaphone, label: 'Announcements', roles: ['ADMIN', 'TEACHER'] },
       { to: '/staff', icon: UserCog, label: 'Staff', roles: ['ADMIN'] },
@@ -48,6 +49,22 @@ const studentNav = [
     items: [
       { to: '/my-fees', icon: CreditCard, label: 'My Fees' },
       { to: '/my-library', icon: Library, label: 'Library' },
+      { to: '/announcements', icon: Megaphone, label: 'Announcements' },
+    ],
+  },
+];
+
+const parentNav = [
+  { label: 'OVERVIEW', items: [{ to: '/parent-dashboard', icon: LayoutDashboard, label: 'My Dashboard' }] },
+  {
+    label: 'MY CHILDREN',
+    items: [
+      { to: '/parent-dashboard', icon: Users, label: 'Children Overview' },
+    ],
+  },
+  {
+    label: 'COMMUNICATION',
+    items: [
       { to: '/announcements', icon: Megaphone, label: 'Announcements' },
     ],
   },
@@ -88,6 +105,7 @@ export default function Sidebar() {
   const { user } = useAuth();
   const navSections =
       user?.role === 'STUDENT' ? studentNav :
+      user?.role === 'PARENT' ? parentNav :
       user?.role === 'LIBRARIAN' ? librarianNav :
       user?.role === 'ACCOUNTANT' ? accountantNav :
       adminTeacherNav;

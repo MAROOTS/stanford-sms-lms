@@ -34,6 +34,13 @@ import ResetPassword from './pages/auth/ResetPassword';
 import VerifyEmail from './pages/auth/VerifyEmail';
 import ChangePassword from './pages/auth/ChangePassword';
 import Staff from './pages/staff/Staff';
+import ParentDashboard from './pages/parents/ParentDashboard';
+import ChildAttendance from './pages/parents/ChildAttendance';
+import ChildResults from './pages/parents/ChildResults';
+import ChildReportCard from './pages/parents/ChildReportCard';
+import ChildFees from './pages/parents/ChildFees';
+import Parents from './pages/parents/Parents';
+
 export default function App() {
   return (
     <ThemeProvider>
@@ -79,6 +86,14 @@ export default function App() {
                 <Route path="/my-library" element={<MyLibrary />} />
                 <Route path="/change-password" element={<ChangePassword />} />
                 <Route path="/staff" element={<Staff />} />
+
+                {/* Parent Portal */}
+                <Route path="/parents" element={<Parents />} />
+                <Route path="/parent-dashboard" element={<ParentDashboard />} />
+                <Route path="/child/:childId/attendance" element={<ChildAttendance />} />
+                <Route path="/child/:childId/results" element={<ChildResults />} />
+                <Route path="/child/:childId/report-card" element={<ChildReportCard />} />
+                <Route path="/child/:childId/fees" element={<ChildFees />} />
               </Route>
 
               <Route path="/" element={<Navigate to="/dashboard" replace />} />

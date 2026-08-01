@@ -41,10 +41,12 @@ public class AdminSeeder implements CommandLineRunner {
 
         boolean generated = adminPassword == null || adminPassword.isBlank();
         String passwordToUse = generated ? securePasswordGenerator.generate() : adminPassword;
+        String username = adminEmail.contains("@") ? adminEmail.substring(0, adminEmail.indexOf("@")) : adminEmail;
         User admin = User.builder()
                 .firstName(adminFirstName)
                 .lastName(adminLastName)
                 .email(adminEmail)
+                .username(username)
                 .password(passwordEncoder.encode(passwordToUse))
                 .role(UserRole.ADMIN)
                 .build();
