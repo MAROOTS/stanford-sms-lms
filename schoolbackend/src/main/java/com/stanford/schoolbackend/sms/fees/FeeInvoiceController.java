@@ -43,7 +43,7 @@ public class FeeInvoiceController {
     }
 
     @GetMapping("/student/{studentId}")
-    @PreAuthorize("hasAnyRole('STUDENT','ADMIN','ACCOUNTANT')")
+    @PreAuthorize("hasAnyRole('STUDENT','ADMIN','ACCOUNTANT','PARENT')")
     public ResponseEntity<List<FeeInvoiceResponse>> listByStudent(@PathVariable Long studentId) {
         return ResponseEntity.ok(feeInvoiceService.listByStudent(studentId));
     }

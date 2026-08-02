@@ -6,6 +6,7 @@ import axiosClient from '../../api/axiosClient';
 function FeeItemModal({ initialData, onClose, onSaved }) {
     const isEdit = Boolean(initialData);
     const [name, setName] = useState(initialData?.name || '');
+    const [defaultAmount, setDefaultAmount] = useState(initialData?.defaultAmount || '');
     const [error, setError] = useState('');
     const [saving, setSaving] = useState(false);
 
@@ -13,8 +14,9 @@ function FeeItemModal({ initialData, onClose, onSaved }) {
         e.preventDefault();
         setError(''); setSaving(true);
         try {
-            if (isEdit) await axiosClient.put(`/fee-items/${initialData.id}`, { name });
-            else await axiosClient.post('/fee-items', { name });
+            const payload = { name, defaultAmount: defaultAmount ? Number(defaultAmount) : null };
+            if (isEdit) await axiosClient.put(`/fee-items/${initialData.id}`, payload);
+            else await axiosClient.post('/fee-items', payload);
             onSaved();
         } catch (err) {
             setError(err.response?.data?.message || 'Something went wrong');
@@ -32,6 +34,11 @@ function FeeItemModal({ initialData, onClose, onSaved }) {
                     <div>
                         <label className="block text-sm font-medium text-slate-700 mb-1.5">Name</label>
                         <input required value={name} onChange={(e) => setName(e.target.value)} placeholder="e.g. Tuition"
+                               className="w-full px-3 py-2.5 rounded-lg bg-slate-50 border border-slate-200 text-sm focus:outline-none focus:ring-2 focus:ring-teal-accent" />
+                    </div>
+                    <div>
+                        <label className="block text-sm font-medium text-slate-700 mb-1.5">Default Amount (KES) <span className="text-slate-400 font-normal">(optional)</span></label>
+                        <input type="number" min="0" step="0.01" value={defaultAmount} onChange={(e) => setDefaultAmount(e.target.value)} placeholder="e.g. 15000"
                                className="w-full px-3 py-2.5 rounded-lg bg-slate-50 border border-slate-200 text-sm focus:outline-none focus:ring-2 focus:ring-teal-accent" />
                     </div>
                     {error && <p className="text-sm text-red-600 bg-red-50 border border-red-100 rounded-lg px-3 py-2">{error}</p>}
@@ -84,7 +91,7 @@ export default function FeeItems() {
             <div className="flex items-center justify-between mb-6">
                 <div>
                     <h1 className="text-2xl font-bold text-slate-900">Fee Items</h1>
-                    <p className="text-sm text-slate-500 mt-1">The fee components available when building invoices.</p>
+                    <p className="text-sm text-slate-500 mt-1">Fee components with optional default amounts for invoices.</p>
                 </div>
                 <button onClick={() => { setEditing(null); setModalOpen(true); }}
                         className="flex items-center gap-1.5 bg-navy-900 hover:bg-navy-800 text-white text-sm font-medium px-4 py-2.5 rounded-lg transition-colors">
@@ -97,16 +104,18 @@ export default function FeeItems() {
                     <thead>
                     <tr className="border-b border-slate-100 text-left text-[11px] font-semibold tracking-wider text-slate-400">
                         <th className="px-6 py-3">NAME</th>
+                        <th className="px-6 py-3">DEFAULT AMOUNT</th>
                         <th className="px-6 py-3 text-right">ACTIONS</th>
                     </tr>
                     </thead>
                     <tbody>
-                    {loading && <tr><td colSpan={2} className="px-6 py-8 text-center text-slate-400">Loading...</td></tr>}
-                    {error && !loading && <tr><td colSpan={2} className="px-6 py-8 text-center text-red-500">{error}</td></tr>}
-                    {!loading && !error && items.length === 0 && <tr><td colSpan={2} className="px-6 py-8 text-center text-slate-400">No fee items yet.</td></tr>}
+                    {loading && <tr><td colSpan={3} className="px-6 py-8 text-center text-slate-400">Loading...</td></tr>}
+                    {error && !loading && <tr><td colSpan={3} className="px-6 py-8 text-center text-red-500">{error}</td></tr>}
+                    {!loading && !error && items.length === 0 && <tr><td colSpan={3} className="px-6 py-8 text-center text-slate-400">No fee items yet.</td></tr>}
                     {items.map((i) => (
                         <tr key={i.id} className="border-b border-slate-50 last:border-0 hover:bg-slate-50/50">
                             <td className="px-6 py-4 font-medium text-slate-800">{i.name}</td>
+                            <td className="px-6 py-4 text-slate-600">{i.defaultAmount ? `KES ${i.defaultAmount.toLocaleString()}` : '—'}</td>
                             <td className="px-6 py-4 text-right">
                                 <button onClick={() => { setEditing(i); setModalOpen(true); }} className="text-slate-500 hover:text-slate-700 font-medium mr-4">Edit</button>
                                 <button onClick={() => handleDelete(i.id)} className="text-red-500 hover:text-red-600 font-medium">Delete</button>

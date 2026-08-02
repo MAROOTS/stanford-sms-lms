@@ -60,7 +60,13 @@ export default function InvoiceModal({ students, feeItems, termId, onClose, onSa
                         <div className="space-y-2">
                             {lineItems.map((row, index) => (
                                 <div key={index} className="flex gap-2">
-                                    <select value={row.feeItemId} onChange={(e) => updateRow(index, 'feeItemId', e.target.value)}
+                                    <select value={row.feeItemId} onChange={(e) => {
+                                        const selected = feeItems.find(f => f.id === Number(e.target.value));
+                                        updateRow(index, 'feeItemId', e.target.value);
+                                        if (selected?.defaultAmount && !row.amount) {
+                                            updateRow(index, 'amount', String(selected.defaultAmount));
+                                        }
+                                    }}
                                             className="flex-1 px-3 py-2.5 rounded-lg bg-slate-50 border border-slate-200 text-sm focus:outline-none focus:ring-2 focus:ring-teal-accent">
                                         <option value="">Select item...</option>
                                         {feeItems.map((f) => <option key={f.id} value={f.id}>{f.name}</option>)}

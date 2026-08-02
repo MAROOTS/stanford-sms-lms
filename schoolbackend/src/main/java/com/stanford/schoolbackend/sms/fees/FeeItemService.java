@@ -15,13 +15,14 @@ public class FeeItemService {
     private final FeeItemRepository feeItemRepository;
 
     public FeeItemResponse create(FeeItemRequest request) {
-        FeeItem item = FeeItem.builder().name(request.getName()).build();
+        FeeItem item = FeeItem.builder().name(request.getName()).defaultAmount(request.getDefaultAmount()).build();
         return toResponse(feeItemRepository.save(item));
     }
 
     public FeeItemResponse update(Long id, FeeItemRequest request) {
         FeeItem item = getOrThrow(id);
         item.setName(request.getName());
+        item.setDefaultAmount(request.getDefaultAmount());
         return toResponse(feeItemRepository.save(item));
     }
 
@@ -39,6 +40,6 @@ public class FeeItemService {
     }
 
     private FeeItemResponse toResponse(FeeItem i) {
-        return FeeItemResponse.builder().id(i.getId()).name(i.getName()).build();
+        return FeeItemResponse.builder().id(i.getId()).name(i.getName()).defaultAmount(i.getDefaultAmount()).build();
     }
 }
