@@ -38,8 +38,8 @@ public class FeeInvoiceController {
 
     @GetMapping("/term/{termId}")
 @PreAuthorize("hasAnyRole('ADMIN','ACCOUNTANT')")
-    public ResponseEntity<List<FeeInvoiceResponse>> listByTerm(@PathVariable Long termId) {
-        return ResponseEntity.ok(feeInvoiceService.listByTerm(termId));
+    public ResponseEntity<List<FeeInvoiceResponse>> listByTerm(@PathVariable Long termId,@RequestParam(required = false) Long classSectionId) {
+        return ResponseEntity.ok(feeInvoiceService.listByTerm(termId, classSectionId));
     }
 
     @GetMapping("/student/{studentId}")
@@ -50,8 +50,8 @@ public class FeeInvoiceController {
 
     @GetMapping("/term/{termId}/summary")
 @PreAuthorize("hasAnyRole('ADMIN','ACCOUNTANT')")
-    public ResponseEntity<FeeTermSummaryResponse> getTermSummary(@PathVariable Long termId) {
-        return ResponseEntity.ok(feeInvoiceService.getTermSummary(termId));
+    public ResponseEntity<FeeTermSummaryResponse> getTermSummary(@PathVariable Long termId,@RequestParam(required = false) Long classSectionId) {
+        return ResponseEntity.ok(feeInvoiceService.getTermSummary(termId, classSectionId));
     }
 
     @GetMapping("/summary/month-to-date")

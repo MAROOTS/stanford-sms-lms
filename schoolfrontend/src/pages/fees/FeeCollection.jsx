@@ -1,7 +1,7 @@
 import { useEffect, useState, useCallback } from 'react';
 import { Link } from 'react-router-dom';
 import { Plus, Settings, Wallet, TrendingDown, CheckCircle2 } from 'lucide-react';
-import { PieChart, Pie, Bar, Tooltip, ResponsiveContainer } from 'recharts';
+import { PieChart, Pie, Tooltip, ResponsiveContainer } from 'recharts';
 import axiosClient from '../../api/axiosClient';
 import InvoiceModal from './InvoiceModal';
 import PaymentModal from './PaymentModal';
@@ -19,6 +19,8 @@ export default function FeeCollection() {
     const [error, setError] = useState('');
     const [invoiceModalOpen, setInvoiceModalOpen] = useState(false);
     const [paymentModalInvoice, setPaymentModalInvoice] = useState(null);
+    const [classSections, setClassSections] = useState([]);
+    const [classFilter, setClassFilter] = useState('');
 
     useEffect(() => {
         Promise.all([
@@ -35,20 +37,25 @@ export default function FeeCollection() {
         }).catch(() => setError('Could not load initial data'));
     }, []);
 
+    useEffect(() => {
+        axiosClient.get('/class-sections').then((res) => setClassSections(res.data));
+    }, []);
+
     const loadTermData = useCallback(async () => {
         if (!termId) return;
         setLoading(true); setError('');
         try {
+            const params = classFilter ? { classSectionId: classFilter } : {};
             const [invoicesRes, summaryRes] = await Promise.all([
-                axiosClient.get(`/fee-invoices/term/${termId}`),
-                axiosClient.get(`/fee-invoices/term/${termId}/summary`),
+                axiosClient.get(`/fee-invoices/term/${termId}`, { params }),
+                axiosClient.get(`/fee-invoices/term/${termId}/summary`, { params }),
             ]);
             setInvoices(invoicesRes.data);
             setSummary(summaryRes.data);
         } catch {
             setError('Could not load fee data for this term');
         } finally { setLoading(false); }
-    }, [termId]);
+    }, [termId, classFilter]);
 
     useEffect(() => {queueMicrotask(() => loadTermData()); }, [loadTermData]);
 
@@ -62,6 +69,16 @@ export default function FeeCollection() {
                     <p className="text-sm text-slate-500 mt-1">Invoices, payments, and collection summary by term.</p>
                 </div>
                 <div className="flex items-center gap-3">
+                    <select
+                        value={classFilter}
+                        onChange={(e) => setClassFilter(e.target.value)}
+                        className="px-4 py-2.5 rounded-lg border border-slate-200 text-sm font-medium text-slate-700 bg-white focus:outline-none focus:ring-2 focus:ring-teal-accent"
+                    >
+                        <option value="">All classes</option>
+                        {classSections.map((c) => (
+                            <option key={c.id} value={c.id}>{c.name} ({c.gradeLevelName})</option>
+                        ))}
+                    </select>
                     <select value={termId} onChange={(e) => setTermId(e.target.value)}
                             className="px-4 py-2.5 rounded-lg border border-slate-200 text-sm font-medium text-slate-700 bg-white focus:outline-none focus:ring-2 focus:ring-teal-accent">
                         {terms.map((t) => <option key={t.id} value={t.id}>{t.name}</option>)}
@@ -145,11 +162,7 @@ export default function FeeCollection() {
                         <>
                             <ResponsiveContainer width="100%" height={200}>
                                 <PieChart>
-                                    <Pie data={summary.collectionByMethod} dataKey="amount" nameKey="method" innerRadius={55} outerRadius={80} paddingAngle={2}>
-                                        {summary.collectionByMethod.map((_, index) => (
-                                            <Bar key={index} fill={CHART_COLORS[index % CHART_COLORS.length]} />
-                                        ))}
-                                    </Pie>
+                                    <Pie data={summary.collectionByMethod.map((item, i) => ({ ...item, fill: CHART_COLORS[i % CHART_COLORS.length] }))} dataKey="amount" nameKey="method" innerRadius={55} outerRadius={80} paddingAngle={2} />
                                     <Tooltip formatter={(value) => formatKES(value)} />
                                 </PieChart>
                             </ResponsiveContainer>

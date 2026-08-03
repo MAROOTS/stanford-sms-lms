@@ -8,4 +8,6 @@ public interface BookLoanRepository extends JpaRepository<BookLoan, Long> {
     List<BookLoan> findByBorrowerId(Long borrowerId);
     List<BookLoan> findByReturnedDateIsNull();
     boolean existsByBookCopyId(Long bookCopyId);
+    List<BookLoan> findByBorrowerIdInAndReturnedDateIsNull(List<Long> borrowerIds);
+    List<BookLoan> findByBorrowerIdIn(List<Long> borrowerIds);
 }

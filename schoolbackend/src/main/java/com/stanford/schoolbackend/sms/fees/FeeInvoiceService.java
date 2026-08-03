@@ -60,8 +60,11 @@ public class FeeInvoiceService {
         return toResponse(getOrThrow(invoiceId));
     }
 
-    public List<FeeInvoiceResponse> listByTerm(Long termId) {
-        return feeInvoiceRepository.findByTermId(termId).stream().map(this::toResponse).toList();
+    public List<FeeInvoiceResponse> listByTerm(Long termId, Long classSectionId) {
+        List<FeeInvoice> invoices = (classSectionId != null)
+                ? feeInvoiceRepository.findByTermIdAndStudent_ClassSection_Id(termId, classSectionId)
+                : feeInvoiceRepository.findByTermId(termId);
+        return invoices.stream().map(this::toResponse).toList();
     }
 
     public List<FeeInvoiceResponse> listByStudent(Long studentId) {
@@ -76,11 +79,13 @@ public class FeeInvoiceService {
         return feeInvoiceRepository.findByStudentId(studentId).stream().map(this::toResponse).toList();
     }
 
-    public FeeTermSummaryResponse getTermSummary(Long termId) {
+    public FeeTermSummaryResponse getTermSummary(Long termId, Long classSectionId) {
         Term term = termRepository.findById(termId)
                 .orElseThrow(() -> new ResourceNotFoundException("Term not found"));
 
-        List<FeeInvoice> invoices = feeInvoiceRepository.findByTermId(termId);
+        List<FeeInvoice> invoices = (classSectionId != null)
+                ? feeInvoiceRepository.findByTermIdAndStudent_ClassSection_Id(termId, classSectionId)
+                : feeInvoiceRepository.findByTermId(termId);
         List<Long> invoiceIds = invoices.stream().map(FeeInvoice::getId).toList();
 
         BigDecimal totalBilled = invoices.stream()

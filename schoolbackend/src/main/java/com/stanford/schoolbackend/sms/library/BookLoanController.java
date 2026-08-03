@@ -32,14 +32,14 @@ public class BookLoanController {
 
     @GetMapping
     @PreAuthorize("hasAnyRole('ADMIN','LIBRARIAN')")
-    public ResponseEntity<List<BookLoanResponse>> listAll() {
-        return ResponseEntity.ok(bookLoanService.listAll());
+    public ResponseEntity<List<BookLoanResponse>> listAll(@RequestParam(required = false) Long classSectionId) {
+        return ResponseEntity.ok(bookLoanService.listAll(classSectionId));
     }
 
     @GetMapping("/active")
     @PreAuthorize("hasAnyRole('ADMIN','LIBRARIAN')")
-    public ResponseEntity<List<BookLoanResponse>> listActive() {
-        return ResponseEntity.ok(bookLoanService.listActive());
+    public ResponseEntity<List<BookLoanResponse>> listActive(@RequestParam(required = false) Long classSectionId) {
+        return ResponseEntity.ok(bookLoanService.listActive(classSectionId));
     }
 
     @GetMapping("/borrower/{borrowerId}")

@@ -14,19 +14,26 @@ export default function Loans() {
     const [loans, setLoans] = useState([]);
     const [loading, setLoading] = useState(true);
     const [error, setError] = useState('');
+    const [classSections, setClassSections] = useState([]);
+    const [classFilter, setClassFilter] = useState('');
 
     const load = useCallback(async () => {
         setLoading(true); setError('');
         try {
             const endpoint = filter === 'ACTIVE' ? '/library/loans/active' : '/library/loans';
-            const { data } = await axiosClient.get(endpoint);
+            const { data } = await axiosClient.get(endpoint, {
+                params: classFilter ? { classSectionId: classFilter } : {},
+            });
             setLoans(data);
         } catch { setError('Could not load loans'); }
         finally { setLoading(false); }
-    }, [filter]);
+    }, [filter, classFilter]);
 
     useEffect(() => {queueMicrotask(() => load()); }, [load]);
 
+    useEffect(() => {
+        axiosClient.get('/class-sections').then((res) => setClassSections(res.data));
+    }, []);
     const handleReturn = async (loanId) => {
         try {
             await axiosClient.post(`/library/loans/${loanId}/return`);
@@ -47,6 +54,16 @@ export default function Loans() {
                     <h1 className="text-2xl font-bold text-slate-900">Loans</h1>
                     <p className="text-sm text-slate-500 mt-1">Track who has what, and what's overdue.</p>
                 </div>
+                <select
+                    value={classFilter}
+                    onChange={(e) => setClassFilter(e.target.value)}
+                    className="px-3.5 py-2.5 rounded-lg border border-slate-200 text-sm font-medium text-slate-700 bg-white focus:outline-none focus:ring-2 focus:ring-teal-accent"
+                >
+                    <option value="">All classes</option>
+                    {classSections.map((c) => (
+                        <option key={c.id} value={c.id}>{c.name} ({c.gradeLevelName})</option>
+                    ))}
+                </select>
                 <div className="flex gap-1 bg-slate-100 rounded-lg p-1">
                     {[{ key: 'ACTIVE', label: 'Active' }, { key: 'ALL', label: 'All' }].map((f) => (
                         <button key={f.key} onClick={() => setFilter(f.key)}

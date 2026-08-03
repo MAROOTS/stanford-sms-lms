@@ -8,6 +8,8 @@ import com.stanford.schoolbackend.core.user.User;
 import com.stanford.schoolbackend.core.user.UserRepository;
 import com.stanford.schoolbackend.sms.library.dto.BookLoanResponse;
 import com.stanford.schoolbackend.sms.library.dto.IssueLoanRequest;
+import com.stanford.schoolbackend.sms.student.Student;
+import com.stanford.schoolbackend.sms.student.StudentRepository;
 import lombok.RequiredArgsConstructor;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.security.access.AccessDeniedException;
@@ -25,6 +27,7 @@ public class BookLoanService {
     private final BookRepository bookRepository;
     private final BookCopyRepository bookCopyRepository;
     private final UserRepository userRepository;
+    private final StudentRepository  studentRepository;
 
     @Value("${library.default-loan-days:14}")
     private int defaultLoanDays;
@@ -77,12 +80,14 @@ public class BookLoanService {
         return toResponse(loan);
     }
 
-    public List<BookLoanResponse> listAll() {
-        return bookLoanRepository.findAll().stream().map(this::toResponse).toList();
+    public List<BookLoanResponse> listAll(Long classSectionId) {
+        List<BookLoan> loans = resolveLoans(classSectionId, false);
+        return loans.stream().map(this::toResponse).toList();
     }
 
-    public List<BookLoanResponse> listActive() {
-        return bookLoanRepository.findByReturnedDateIsNull().stream().map(this::toResponse).toList();
+    public List<BookLoanResponse> listActive(Long classSectionId) {
+        List<BookLoan> loans = resolveLoans(classSectionId, true);
+        return loans.stream().map(this::toResponse).toList();
     }
 
     public List<BookLoanResponse> listByBorrower(Long borrowerId) {
@@ -95,6 +100,22 @@ public class BookLoanService {
         }
 
         return bookLoanRepository.findByBorrowerId(borrowerId).stream().map(this::toResponse).toList();
+    }
+
+    private List<BookLoan> resolveLoans(Long classSectionId, boolean activeOnly) {
+        if (classSectionId == null) {
+            return activeOnly ? bookLoanRepository.findByReturnedDateIsNull() : bookLoanRepository.findAll();
+        }
+
+        List<Long> studentIds = studentRepository.findByClassSectionId(classSectionId).stream()
+                .map(Student::getId)
+                .toList();
+
+        if (studentIds.isEmpty()) return List.of();
+
+        return activeOnly
+                ? bookLoanRepository.findByBorrowerIdInAndReturnedDateIsNull(studentIds)
+                : bookLoanRepository.findByBorrowerIdIn(studentIds);
     }
 
     private BookLoanResponse toResponse(BookLoan loan) {
