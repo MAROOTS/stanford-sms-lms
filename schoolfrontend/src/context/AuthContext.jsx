@@ -18,25 +18,34 @@ export function AuthProvider({ children }) {
   const [isLoading] = useState(false);
 
   const login = async (username, password, remember = false) => {
-    const { data } = await axiosClient.post('/auth/login', { username, password });
+    const { data } = await axiosClient.post('/auth/login', { username, password, remember });
     const userData = { userId: data.userId,
-      firstName: data.firstName,
+      username: data.username,
       email: data.email,
+      firstName: data.firstName,
       role: data.role,
       mustChangePassword: data.mustChangePassword,
     };
     const storage = remember ? localStorage : sessionStorage;
     storage.setItem('accessToken', data.accessToken);
+    storage.setItem('refreshToken', data.refreshToken);
     storage.setItem('user', JSON.stringify(userData));
     setUser(userData);
     return userData;
   };
 
-  const logout = () => {
-    localStorage.removeItem('accessToken');
-    localStorage.removeItem('user');
-    sessionStorage.removeItem('accessToken');
-    sessionStorage.removeItem('user');
+  const logout = async () => {
+    const storage = localStorage.getItem('refreshToken') ? localStorage : sessionStorage;
+    const refreshToken = storage.getItem('refreshToken');
+    try {
+      if (refreshToken) await axiosClient.post('/auth/logout', { refreshToken });
+    } catch {
+      // ignore — clearing local state regardless of whether the server call succeeded
+    }
+    ['accessToken', 'refreshToken', 'user'].forEach((key) => {
+      localStorage.removeItem(key);
+      sessionStorage.removeItem(key);
+    });
     setUser(null);
   };
 
