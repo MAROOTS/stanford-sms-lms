@@ -35,6 +35,8 @@ app:
   jwt:
     secret: ${JWT_SECRET}
     expiration-ms: ${JWT_EXPIRATION_MS}
+    refresh-expiration-remember-ms: 2592000000            # 30 days
+    refresh-expiration-session-ms: 86400000
   admin:
     email: ${ADMIN_EMAIL:admin@admin.com}
     password: ${ADMIN_PASSWORD:}

@@ -1,9 +1,6 @@
 package com.stanford.schoolbackend.core.auth;
 
-import com.stanford.schoolbackend.core.auth.dto.AuthRequest;
-import com.stanford.schoolbackend.core.auth.dto.AuthResponse;
-import com.stanford.schoolbackend.core.auth.dto.ChangePasswordRequest;
-import com.stanford.schoolbackend.core.auth.dto.RegisterRequest;
+import com.stanford.schoolbackend.core.auth.dto.*;
 import com.stanford.schoolbackend.core.enums.UserRole;
 import com.stanford.schoolbackend.core.exception.*;
 import com.stanford.schoolbackend.core.security.SecurityUtils;
@@ -35,6 +32,8 @@ public class AuthService {
     private final AuthenticationManager authenticationManager;
     private final EmailVerificationService emailVerificationService;
     private final AuthEventLogService  authEventLogService;
+
+    private final RefreshTokenService refreshTokenService;
 
     private static final int MAX_FAILED_ATTEMPTS = 5;
 
@@ -107,9 +106,29 @@ public class AuthService {
         authEventLogService.log(AuthEventType.LOGIN_SUCCESS, request.getUsername(), user, httpRequest);
 
         String token = jwtService.generateToken(user.getUsername());
+        RefreshToken refreshToken = refreshTokenService.issue(user, request.isRemember());
 
+        return buildAuthResponse(user, token, refreshToken.getToken());
+
+    }
+    public AuthResponse refresh(RefreshTokenRequest request) {
+        RefreshToken oldToken = refreshTokenService.validateAndConsume(request.getRefreshToken());
+        User user = oldToken.getUser();
+
+        String newAccessToken = jwtService.generateToken(user.getUsername());
+        RefreshToken newRefreshToken = refreshTokenService.issue(user, oldToken.isRemember());
+
+        return buildAuthResponse(user, newAccessToken, newRefreshToken.getToken());
+    }
+
+    public void logout(RefreshTokenRequest request) {
+        refreshTokenService.revoke(request.getRefreshToken());
+    }
+
+    private AuthResponse buildAuthResponse(User user, String accessToken, String refreshToken) {
         return AuthResponse.builder()
-                .accessToken(token)
+                .accessToken(accessToken)
+                .refreshToken(refreshToken)
                 .userId(user.getId())
                 .username(user.getUsername())
                 .email(user.getEmail())
@@ -118,7 +137,6 @@ public class AuthService {
                 .mustChangePassword(user.isMustChangePassword())
                 .build();
     }
-
     public void changePassword(ChangePasswordRequest request, HttpServletRequest httpRequest) {
         String username = SecurityUtils.currentUsername();
         User user = userRepository.findByUsername(username)
@@ -131,6 +149,7 @@ public class AuthService {
         user.setPassword(passwordEncoder.encode(request.getNewPassword()));
         user.setMustChangePassword(false);
         userRepository.save(user);
+        refreshTokenService.revokeAllForUser(user);
 
         authEventLogService.log(AuthEventType.PASSWORD_CHANGED, username, user, httpRequest);
     }

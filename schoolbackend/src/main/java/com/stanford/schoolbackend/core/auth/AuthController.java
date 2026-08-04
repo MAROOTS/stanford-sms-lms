@@ -1,9 +1,6 @@
 package com.stanford.schoolbackend.core.auth;
 
-import com.stanford.schoolbackend.core.auth.dto.AuthRequest;
-import com.stanford.schoolbackend.core.auth.dto.AuthResponse;
-import com.stanford.schoolbackend.core.auth.dto.ChangePasswordRequest;
-import com.stanford.schoolbackend.core.auth.dto.RegisterRequest;
+import com.stanford.schoolbackend.core.auth.dto.*;
 import com.stanford.schoolbackend.core.user.dto.ForgotPasswordRequest;
 import com.stanford.schoolbackend.core.user.dto.ResetPasswordRequest;
 import jakarta.servlet.http.HttpServletRequest;
@@ -62,5 +59,15 @@ public class AuthController {
     public ResponseEntity<Map<String, String>> resendVerification(@Valid @RequestBody ForgotPasswordRequest request) {
         emailVerificationService.resend(request.getEmail());
         return ResponseEntity.ok(Map.of("message", "If that account needs verification, a new email has been sent."));
+    }
+    @PostMapping("/refresh")
+    public ResponseEntity<AuthResponse> refresh(@Valid @RequestBody RefreshTokenRequest request) {
+        return ResponseEntity.ok(authService.refresh(request));
+    }
+
+    @PostMapping("/logout")
+    public ResponseEntity<Void> logout(@Valid @RequestBody RefreshTokenRequest request) {
+        authService.logout(request);
+        return ResponseEntity.noContent().build();
     }
 }

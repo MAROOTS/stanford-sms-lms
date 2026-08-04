@@ -3,6 +3,7 @@ package com.stanford.schoolbackend.core.admin;
 import com.stanford.schoolbackend.core.admin.dto.CreatedUserResponse;
 import com.stanford.schoolbackend.core.auth.AuthEventLogService;
 import com.stanford.schoolbackend.core.auth.AuthEventType;
+import com.stanford.schoolbackend.core.auth.RefreshTokenService;
 import com.stanford.schoolbackend.core.auth.dto.AdminResetPasswordResponse;
 import com.stanford.schoolbackend.core.auth.dto.GenerateUsernameResponse;
 import com.stanford.schoolbackend.core.auth.dto.RegisterRequest;
@@ -38,6 +39,7 @@ public class AdminUserService {
     private final UsernameGeneratorService usernameGeneratorService;
     private final AuthEventLogService authEventLogService;
     private final SecurePasswordGenerator securePasswordGenerator;
+    private final RefreshTokenService refreshTokenService;
 
     public GenerateUsernameResponse generateUsername(UserRole role) {
         return GenerateUsernameResponse.builder().username(usernameGeneratorService.generateUsername(role)).build();
@@ -151,6 +153,7 @@ public class AdminUserService {
         user.setFailedLoginAttempts(0);
         user.setAccountLocked(false);
         userRepository.save(user);
+        refreshTokenService.revokeAllForUser(user);
 
         authEventLogService.log(AuthEventType.ADMIN_PASSWORD_RESET, user.getUsername(), user, null);
 

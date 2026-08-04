@@ -21,6 +21,7 @@ public class PasswordResetService {
     private final PasswordResetTokenRepository tokenRepository;
     private final PasswordEncoder passwordEncoder;
     private final EmailService emailService;
+    private final RefreshTokenService refreshTokenService;
 
     public void requestReset(String email) {
         // deliberately silent if the email doesn't exist — prevents attackers from
@@ -47,6 +48,7 @@ public class PasswordResetService {
         User user = resetToken.getUser();
         user.setPassword(passwordEncoder.encode(newPassword));
         userRepository.save(user);
+        refreshTokenService.revokeAllForUser(user);
 
         resetToken.setUsed(true);
         tokenRepository.save(resetToken);
