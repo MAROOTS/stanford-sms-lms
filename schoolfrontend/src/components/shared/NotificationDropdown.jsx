@@ -19,8 +19,9 @@ const TYPE_CONFIG = {
   ATTENDANCE_TAKEN: { icon: ClipboardCheck, color: 'text-teal-500 bg-teal-50' },
   FEE_PAYMENT: { icon: CreditCard, color: 'text-emerald-500 bg-emerald-50' },
   TERM_REMINDER: { icon: Calendar, color: 'text-amber-500 bg-amber-50' },
+  FEE_OVERDUE: { icon: CreditCard, color: 'text-red-500 bg-red-50' },
   GENERAL: { icon: Bell, color: 'text-slate-500 bg-slate-100' },
-  ANNOUNCEMENT: { icon: Megaphone, color: 'text-amber-500 bg-amber-50' }
+  ANNOUNCEMENT: { icon: Megaphone, color: 'text-amber-500 bg-amber-50' },
 };
 
 function timeAgo(isoString) {

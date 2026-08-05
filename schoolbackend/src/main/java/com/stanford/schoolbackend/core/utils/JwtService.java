@@ -1,5 +1,6 @@
 package com.stanford.schoolbackend.core.utils;
 
+import io.jsonwebtoken.ExpiredJwtException;
 import io.jsonwebtoken.Jwts;
 import io.jsonwebtoken.io.Decoders;
 import io.jsonwebtoken.security.Keys;
@@ -31,12 +32,18 @@ public class JwtService {
     }
 
     public String extractUsername(String token) {
-        return Jwts.parser()
-                .verifyWith(getSignInKey())
-                .build()
-                .parseSignedClaims(token)
-                .getPayload()
-                .getSubject();
+        try {
+            return Jwts.parser()
+                    .verifyWith(getSignInKey())
+                    .build()
+                    .parseSignedClaims(token)
+                    .getPayload()
+                    .getSubject();
+        }catch (ExpiredJwtException e) {
+            return e.getClaims().getSubject();
+        }
+
+
     }
 
     public boolean isTokenValid(String token, String userEmail) {

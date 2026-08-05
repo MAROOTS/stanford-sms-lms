@@ -6,6 +6,7 @@ import jakarta.persistence.*;
 import lombok.*;
 
 import java.time.Instant;
+import java.time.LocalDate;
 import java.util.ArrayList;
 import java.util.List;
 
@@ -37,4 +38,7 @@ public class FeeInvoice {
 
     @Builder.Default
     private Instant createdAt = Instant.now();
+
+    private LocalDate dueDate; // nullable — no due date means never flagged overdue
+    private Instant lastOverdueReminderAt; // nullable — tracks reminder cadence
 }

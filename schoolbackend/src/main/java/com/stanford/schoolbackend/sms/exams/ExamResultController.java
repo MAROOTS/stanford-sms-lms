@@ -8,6 +8,7 @@ import org.springframework.security.access.prepost.PreAuthorize;
 import org.springframework.web.bind.annotation.*;
 
 import java.util.List;
+import java.util.Map;
 
 @RestController
 @RequestMapping("/api/results")
@@ -24,9 +25,16 @@ public class ExamResultController {
     }
 
     @GetMapping("/student/{studentId}/exam/{examId}")
-    @PreAuthorize("hasAnyRole('STUDENT','TEACHER','ADMIN')")
+    @PreAuthorize("hasAnyRole('STUDENT','PARENT','TEACHER','ADMIN')")
     public ResponseEntity<StudentExamResultResponse> getStudentResult(
             @PathVariable Long studentId, @PathVariable Long examId) {
         return ResponseEntity.ok(examResultService.getStudentResult(studentId, examId));
+    }
+
+    @GetMapping("/exam/{examId}/class/{classSectionId}/distribution")
+    @PreAuthorize("hasAnyRole('TEACHER','ADMIN')")
+    public ResponseEntity<Map<String, Long>> getGradeDistribution(
+            @PathVariable Long examId, @PathVariable Long classSectionId) {
+        return ResponseEntity.ok(examResultService.getGradeDistribution(examId, classSectionId));
     }
 }

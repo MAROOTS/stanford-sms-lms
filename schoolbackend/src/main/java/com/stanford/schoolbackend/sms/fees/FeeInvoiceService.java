@@ -41,7 +41,11 @@ public class FeeInvoiceService {
         Term term = termRepository.findById(request.getTermId())
                 .orElseThrow(() -> new ResourceNotFoundException("Term not found"));
 
-        FeeInvoice invoice = FeeInvoice.builder().student(student).term(term).build();
+        FeeInvoice invoice = FeeInvoice.builder()
+                .student(student)
+                .term(term)
+                .dueDate(request.getDueDate())
+                .build();
         invoice.setLineItems(buildLineItems(invoice, request.getLineItems()));
 
         return toResponse(feeInvoiceRepository.save(invoice));
@@ -52,6 +56,7 @@ public class FeeInvoiceService {
 
         invoice.getLineItems().clear();
         invoice.getLineItems().addAll(buildLineItems(invoice, request.getLineItems()));
+        invoice.setDueDate(request.getDueDate());
 
         return toResponse(feeInvoiceRepository.save(invoice));
     }
@@ -183,6 +188,7 @@ public class FeeInvoiceService {
                 .totalBilled(totalBilled)
                 .totalPaid(totalPaid)
                 .balance(totalBilled.subtract(totalPaid))
+                .dueDate(invoice.getDueDate())
                 .createdAt(invoice.getCreatedAt())
                 .build();
     }

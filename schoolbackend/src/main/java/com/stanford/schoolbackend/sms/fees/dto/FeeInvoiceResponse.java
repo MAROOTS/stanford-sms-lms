@@ -5,6 +5,7 @@ import lombok.Data;
 
 import java.math.BigDecimal;
 import java.time.Instant;
+import java.time.LocalDate;
 import java.util.List;
 
 @Data
@@ -20,6 +21,7 @@ public class FeeInvoiceResponse {
     private BigDecimal totalPaid;
     private BigDecimal balance;
     private Instant createdAt;
+    private LocalDate dueDate;
 
     @Data
     @Builder

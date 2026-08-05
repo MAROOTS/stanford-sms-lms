@@ -8,4 +8,5 @@ public enum NotificationType {
     TERM_REMINDER,
     GENERAL,
     ANNOUNCEMENT,
+    FEE_OVERDUE,
 }

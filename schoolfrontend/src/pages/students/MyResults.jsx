@@ -2,6 +2,18 @@ import { useEffect, useState, useCallback } from 'react';
 import axiosClient from '../../api/axiosClient';
 import { useAuth } from '../../context/useAuth';
 
+const GRADE_COLORS = {
+    EE: 'bg-emerald-50 text-emerald-700 border border-emerald-200',
+    ME: 'bg-teal-50 text-teal-700 border border-teal-200',
+    AE: 'bg-amber-50 text-amber-700 border border-amber-200',
+    BE: 'bg-red-50 text-red-600 border border-red-200',
+};
+
+const getGradeStyle = (grade) => {
+    if (!grade) return 'bg-slate-100 text-slate-600';
+    return GRADE_COLORS[grade] || 'bg-slate-100 text-slate-600';
+};
+
 export default function MyResults() {
     const { user } = useAuth();
     const [classSectionId, setClassSectionId] = useState(null);
@@ -89,7 +101,7 @@ export default function MyResults() {
                                     <td className="px-6 py-3 text-slate-600">{s.score} / {s.maxScore}</td>
                                     <td className="px-6 py-3 text-slate-600">{s.percentage}%</td>
                                     <td className="px-6 py-3">
-                                        <span className="inline-block bg-slate-100 text-slate-600 text-xs font-medium px-2.5 py-1 rounded-full">{s.grade}</span>
+                                        <span className={`inline-block text-xs font-medium px-2.5 py-1 rounded-full ${getGradeStyle(s.grade)}`}>{s.grade}</span>
                                     </td>
                                 </tr>
                             ))}

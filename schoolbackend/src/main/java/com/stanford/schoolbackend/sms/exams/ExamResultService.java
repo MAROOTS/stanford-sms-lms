@@ -7,13 +7,16 @@ import com.stanford.schoolbackend.sms.academic.ClassSectionRepository;
 import com.stanford.schoolbackend.sms.exams.dto.ClassExamResultRow;
 import com.stanford.schoolbackend.sms.exams.dto.MarkResponse;
 import com.stanford.schoolbackend.sms.exams.dto.StudentExamResultResponse;
+import com.stanford.schoolbackend.sms.parent.ParentRepository;
 import com.stanford.schoolbackend.sms.student.Student;
 import com.stanford.schoolbackend.sms.student.StudentRepository;
+import com.stanford.schoolbackend.core.user.UserRepository;
 import lombok.RequiredArgsConstructor;
 import org.springframework.security.access.AccessDeniedException;
 import org.springframework.stereotype.Service;
 
 import java.util.*;
+import java.util.stream.Collectors;
 
 @Service
 @RequiredArgsConstructor
@@ -23,6 +26,8 @@ public class ExamResultService {
     private final ClassSectionRepository classSectionRepository;
     private final StudentRepository studentRepository;
     private final MarkRepository markRepository;
+    private final ParentRepository parentRepository;
+    private final UserRepository userRepository;
 
     public List<ClassExamResultRow> getClassResults(Long examId, Long classSectionId) {
         Exam exam = examRepository.findById(examId)
@@ -88,8 +93,16 @@ public class ExamResultService {
 
         boolean isPrivileged = SecurityUtils.currentUserHasRole("TEACHER")
                 || SecurityUtils.currentUserHasRole("ADMIN");
-        if (!isPrivileged && !student.getUsername().equals(SecurityUtils.currentUsername())) {
-            throw new AccessDeniedException("You can only view your own results");
+        boolean isOwnResult = student.getUsername().equals(SecurityUtils.currentUsername());
+        boolean isParentOfStudent = SecurityUtils.currentUserHasRole("PARENT")
+                && parentRepository.isParentOfStudent(
+                    userRepository.findByUsername(SecurityUtils.currentUsername())
+                            .orElseThrow(() -> new AccessDeniedException("User not found"))
+                            .getId(),
+                    studentId);
+
+        if (!isPrivileged && !isOwnResult && !isParentOfStudent) {
+            throw new AccessDeniedException("You can only view your own results or your child's results");
         }
 
         if (student.getClassSection() == null) {
@@ -145,6 +158,16 @@ public class ExamResultService {
                 .position(ownRow != null ? ownRow.getPosition() : 0)
                 .outOf(ownRow != null ? ownRow.getOutOf() : 0)
                 .build();
+    }
+
+    public Map<String, Long> getGradeDistribution(Long examId, Long classSectionId) {
+        List<ClassExamResultRow> results = getClassResults(examId, classSectionId);
+        return results.stream()
+                .collect(Collectors.groupingBy(
+                        r -> r.getOverallGrade() != null ? r.getOverallGrade() : "N/A",
+                        LinkedHashMap::new,
+                        Collectors.counting()
+                ));
     }
 
     private double round2(double value) {

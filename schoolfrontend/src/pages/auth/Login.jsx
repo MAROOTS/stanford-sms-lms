@@ -4,7 +4,6 @@ import {
   Lock,
   Eye,
   EyeOff,
-  Sparkles,
   ShieldCheck,
   Loader2,
   ArrowRight, User,
@@ -52,12 +51,14 @@ export default function Login() {
         <div className="max-w-[380px] w-full mx-auto">
           {/* Logo */}
           <div className="flex items-center gap-3 mb-12">
-            <div className="w-10 h-10 rounded-xl bg-gradient-to-br from-accent-400 to-accent-500 flex items-center justify-center shadow-lg shadow-accent-500/25">
-              <Sparkles size={20} className="text-white" />
-            </div>
+            <img
+              src="/logo.png"
+              alt="Stanford Logo"
+              className="w-10 h-10 rounded-xl object-cover shadow-lg shadow-accent-500/25"
+            />
             <div>
               <span className="text-lg font-bold text-slate-900 tracking-tight">
-                StanfordOS
+                Stanford
               </span>
               <p className="text-[11px] text-slate-400 leading-tight">
                 School Management Platform
@@ -211,15 +212,7 @@ export default function Login() {
               Contact us to get started
             </span>
           </p>
-          <p className="text-center text-sm text-slate-500 mt-3">
-            New student?{" "}
-            <Link
-              to="/register"
-              className="text-teal-600 font-medium hover:text-teal-700"
-            >
-              Create an account
-            </Link>
-          </p>
+          
         </div>
 
         <p className="text-center text-xs text-slate-400 mt-auto pt-8">

@@ -126,18 +126,26 @@ export default function FeeCollection() {
                             <th className="px-6 py-3">STUDENT</th>
                             <th className="px-6 py-3">BILLED</th>
                             <th className="px-6 py-3">PAID</th>
+                            <th className="px-6 py-3">DUE DATE</th>
                             <th className="px-6 py-3">BALANCE</th>
                             <th className="px-6 py-3 text-right">ACTIONS</th>
                         </tr>
                         </thead>
                         <tbody>
-                        {loading && <tr><td colSpan={5} className="px-6 py-8 text-center text-slate-400">Loading invoices...</td></tr>}
-                        {!loading && invoices.length === 0 && <tr><td colSpan={5} className="px-6 py-8 text-center text-slate-400">No invoices for this term yet.</td></tr>}
+                        {loading && <tr><td colSpan={6} className="px-6 py-8 text-center text-slate-400">Loading invoices...</td></tr>}
+                        {!loading && invoices.length === 0 && <tr><td colSpan={6} className="px-6 py-8 text-center text-slate-400">No invoices for this term yet.</td></tr>}
                         {invoices.map((inv) => (
                             <tr key={inv.id} className="border-b border-slate-50 last:border-0 hover:bg-slate-50/50">
                                 <td className="px-6 py-4 font-medium text-slate-800">{inv.studentName}</td>
                                 <td className="px-6 py-4 text-slate-600">{formatKES(inv.totalBilled)}</td>
                                 <td className="px-6 py-4 text-slate-600">{formatKES(inv.totalPaid)}</td>
+                                <td className="px-6 py-4">
+                                    {inv.dueDate ? (
+                                        <span className={new Date(inv.dueDate) < new Date() && inv.balance > 0 ? 'text-red-600 font-medium' : 'text-slate-600'}>
+                                            {inv.dueDate}
+                                        </span>
+                                    ) : <span className="text-slate-400">—</span>}
+                                </td>
                                 <td className="px-6 py-4">
                                     {inv.balance > 0
                                         ? <span className="text-red-600 font-medium">{formatKES(inv.balance)}</span>

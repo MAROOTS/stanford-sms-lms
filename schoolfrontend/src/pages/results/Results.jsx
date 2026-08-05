@@ -1,15 +1,22 @@
 import { useEffect, useState, useCallback } from 'react';
-import { TrendingUp } from 'lucide-react';
+import { TrendingUp, Download, BarChart3 } from 'lucide-react';
+import { BarChart, Bar, XAxis, YAxis, CartesianGrid, ResponsiveContainer, Tooltip } from 'recharts';
 import axiosClient from '../../api/axiosClient';
 import EmptyState from '../../components/shared/EmptyState';
 import { TableSkeleton } from '../../components/shared/LoadingSkeleton';
 
 const GRADE_COLORS = {
-    A: 'bg-emerald-50 text-emerald-700',
-    B: 'bg-teal-50 text-teal-700',
-    C: 'bg-amber-50 text-amber-700',
-    D: 'bg-orange-50 text-orange-700',
-    F: 'bg-red-50 text-red-600',
+    EE: 'bg-emerald-50 text-emerald-700 border border-emerald-200',
+    ME: 'bg-teal-50 text-teal-700 border border-teal-200',
+    AE: 'bg-amber-50 text-amber-700 border border-amber-200',
+    BE: 'bg-red-50 text-red-600 border border-red-200',
+};
+
+const CHART_BAR_COLORS = {
+    EE: '#10b981',
+    ME: '#14b8a6',
+    AE: '#f59e0b',
+    BE: '#ef4444',
 };
 
 export default function Results() {
@@ -18,6 +25,7 @@ export default function Results() {
     const [selectedExam, setSelectedExam] = useState(null);
     const [classSectionId, setClassSectionId] = useState('');
     const [rows, setRows] = useState([]);
+    const [distribution, setDistribution] = useState(null);
     const [loading, setLoading] = useState(false);
     const [error, setError] = useState('');
 
@@ -35,18 +43,41 @@ export default function Results() {
         if (!examId || !classSectionId) return;
         setLoading(true); setError('');
         try {
-            const { data } = await axiosClient.get(`/results/exam/${examId}/class/${classSectionId}`);
-            setRows(data);
+            const [resultsRes, distRes] = await Promise.all([
+                axiosClient.get(`/results/exam/${examId}/class/${classSectionId}`),
+                axiosClient.get(`/results/exam/${examId}/class/${classSectionId}/distribution`),
+            ]);
+            setRows(resultsRes.data);
+            setDistribution(distRes.data);
         } catch { setError('Could not load results for this combination'); }
         finally { setLoading(false); }
     }, [examId, classSectionId]);
 
-    useEffect(() => {queueMicrotask(() => loadResults()); }, [loadResults]);
+    useEffect(() => {
+        setDistribution(null);
+        queueMicrotask(() => loadResults());
+    }, [loadResults]);
 
     const getGradeStyle = (grade) => {
         if (!grade) return 'bg-slate-100 text-slate-600';
-        const key = grade.charAt(0).toUpperCase();
-        return GRADE_COLORS[key] || 'bg-slate-100 text-slate-600';
+        return GRADE_COLORS[grade] || 'bg-slate-100 text-slate-600';
+    };
+
+    const exportCSV = () => {
+        const examName = selectedExam?.name || 'Exam';
+        const className = selectedExam?.classSections.find((c) => c.id === Number(classSectionId))?.name || 'Class';
+        const header = 'Position,Student,Total Score,Mean %,Grade\n';
+        const body = rows
+            .map((r) => `${r.position},"${r.studentName}",${r.totalScore} / ${r.totalMaxScore},${r.meanPercentage}%,${r.overallGrade}`)
+            .join('\n');
+        const csv = header + body;
+        const blob = new Blob([csv], { type: 'text/csv;charset=utf-8;' });
+        const url = window.URL.createObjectURL(blob);
+        const a = document.createElement('a');
+        a.href = url;
+        a.download = `results-${examName.replace(/\s+/g, '-')}-${className.replace(/\s+/g, '-')}-${new Date().toISOString().slice(0, 10)}.csv`;
+        a.click();
+        window.URL.revokeObjectURL(url);
     };
 
     return (
@@ -78,8 +109,44 @@ export default function Results() {
             {error && <p className="text-sm text-red-600 bg-red-50 border border-red-100 rounded-lg px-3 py-2 mb-4">{error}</p>}
             {loading && <TableSkeleton columns={5} rows={5} />}
 
+            {!loading && distribution && Object.keys(distribution).length > 0 && (
+                <div className="bg-white rounded-xl border border-slate-200 p-5 mb-6">
+                    <div className="flex items-center gap-2 mb-3">
+                        <BarChart3 size={16} className="text-slate-400" />
+                        <h2 className="text-sm font-bold text-slate-700">Grade Distribution</h2>
+                    </div>
+                    <ResponsiveContainer width="100%" height={200}>
+                        <BarChart data={Object.entries(distribution).map(([grade, count]) => ({ grade, count }))}>
+                            <CartesianGrid strokeDasharray="3 3" stroke="#f1f5f9" />
+                            <XAxis dataKey="grade" tick={{ fontSize: 12, fill: '#64748b' }} />
+                            <YAxis allowDecimals={false} tick={{ fontSize: 12, fill: '#64748b' }} />
+                            <Tooltip cursor={{ fill: '#f8fafc' }} formatter={(value) => [value, 'Students']} />
+                            <Bar dataKey="count" radius={[4, 4, 0, 0]} fill="#14b8a6"
+                                shape={(props) => {
+                                    const { grade } = props;
+                                    if (grade) {
+                                        const color = CHART_BAR_COLORS[grade.grade] || '#94a3b8';
+                                        return <rect {...props} fill={color} />;
+                                    }
+                                    return <rect {...props} />;
+                                }}
+                            />
+                        </BarChart>
+                    </ResponsiveContainer>
+                </div>
+            )}
+
             {!loading && rows.length > 0 && (
                 <div className="bg-white rounded-xl border border-slate-200 overflow-hidden">
+                    <div className="px-6 py-3 border-b border-slate-100 flex justify-end">
+                        <button
+                            onClick={exportCSV}
+                            className="flex items-center gap-1.5 text-xs font-medium text-teal-600 hover:text-teal-700 hover:bg-teal-50 px-3 py-1.5 rounded-lg transition-colors"
+                        >
+                            <Download size={14} />
+                            Export CSV
+                        </button>
+                    </div>
                     <div className="overflow-x-auto">
                         <table className="w-full text-sm">
                             <thead>

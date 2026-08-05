@@ -7,6 +7,7 @@ import jakarta.validation.constraints.NotNull;
 import lombok.Data;
 
 import java.math.BigDecimal;
+import java.time.LocalDate;
 import java.util.List;
 
 @Data
@@ -30,4 +31,5 @@ public class CreateInvoiceRequest {
         @DecimalMin(value = "0.01", message = "amount must be positive")
         private BigDecimal amount;
     }
+    private LocalDate dueDate; // optional
 }

@@ -7,6 +7,7 @@ export default function InvoiceModal({ students, feeItems, termId, onClose, onSa
     const [lineItems, setLineItems] = useState([{ feeItemId: '', amount: '' }]);
     const [error, setError] = useState('');
     const [saving, setSaving] = useState(false);
+    const [dueDate, setDueDate] = useState('');
 
     const addRow = () => setLineItems((prev) => [...prev, { feeItemId: '', amount: '' }]);
     const removeRow = (index) => setLineItems((prev) => prev.filter((_, i) => i !== index));
@@ -29,6 +30,7 @@ export default function InvoiceModal({ students, feeItems, termId, onClose, onSa
             await axiosClient.post('/fee-invoices', {
                 studentId: Number(studentId),
                 termId: Number(termId),
+                dueDate: dueDate || null,
                 lineItems: validRows.map((r) => ({ feeItemId: Number(r.feeItemId), amount: Number(r.amount) })),
             });
             onSaved();
@@ -54,7 +56,13 @@ export default function InvoiceModal({ students, feeItems, termId, onClose, onSa
                             {students.map((s) => <option key={s.id} value={s.id}>{s.firstName} {s.lastName}</option>)}
                         </select>
                     </div>
-
+                    <div>
+                        <label className="block text-sm font-medium text-slate-700 mb-1.5">
+                            Due date <span className="text-slate-400 font-normal">(optional)</span>
+                        </label>
+                        <input type="date" value={dueDate} onChange={(e) => setDueDate(e.target.value)}
+                               className="w-full px-3 py-2.5 rounded-lg bg-slate-50 border border-slate-200 text-sm focus:outline-none focus:ring-2 focus:ring-teal-accent" />
+                    </div>
                     <div>
                         <label className="block text-sm font-medium text-slate-700 mb-2">Fee line items</label>
                         <div className="space-y-2">
