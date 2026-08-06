@@ -9,4 +9,5 @@ public enum NotificationType {
     GENERAL,
     ANNOUNCEMENT,
     FEE_OVERDUE,
+    BOOK_HOLD_AVAILABLE,
 }

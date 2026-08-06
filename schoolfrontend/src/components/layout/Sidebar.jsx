@@ -21,7 +21,6 @@ const adminTeacherNav = [
       { to: '/classes', icon: Layers3, label: 'Classes' },
       { to: '/subjects', icon: BookOpen, label: 'Subjects' },
       { to: '/attendance', icon: ClipboardCheck, label: 'Attendance' },
-      { to: '/grading', icon: ClipboardCheck, label: 'Grading' },
     ],
   },
   {

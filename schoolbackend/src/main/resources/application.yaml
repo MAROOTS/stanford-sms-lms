@@ -48,4 +48,5 @@ app:
 
 library:
   default-loan-days: 14
+  fine-per-day: 10.00
 

@@ -15,6 +15,7 @@ import org.springframework.beans.factory.annotation.Value;
 import org.springframework.security.access.AccessDeniedException;
 import org.springframework.stereotype.Service;
 
+import java.math.BigDecimal;
 import java.time.LocalDate;
 import java.time.temporal.ChronoUnit;
 import java.util.List;
@@ -28,9 +29,14 @@ public class BookLoanService {
     private final BookCopyRepository bookCopyRepository;
     private final UserRepository userRepository;
     private final StudentRepository  studentRepository;
+    private final LibraryFineService libraryFineService;
+    private final BookHoldService bookHoldService;
 
     @Value("${library.default-loan-days:14}")
     private int defaultLoanDays;
+
+    @Value("${library.fine-per-day}")
+    private BigDecimal finePerDay;
 
     public BookLoanResponse issueLoan(IssueLoanRequest request) {
         Book book = bookRepository.findById(request.getBookId())
@@ -51,6 +57,7 @@ public class BookLoanService {
 
         copy.setStatus(CopyStatus.BORROWED);
         bookCopyRepository.save(copy);
+        bookHoldService.fulfillMatchingHold(book, borrower);
 
         BookLoan loan = BookLoan.builder()
                 .bookCopy(copy)
@@ -70,12 +77,21 @@ public class BookLoanService {
             throw new IllegalArgumentException("This loan has already been returned");
         }
 
-        loan.setReturnedDate(LocalDate.now());
+        LocalDate returnedDate = LocalDate.now();
+        loan.setReturnedDate(returnedDate);
         bookLoanRepository.save(loan);
 
         BookCopy copy = loan.getBookCopy();
         copy.setStatus(CopyStatus.AVAILABLE);
         bookCopyRepository.save(copy);
+
+        if (returnedDate.isAfter(loan.getDueDate())) {
+            long daysLate = ChronoUnit.DAYS.between(loan.getDueDate(), returnedDate);
+            BigDecimal fineAmount = finePerDay.multiply(BigDecimal.valueOf(daysLate));
+            libraryFineService.applyFine(loan.getBorrower(), copy.getBook(), fineAmount, daysLate);
+        }
+
+        bookHoldService.notifyNextInQueue(copy.getBook());
 
         return toResponse(loan);
     }

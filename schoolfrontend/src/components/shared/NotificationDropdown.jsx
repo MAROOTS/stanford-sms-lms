@@ -22,6 +22,7 @@ const TYPE_CONFIG = {
   FEE_OVERDUE: { icon: CreditCard, color: 'text-red-500 bg-red-50' },
   GENERAL: { icon: Bell, color: 'text-slate-500 bg-slate-100' },
   ANNOUNCEMENT: { icon: Megaphone, color: 'text-amber-500 bg-amber-50' },
+  BOOK_HOLD_AVAILABLE: { icon: BookOpen, color: 'text-purple-500 bg-purple-50' },
 };
 
 function timeAgo(isoString) {
