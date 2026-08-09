@@ -9,7 +9,7 @@ import {
   Calendar,
   CheckCheck,
   Loader2,
-  Megaphone
+  Megaphone, UserCheck
 } from 'lucide-react';
 import axiosClient from '../../api/axiosClient';
 
@@ -23,6 +23,7 @@ const TYPE_CONFIG = {
   GENERAL: { icon: Bell, color: 'text-slate-500 bg-slate-100' },
   ANNOUNCEMENT: { icon: Megaphone, color: 'text-amber-500 bg-amber-50' },
   BOOK_HOLD_AVAILABLE: { icon: BookOpen, color: 'text-purple-500 bg-purple-50' },
+  APPLICATION_SUBMITTED: { icon: UserCheck, color: 'text-blue-500 bg-blue-50' },
 };
 
 function timeAgo(isoString) {

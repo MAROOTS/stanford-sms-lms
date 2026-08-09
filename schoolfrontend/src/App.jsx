@@ -40,6 +40,7 @@ import ChildResults from './pages/parents/ChildResults';
 import ChildReportCard from './pages/parents/ChildReportCard';
 import ChildFees from './pages/parents/ChildFees';
 import Parents from './pages/parents/Parents';
+import Admissions from './pages/admissions/Admissions';
 
 export default function App() {
   return (
@@ -86,7 +87,7 @@ export default function App() {
                 <Route path="/my-library" element={<MyLibrary />} />
                 <Route path="/change-password" element={<ChangePassword />} />
                 <Route path="/staff" element={<Staff />} />
-
+                <Route path="/admissions" element={<Admissions />} />
 
 
                 {/* Parent Portal */}

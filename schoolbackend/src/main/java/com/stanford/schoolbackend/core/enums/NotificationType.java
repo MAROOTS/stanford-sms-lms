@@ -10,4 +10,5 @@ public enum NotificationType {
     ANNOUNCEMENT,
     FEE_OVERDUE,
     BOOK_HOLD_AVAILABLE,
+    APPLICATION_SUBMITTED,
 }
