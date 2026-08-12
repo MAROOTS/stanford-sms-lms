@@ -19,7 +19,7 @@ public class StudentClassAttendanceController {
     private final ClassAttendanceService classAttendanceService;
 
     @GetMapping("/{studentId}/class-attendance")
-    @PreAuthorize("hasAnyRole('STUDENT','TEACHER','ADMIN')")
+    @PreAuthorize("hasAnyRole('STUDENT','TEACHER','ADMIN','PARENT')")
     public ResponseEntity<List<ClassAttendanceRecordResponse>> listByStudent(@PathVariable Long studentId) {
         return ResponseEntity.ok(classAttendanceService.listByStudent(studentId));
     }

@@ -24,6 +24,11 @@ public class AdminUserController {
     @PostMapping
     @PreAuthorize("hasRole('ADMIN')")
     public ResponseEntity<CreatedUserResponse> createUser(@Valid @RequestBody RegisterRequest request) {
+        if (request.getRole()==UserRole.STUDENT){
+            throw new IllegalArgumentException(
+                    "Students must be created through the Admissions process, not this endpoint."
+            );
+        }
         return ResponseEntity.status(HttpStatus.CREATED).body(adminUserService.createUser(request));
     }
 

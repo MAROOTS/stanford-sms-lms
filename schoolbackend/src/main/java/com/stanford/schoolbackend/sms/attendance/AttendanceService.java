@@ -61,6 +61,7 @@ public class AttendanceService {
             throw new AccessDeniedException("You can only view your own attendance");
         }
 
+
         return attendanceRecordRepository.findByStudentId(studentId).stream()
                 .map(this::toResponse)
                 .toList();

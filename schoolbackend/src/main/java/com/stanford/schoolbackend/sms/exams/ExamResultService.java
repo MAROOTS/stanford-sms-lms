@@ -7,6 +7,7 @@ import com.stanford.schoolbackend.sms.academic.ClassSectionRepository;
 import com.stanford.schoolbackend.sms.exams.dto.ClassExamResultRow;
 import com.stanford.schoolbackend.sms.exams.dto.MarkResponse;
 import com.stanford.schoolbackend.sms.exams.dto.StudentExamResultResponse;
+import com.stanford.schoolbackend.sms.parent.ParentAccessService;
 import com.stanford.schoolbackend.sms.parent.ParentRepository;
 import com.stanford.schoolbackend.sms.student.Student;
 import com.stanford.schoolbackend.sms.student.StudentRepository;
@@ -28,6 +29,7 @@ public class ExamResultService {
     private final MarkRepository markRepository;
     private final ParentRepository parentRepository;
     private final UserRepository userRepository;
+    private final ParentAccessService parentAccessService;
 
     public List<ClassExamResultRow> getClassResults(Long examId, Long classSectionId) {
         Exam exam = examRepository.findById(examId)
@@ -93,16 +95,18 @@ public class ExamResultService {
 
         boolean isPrivileged = SecurityUtils.currentUserHasRole("TEACHER")
                 || SecurityUtils.currentUserHasRole("ADMIN");
-        boolean isOwnResult = student.getUsername().equals(SecurityUtils.currentUsername());
-        boolean isParentOfStudent = SecurityUtils.currentUserHasRole("PARENT")
-                && parentRepository.isParentOfStudent(
-                    userRepository.findByUsername(SecurityUtils.currentUsername())
-                            .orElseThrow(() -> new AccessDeniedException("User not found"))
-                            .getId(),
-                    studentId);
 
-        if (!isPrivileged && !isOwnResult && !isParentOfStudent) {
-            throw new AccessDeniedException("You can only view your own results or your child's results");
+        boolean isOwnResult =
+                student.getUsername().equals(SecurityUtils.currentUsername());
+
+        boolean isLinkedParent =
+                SecurityUtils.currentUserHasRole("PARENT")
+                        && parentAccessService.isCurrentUserParentOf(studentId);
+
+        if (!isPrivileged && !isOwnResult && !isLinkedParent) {
+            throw new AccessDeniedException(
+                    "You are not authorized to view this student's results"
+            );
         }
 
         if (student.getClassSection() == null) {

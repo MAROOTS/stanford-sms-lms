@@ -18,6 +18,7 @@ public class ParentResponse {
     private String alternatePhone;
     private String address;
     private List<ChildSummary> children;
+    private String temporaryPassword;
 
     @Data
     @Builder

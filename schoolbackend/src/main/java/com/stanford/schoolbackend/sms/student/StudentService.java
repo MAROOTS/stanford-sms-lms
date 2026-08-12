@@ -7,6 +7,7 @@ import com.stanford.schoolbackend.core.user.UserRepository;
 import com.stanford.schoolbackend.sms.academic.ClassSection;
 import com.stanford.schoolbackend.sms.academic.ClassSectionRepository;
 import com.stanford.schoolbackend.sms.academic.dto.AssignSectionRequest;
+import com.stanford.schoolbackend.sms.parent.ParentAccessService;
 import com.stanford.schoolbackend.sms.student.dto.StudentResponse;
 import com.stanford.schoolbackend.sms.student.dto.StudentUpdateRequest;
 import com.stanford.schoolbackend.sms.teacher.Teacher;
@@ -25,7 +26,7 @@ public class StudentService {
     private final ClassSectionRepository classSectionRepository;
     private final UserRepository userRepository;
     private final TeacherRepository teacherRepository;
-
+    private final ParentAccessService parentAccessService;
 
     public void assignSection(Long studentId, AssignSectionRequest request) {
         Student student = studentRepository.findById(studentId)
@@ -95,7 +96,11 @@ public class StudentService {
             if (!student.getUsername().equals(SecurityUtils.currentUsername())) {
                 throw new AccessDeniedException("You can only view your own profile");
             }
+        }  else if (!isAdmin && SecurityUtils.currentUserHasRole("PARENT")) {
+        if (!parentAccessService.isCurrentUserParentOf(studentId)) {
+            throw new AccessDeniedException("You can only view your own children");
         }
+    }
 
         return toResponse(student);
     }

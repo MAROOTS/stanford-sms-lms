@@ -74,6 +74,7 @@ public class ParentService {
 
         ParentResponse response = toResponse(parent);
         response.setUsername(username);
+        response.setTemporaryPassword(tempPassword);
         return response;
     }
 

@@ -1,5 +1,5 @@
 import { useEffect, useState, useCallback } from 'react';
-import {Plus, Users, Eye, Pencil, Trash2, Unlock, KeyRound} from 'lucide-react';
+import {Users, Eye, Pencil, Trash2, Unlock, KeyRound} from 'lucide-react';
 import axiosClient from '../../api/axiosClient';
 import StudentModal from './StudentModal';
 import ConfirmDialog from '../../components/shared/ConfirmDialog';
@@ -8,6 +8,7 @@ import { TableSkeleton } from '../../components/shared/LoadingSkeleton';
 import { useToast } from '../../context/useToast';
 import {useAuth} from "../../context/useAuth.js";
 import TempPasswordModal from "../../components/shared/TempPasswordModal";
+import {useAccountActions} from "../../hooks/useAccountActions";
 
 export default function Students() {
     const [students, setStudents] = useState([]);
@@ -19,7 +20,6 @@ export default function Students() {
     const [editingStudent, setEditingStudent] = useState(null);
     const [viewingStudent, setViewingStudent] = useState(null);
     const [deleteTarget, setDeleteTarget] = useState(null);
-    const [resetCredentials, setResetCredentials] = useState(null);
 
     const toast = useToast();
     const {user} = useAuth();
@@ -58,26 +58,9 @@ export default function Students() {
         }
     };
 
-    const handleResetPassword = async (studentId) => {
-        if (!window.confirm('Generate a new temporary password for this student?')) return;
-        try {
-            const { data } = await axiosClient.post(`/admin/users/${studentId}/reset-password`);
-            setResetCredentials(data);
-        } catch (err) {
-            toast.error(err.response?.data?.message || 'Could not reset password');
-        }
-    };
+    const { resetCredentials, setResetCredentials, handleResetPassword, handleUnlock } =
+        useAccountActions(toast, { entityLabel: 'student' });
 
-    const handleUnlock = async (studentId) => {
-        try {
-            await axiosClient.post(`/admin/users/${studentId}/unlock`);
-            toast.success('Account unlocked.');
-        } catch (err) {
-            toast.error(err.response?.data?.message || 'Could not unlock account');
-        }
-    };
-
-    const openAddModal = () => { setEditingStudent(null); setViewingStudent(null); setModalOpen(true); };
     const openEditModal = (student) => { setEditingStudent(student); setViewingStudent(null); setModalOpen(true); };
     const openViewModal = (student) => { setViewingStudent(student); setEditingStudent(null); setModalOpen(true); };
     const handleSaved = () => { setModalOpen(false); loadAll(classFilter); toast.success('Student saved successfully.'); };
@@ -106,13 +89,6 @@ export default function Students() {
                         ))}
                     </select>
 
-                    {user?.role === 'ADMIN' && (
-                        <button onClick={openAddModal}
-                                className="flex items-center gap-1.5 bg-navy-900 hover:bg-navy-800 text-white text-sm font-medium px-4 py-2.5 rounded-lg transition-colors"
-                        >
-                            <Plus size={16} /> Add student
-                        </button>
-                    )}
                 </div>
             </div>
 
@@ -136,14 +112,7 @@ export default function Students() {
                                 ? 'Add your first student to get started.'
                                 : "You don't have any students in your homeroom class yet."
                     }
-                    action={
-                        !classFilter && user?.role === 'ADMIN' ? (
-                            <button onClick={openAddModal}
-                                    className="flex items-center gap-1.5 bg-navy-900 hover:bg-navy-800 text-white text-sm font-medium px-4 py-2.5 rounded-lg transition-colors">
-                                <Plus size={16} /> Add student
-                            </button>
-                        ) : null
-                    }
+
                 />
             )}
 

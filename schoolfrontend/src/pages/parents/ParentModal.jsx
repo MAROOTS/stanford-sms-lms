@@ -60,8 +60,7 @@ export default function ParentModal({ initialData, onClose, onSaved }) {
                 onSaved();
             } else {
                 const { data } = await axiosClient.post('/parents', payload);
-                setCreatedCredentials({ username: data.username, temporaryPassword: 'Auto-generated (see server logs)' });
-            }
+                setCreatedCredentials({ username: data.username, temporaryPassword: data.temporaryPassword });            }
         } catch (err) {
             setError(err.response?.data?.message || 'Something went wrong');
         } finally {

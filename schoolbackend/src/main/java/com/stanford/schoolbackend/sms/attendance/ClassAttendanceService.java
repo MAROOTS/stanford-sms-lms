@@ -8,6 +8,7 @@ import com.stanford.schoolbackend.core.security.SecurityUtils;
 import com.stanford.schoolbackend.sms.academic.ClassSection;
 import com.stanford.schoolbackend.sms.academic.ClassSectionOwnershipService;
 import com.stanford.schoolbackend.sms.attendance.dto.*;
+import com.stanford.schoolbackend.sms.parent.ParentAccessService;
 import com.stanford.schoolbackend.sms.student.Student;
 import com.stanford.schoolbackend.sms.student.StudentRepository;
 import lombok.RequiredArgsConstructor;
@@ -28,6 +29,7 @@ public class ClassAttendanceService {
     private final ClassAttendanceRecordRepository classAttendanceRecordRepository;
     private final StudentRepository studentRepository;
     private final ClassSectionOwnershipService classSectionOwnershipService;
+    private final ParentAccessService parentAccessService;
 private final NotificationService notificationService;
     public List<ClassAttendanceSheetRow> getEntrySheet(Long classSectionId, LocalDate date) {
         classSectionOwnershipService.getOwnedClassSectionOrThrow(classSectionId);
@@ -91,8 +93,18 @@ private final NotificationService notificationService;
 
         boolean isPrivileged = SecurityUtils.currentUserHasRole("TEACHER")
                 || SecurityUtils.currentUserHasRole("ADMIN");
-        if (!isPrivileged && !student.getUsername().equals(SecurityUtils.currentUsername())) {
-            throw new AccessDeniedException("You can only view your own attendance");
+
+        boolean isOwnRecord =
+                student.getUsername().equals(SecurityUtils.currentUsername());
+
+        boolean isLinkedParent =
+                SecurityUtils.currentUserHasRole("PARENT")
+                        && parentAccessService.isCurrentUserParentOf(studentId);
+
+        if (!isPrivileged && !isOwnRecord && !isLinkedParent) {
+            throw new AccessDeniedException(
+                    "You are not authorized to view this student's attendance"
+            );
         }
 
         return classAttendanceRecordRepository.findByStudentId(studentId).stream()

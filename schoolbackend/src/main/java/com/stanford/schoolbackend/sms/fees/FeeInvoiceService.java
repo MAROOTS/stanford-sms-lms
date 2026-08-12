@@ -8,6 +8,7 @@ import com.stanford.schoolbackend.sms.fees.dto.CreateInvoiceRequest;
 import com.stanford.schoolbackend.sms.fees.dto.FeeInvoiceResponse;
 import com.stanford.schoolbackend.sms.fees.dto.FeeTermSummaryResponse;
 import com.stanford.schoolbackend.sms.fees.dto.MonthToDateCollectionResponse;
+import com.stanford.schoolbackend.sms.parent.ParentAccessService;
 import com.stanford.schoolbackend.sms.student.Student;
 import com.stanford.schoolbackend.sms.student.StudentRepository;
 import lombok.RequiredArgsConstructor;
@@ -30,7 +31,7 @@ public class FeeInvoiceService {
     private final FeePaymentRepository feePaymentRepository;
     private final StudentRepository studentRepository;
     private final TermRepository termRepository;
-
+    private final ParentAccessService parentAccessService;
     public FeeInvoiceResponse create(CreateInvoiceRequest request) {
         if (feeInvoiceRepository.findByStudentIdAndTermId(request.getStudentId(), request.getTermId()).isPresent()) {
             throw new IllegalArgumentException("An invoice already exists for this student and term — use update instead");
@@ -77,11 +78,24 @@ public class FeeInvoiceService {
                 .orElseThrow(() -> new ResourceNotFoundException("Student not found"));
 
         boolean isPrivileged = SecurityUtils.currentUserHasRole("ADMIN");
-        if (!isPrivileged && !student.getUsername().equals(SecurityUtils.currentUsername())) {
-            throw new AccessDeniedException("You can only view your own fee invoices");
+
+        boolean isOwnRecord =
+                student.getUsername().equals(SecurityUtils.currentUsername());
+
+        boolean isLinkedParent =
+                SecurityUtils.currentUserHasRole("PARENT")
+                        && parentAccessService.isCurrentUserParentOf(studentId);
+
+        if (!isPrivileged && !isOwnRecord && !isLinkedParent) {
+            throw new AccessDeniedException(
+                    "You are not authorized to view this student's fee invoices"
+            );
         }
 
-        return feeInvoiceRepository.findByStudentId(studentId).stream().map(this::toResponse).toList();
+        return feeInvoiceRepository.findByStudentId(studentId)
+                .stream()
+                .map(this::toResponse)
+                .toList();
     }
 
     public FeeTermSummaryResponse getTermSummary(Long termId, Long classSectionId) {

@@ -6,6 +6,7 @@ import TempPasswordModal from '../../components/shared/TempPasswordModal';
 import EmptyState from '../../components/shared/EmptyState';
 import { TableSkeleton } from '../../components/shared/LoadingSkeleton';
 import { useToast } from '../../context/useToast';
+import {useAccountActions} from "../../hooks/useAccountActions";
 
 const ROLE_STYLES = {
     LIBRARIAN: 'bg-blue-50 text-blue-600',
@@ -18,7 +19,6 @@ export default function Staff() {
     const [loading, setLoading] = useState(true);
     const [error, setError] = useState('');
     const [modalOpen, setModalOpen] = useState(false);
-    const [resetCredentials, setResetCredentials] = useState(null);
     const toast = useToast();
 
     const load = useCallback(async () => {
@@ -34,24 +34,8 @@ export default function Staff() {
 
     useEffect(() => { load(); }, [load]);
 
-    const handleResetPassword = async (userId) => {
-        if (!window.confirm('Generate a new temporary password for this account?')) return;
-        try {
-            const { data } = await axiosClient.post(`/admin/users/${userId}/reset-password`);
-            setResetCredentials(data);
-        } catch (err) {
-            toast.error(err.response?.data?.message || 'Could not reset password');
-        }
-    };
-
-    const handleUnlock = async (userId) => {
-        try {
-            await axiosClient.post(`/admin/users/${userId}/unlock`);
-            toast.success('Account unlocked.');
-        } catch (err) {
-            toast.error(err.response?.data?.message || 'Could not unlock account');
-        }
-    };
+    const { resetCredentials, setResetCredentials, handleResetPassword, handleUnlock } =
+        useAccountActions(toast, { entityLabel: 'staff' });
 
     return (
         <div>
