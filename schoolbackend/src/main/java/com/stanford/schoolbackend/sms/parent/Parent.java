@@ -27,13 +27,4 @@ public class Parent extends User {
 
     @Column(columnDefinition = "TEXT")
     private String address;
-
-    @ManyToMany(fetch = FetchType.LAZY)
-    @JoinTable(
-            name = "parent_student",
-            joinColumns = @JoinColumn(name = "parent_id"),
-            inverseJoinColumns = @JoinColumn(name = "student_id")
-    )
-    @Builder.Default
-    private Set<Student> children = new HashSet<>();
 }

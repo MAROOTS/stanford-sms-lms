@@ -42,7 +42,7 @@ public class AnnouncementController {
     }
 
     @GetMapping("/school-wide/for-me")
-    @PreAuthorize("hasAnyRole('STUDENT','TEACHER','ADMIN','LIBRARIAN','ACCOUNTANT')")
+    @PreAuthorize("hasAnyRole('STUDENT','TEACHER','ADMIN','LIBRARIAN','ACCOUNTANT','PARENT')")
     public ResponseEntity<List<AnnouncementResponse>> listSchoolWideForCurrentUser() {
         return ResponseEntity.ok(announcementService.listSchoolWideForCurrentUser());
     }

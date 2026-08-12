@@ -6,6 +6,7 @@ const AUDIENCE_STYLES = {
     ALL: 'bg-slate-100 text-slate-600',
     TEACHERS: 'bg-blue-50 text-blue-600',
     STUDENTS: 'bg-teal-accent/15 text-teal-700',
+    PARENTS:  'bg-blue-50 text-blue-600',
 };
 
 function AnnouncementModal({ onClose, onSaved }) {
@@ -46,8 +47,8 @@ function AnnouncementModal({ onClose, onSaved }) {
                     </div>
                     <div>
                         <label className="block text-sm font-medium text-slate-700 mb-2">Audience</label>
-                        <div className="grid grid-cols-3 gap-2">
-                            {['ALL', 'TEACHERS', 'STUDENTS'].map((a) => (
+                        <div className="grid grid-cols-4 gap-2">
+                            {['ALL', 'TEACHERS', 'STUDENTS','PARENTS'].map((a) => (
                                 <button key={a} type="button" onClick={() => setAudience(a)}
                                         className={`text-xs font-medium py-2 rounded-lg border transition-colors ${
                                             audience === a ? 'bg-navy-900 text-white border-navy-900' : 'text-slate-600 border-slate-200 hover:border-slate-300'

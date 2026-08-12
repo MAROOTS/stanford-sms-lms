@@ -100,6 +100,8 @@ public class AnnouncementService {
             allowed = List.of(AnnouncementAudience.ALL, AnnouncementAudience.TEACHERS);
         } else if (SecurityUtils.currentUserHasRole("STUDENT")) {
             allowed = List.of(AnnouncementAudience.ALL, AnnouncementAudience.STUDENTS);
+        } else if (SecurityUtils.currentUserHasRole("PARENT")) {
+            allowed = List.of(AnnouncementAudience.ALL, AnnouncementAudience.PARENTS);
         } else {
             allowed = List.of(AnnouncementAudience.ALL, AnnouncementAudience.TEACHERS, AnnouncementAudience.STUDENTS);
         }

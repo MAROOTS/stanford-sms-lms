@@ -23,6 +23,7 @@ import java.util.stream.Collectors;
 public class ParentService {
 
     private final ParentRepository parentRepository;
+    private final ParentStudentLinkRepository parentStudentLinkRepository;
     private final UserRepository userRepository;
     private final StudentRepository studentRepository;
     private final PasswordEncoder passwordEncoder;
@@ -31,14 +32,12 @@ public class ParentService {
 
     @Transactional(readOnly = true)
     public List<ParentResponse> getAllParents() {
-        return parentRepository.findAllWithChildren().stream()
-                .map(this::toResponse)
-                .collect(Collectors.toList());
+        return parentRepository.findAll().stream().map(this::toResponse).collect(Collectors.toList());
     }
 
     @Transactional(readOnly = true)
     public ParentResponse getParentById(Long id) {
-        Parent parent = parentRepository.findByIdWithChildren(id)
+        Parent parent = parentRepository.findById(id)
                 .orElseThrow(() -> new ResourceNotFoundException("Parent not found with id: " + id));
         return toResponse(parent);
     }
@@ -67,13 +66,20 @@ public class ParentService {
 
         parent = parentRepository.save(parent);
 
-        // Link children if provided
         if (request.getStudentIds() != null && !request.getStudentIds().isEmpty()) {
-            linkChildren(parent, request.getStudentIds());
+            String relationship = request.getRelationship() != null ? request.getRelationship() : "GUARDIAN";
+            boolean isPrimary = Boolean.TRUE.equals(request.getIsPrimary());
+            for (Long studentId : request.getStudentIds()) {
+                Student student = studentRepository.findById(studentId)
+                        .orElseThrow(() -> new ResourceNotFoundException("Student not found with id: " + studentId));
+                parentStudentLinkRepository.save(ParentStudentLink.builder()
+                        .parent(parent).student(student)
+                        .relationship(relationship).primary(isPrimary)
+                        .build());
+            }
         }
 
         ParentResponse response = toResponse(parent);
-        response.setUsername(username);
         response.setTemporaryPassword(tempPassword);
         return response;
     }
@@ -103,64 +109,47 @@ public class ParentService {
     public void deleteParent(Long id) {
         Parent parent = parentRepository.findById(id)
                 .orElseThrow(() -> new ResourceNotFoundException("Parent not found with id: " + id));
+        parentStudentLinkRepository.deleteAll(parentStudentLinkRepository.findByParentId(id));
         parentRepository.delete(parent);
     }
 
     @Transactional
     public ParentResponse linkChild(Long parentId, Long studentId, String relationship, boolean isPrimary) {
-        Parent parent = parentRepository.findByIdWithChildren(parentId)
+        Parent parent = parentRepository.findById(parentId)
                 .orElseThrow(() -> new ResourceNotFoundException("Parent not found with id: " + parentId));
-
         Student student = studentRepository.findById(studentId)
                 .orElseThrow(() -> new ResourceNotFoundException("Student not found with id: " + studentId));
 
-        parent.getChildren().add(student);
-        parent = parentRepository.save(parent);
+        if (parentStudentLinkRepository.existsByParentIdAndStudentId(parentId, studentId)) {
+            throw new IllegalArgumentException("This student is already linked to this parent");
+        }
+
+        parentStudentLinkRepository.save(ParentStudentLink.builder()
+                .parent(parent).student(student)
+                .relationship(relationship).primary(isPrimary)
+                .build());
 
         return toResponse(parent);
     }
 
     @Transactional
     public ParentResponse unlinkChild(Long parentId, Long studentId) {
-        Parent parent = parentRepository.findByIdWithChildren(parentId)
+        Parent parent = parentRepository.findById(parentId)
                 .orElseThrow(() -> new ResourceNotFoundException("Parent not found with id: " + parentId));
-
-        Student student = studentRepository.findById(studentId)
-                .orElseThrow(() -> new ResourceNotFoundException("Student not found with id: " + studentId));
-
-        parent.getChildren().remove(student);
-        parent = parentRepository.save(parent);
-
+        parentStudentLinkRepository.findByParentIdAndStudentId(parentId, studentId)
+                .ifPresent(parentStudentLinkRepository::delete);
         return toResponse(parent);
-    }
-
-    @Transactional
-    public void linkChildren(Parent parent, List<Long> studentIds) {
-        List<Student> students = studentRepository.findAllById(studentIds);
-        parent.getChildren().addAll(students);
-        parentRepository.save(parent);
     }
 
     @Transactional(readOnly = true)
     public List<ParentResponse.ChildSummary> getMyChildren(Long parentId) {
-        Parent parent = parentRepository.findByIdWithChildren(parentId)
-                .orElseThrow(() -> new ResourceNotFoundException("Parent not found with id: " + parentId));
-
-        return parent.getChildren().stream()
-                .map(child -> ParentResponse.ChildSummary.builder()
-                        .id(child.getId())
-                        .firstName(child.getFirstName())
-                        .lastName(child.getLastName())
-                        .rollNumber(child.getRollNumber())
-                        .admissionNumber(child.getAdmissionNumber())
-                        .classSectionName(child.getClassSection() != null ? child.getClassSection().getName() : null)
-                        .gradeLevelName(child.getClassSection() != null && child.getClassSection().getGradeLevel() != null
-                                ? child.getClassSection().getGradeLevel().getName() : null)
-                        .build())
+        return parentStudentLinkRepository.findByParentId(parentId).stream()
+                .map(link -> toChildSummary(link.getStudent(), link))
                 .collect(Collectors.toList());
     }
 
     private ParentResponse toResponse(Parent parent) {
+        List<ParentStudentLink> links = parentStudentLinkRepository.findByParentId(parent.getId());
         return ParentResponse.builder()
                 .id(parent.getId())
                 .email(parent.getEmail())
@@ -171,18 +160,22 @@ public class ParentService {
                 .occupation(parent.getOccupation())
                 .alternatePhone(parent.getAlternatePhone())
                 .address(parent.getAddress())
-                .children(parent.getChildren().stream()
-                        .map(child -> ParentResponse.ChildSummary.builder()
-                                .id(child.getId())
-                                .firstName(child.getFirstName())
-                                .lastName(child.getLastName())
-                                .rollNumber(child.getRollNumber())
-                                .admissionNumber(child.getAdmissionNumber())
-                                .classSectionName(child.getClassSection() != null ? child.getClassSection().getName() : null)
-                                .gradeLevelName(child.getClassSection() != null && child.getClassSection().getGradeLevel() != null
-                                        ? child.getClassSection().getGradeLevel().getName() : null)
-                                .build())
-                        .collect(Collectors.toList()))
+                .children(links.stream().map(l -> toChildSummary(l.getStudent(), l)).collect(Collectors.toList()))
+                .build();
+    }
+
+    private ParentResponse.ChildSummary toChildSummary(Student child, ParentStudentLink link) {
+        return ParentResponse.ChildSummary.builder()
+                .id(child.getId())
+                .firstName(child.getFirstName())
+                .lastName(child.getLastName())
+                .rollNumber(child.getRollNumber())
+                .admissionNumber(child.getAdmissionNumber())
+                .classSectionName(child.getClassSection() != null ? child.getClassSection().getName() : null)
+                .gradeLevelName(child.getClassSection() != null && child.getClassSection().getGradeLevel() != null
+                        ? child.getClassSection().getGradeLevel().getName() : null)
+                .relationship(link.getRelationship())
+                .isPrimary(link.isPrimary())
                 .build();
     }
 }

@@ -1,6 +1,7 @@
 package com.stanford.schoolbackend.sms.parent;
 
 import com.stanford.schoolbackend.core.security.SecurityUtils;
+import com.stanford.schoolbackend.core.user.User;
 import com.stanford.schoolbackend.core.user.UserRepository;
 import com.stanford.schoolbackend.sms.parent.dto.ParentRequest;
 import com.stanford.schoolbackend.sms.parent.dto.ParentResponse;
@@ -29,7 +30,7 @@ public class ParentController {
     }
 
     @GetMapping("/{id}")
-    @PreAuthorize("hasRole('ADMIN') or (hasRole('PARENT') and #id == authentication.principal)")
+    @PreAuthorize("hasRole('ADMIN') or (hasRole('PARENT') and #id == authentication.principal.userId)")
     public ResponseEntity<ParentResponse> getParentById(@PathVariable Long id) {
         return ResponseEntity.ok(parentService.getParentById(id));
     }
@@ -74,7 +75,7 @@ public class ParentController {
     public ResponseEntity<List<ParentResponse.ChildSummary>> getMyChildren() {
         String username = SecurityUtils.currentUsername();
         Long parentId = userRepository.findByUsername(username)
-                .map(u -> u.getId())
+                .map(User::getId)
                 .orElseThrow(() -> new RuntimeException("Parent not found"));
         return ResponseEntity.ok(parentService.getMyChildren(parentId));
     }

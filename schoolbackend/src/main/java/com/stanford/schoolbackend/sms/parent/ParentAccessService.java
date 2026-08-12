@@ -9,13 +9,13 @@ import org.springframework.stereotype.Service;
 @RequiredArgsConstructor
 public class ParentAccessService {
 
-    private final ParentRepository parentRepository;
+    private final ParentStudentLinkRepository parentStudentLinkRepository;
     private final UserRepository userRepository;
 
     public boolean isCurrentUserParentOf(Long studentId) {
         if (!SecurityUtils.currentUserHasRole("PARENT")) return false;
         return userRepository.findByUsername(SecurityUtils.currentUsername())
-                .map(user -> parentRepository.isParentOfStudent(user.getId(), studentId))
+                .map(user -> parentStudentLinkRepository.existsByParentIdAndStudentId(user.getId(), studentId))
                 .orElse(false);
     }
 }
