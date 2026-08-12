@@ -8,10 +8,8 @@ import com.stanford.schoolbackend.sms.exams.dto.ClassExamResultRow;
 import com.stanford.schoolbackend.sms.exams.dto.MarkResponse;
 import com.stanford.schoolbackend.sms.exams.dto.StudentExamResultResponse;
 import com.stanford.schoolbackend.sms.parent.ParentAccessService;
-import com.stanford.schoolbackend.sms.parent.ParentRepository;
 import com.stanford.schoolbackend.sms.student.Student;
 import com.stanford.schoolbackend.sms.student.StudentRepository;
-import com.stanford.schoolbackend.core.user.UserRepository;
 import lombok.RequiredArgsConstructor;
 import org.springframework.security.access.AccessDeniedException;
 import org.springframework.stereotype.Service;
@@ -27,8 +25,7 @@ public class ExamResultService {
     private final ClassSectionRepository classSectionRepository;
     private final StudentRepository studentRepository;
     private final MarkRepository markRepository;
-    private final ParentRepository parentRepository;
-    private final UserRepository userRepository;
+
     private final ParentAccessService parentAccessService;
 
     public List<ClassExamResultRow> getClassResults(Long examId, Long classSectionId) {
