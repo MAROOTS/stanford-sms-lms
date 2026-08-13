@@ -55,7 +55,7 @@ export default function Topbar() {
             aria-haspopup="true"
             aria-label={`Logged in as ${displayName}. Click for account menu.`}
           >
-            <div className="w-8 h-8 rounded-lg bg-gradient-to-br from-accent-400 to-accent-500 flex items-center justify-center text-xs font-bold text-white shadow-sm shadow-accent-500/20">
+            <div className="w-8 h-8 rounded-lg bg-linear-to-br from-accent-400 to-accent-500 flex items-center justify-center text-xs font-bold text-white shadow-sm shadow-accent-500/20">
               {initials}
             </div>
             <div className="text-left hidden sm:block">
