@@ -41,7 +41,8 @@ import ChildReportCard from './pages/parents/ChildReportCard';
 import ChildFees from './pages/parents/ChildFees';
 import Parents from './pages/parents/Parents';
 import Admissions from './pages/admissions/Admissions';
-
+import ContactForm from './pages/public/ContactForm';
+import Leads from './pages/leads/Leads';
 export default function App() {
   return (
     <ThemeProvider>
@@ -51,7 +52,7 @@ export default function App() {
           <BrowserRouter>
             <Routes>
               <Route path="/login" element={<Login />} />
-
+              <Route path="/contact" element={<ContactForm />} />
               <Route
                 element={
                   <ProtectedRoute>
@@ -88,7 +89,7 @@ export default function App() {
                 <Route path="/change-password" element={<ChangePassword />} />
                 <Route path="/staff" element={<Staff />} />
                 <Route path="/admissions" element={<Admissions />} />
-
+                <Route path="/leads" element={<Leads />} />
 
                 {/* Parent Portal */}
                 <Route path="/parents" element={<Parents />} />

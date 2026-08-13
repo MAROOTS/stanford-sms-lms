@@ -11,16 +11,16 @@ import org.springframework.web.filter.OncePerRequestFilter;
 import java.io.IOException;
 import java.time.Duration;
 import java.time.Instant;
-import java.util.concurrent.ConcurrentHashMap;
 import java.util.Map;
+import java.util.concurrent.ConcurrentHashMap;
 
-public class LoginRateLimitFilter extends OncePerRequestFilter {
+public class PublicContactRateLimitFilter extends OncePerRequestFilter {
 
-    private static final String PROTECTED_PATH = "/api/auth/login";
-    private static final int CAPACITY = 5;
-    private static final Duration REFILL_PERIOD = Duration.ofMinutes(1);
+    private static final String PROTECTED_PATH = "/api/contact-inquiries";
+    private static final int CAPACITY = 3;
+    private static final Duration REFILL_PERIOD = Duration.ofHours(1);
 
-    private final Map<String, Bucket> buckets = new ConcurrentHashMap<>();//for bucket storage
+    private final Map<String, Bucket> buckets = new ConcurrentHashMap<>();
 
     @Override
     protected void doFilterInternal(HttpServletRequest request, HttpServletResponse response, FilterChain filterChain)
@@ -40,7 +40,7 @@ public class LoginRateLimitFilter extends OncePerRequestFilter {
             response.setStatus(429);
             response.setContentType(MediaType.APPLICATION_JSON_VALUE);
             String json = String.format(
-                    "{\"timestamp\":\"%s\",\"status\":429,\"message\":\"Too many login attempts. Please wait a minute and try again.\"}",
+                    "{\"timestamp\":\"%s\",\"status\":429,\"message\":\"Too many submissions. Please try again later.\"}",
                     Instant.now());
             response.getWriter().write(json);
         }

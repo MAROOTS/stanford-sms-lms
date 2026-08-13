@@ -1,5 +1,6 @@
 package com.stanford.schoolbackend.core.email;
 
+import com.stanford.schoolbackend.core.leads.ContactInquiry;
 import lombok.RequiredArgsConstructor;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.mail.SimpleMailMessage;
@@ -18,6 +19,9 @@ public class EmailService {
     @Value("${app.frontend-url}")
     private String frontendUrl;
 
+    @Value("${app.mail.sales-inbox}")
+    private String salesInbox;
+
     public void sendPasswordResetEmail(String to, String token) {
         String link = frontendUrl + "/reset-password?token=" + token;
         String body = "You requested a password reset for your SchoolOS account.\n\n"
@@ -32,6 +36,17 @@ public class EmailService {
                 + "Please verify your email address by clicking the link below:\n" + link
                 + "\n\nThis link expires in 24 hours.";
         send(to, "Verify your SchoolOS email", body);
+    }
+    public void sendContactInquiryNotification(ContactInquiry inquiry) {
+        String subject = "New inquiry: " + inquiry.getSchoolName();
+        String body = "New contact form submission.\n\n"
+                + "School: " + inquiry.getSchoolName() + "\n"
+                + "Contact: " + inquiry.getContactName() + "\n"
+                + "Email: " + inquiry.getEmail() + "\n"
+                + "Phone: " + (inquiry.getPhone() != null ? inquiry.getPhone() : "not provided") + "\n"
+                + "Estimated students: " + (inquiry.getStudentCountEstimate() != null ? inquiry.getStudentCountEstimate() : "not provided") + "\n\n"
+                + "Message:\n" + inquiry.getMessage();
+        send(salesInbox, subject, body);
     }
 
     private void send(String to, String subject, String body) {

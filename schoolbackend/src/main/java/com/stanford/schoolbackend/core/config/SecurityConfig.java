@@ -2,9 +2,11 @@ package com.stanford.schoolbackend.core.config;
 
 import com.stanford.schoolbackend.core.security.JwtAuthenticationFilter;
 import com.stanford.schoolbackend.core.security.LoginRateLimitFilter;
+import com.stanford.schoolbackend.core.security.PublicContactRateLimitFilter;
 import lombok.RequiredArgsConstructor;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
+import org.springframework.http.HttpMethod;
 import org.springframework.security.authentication.AuthenticationManager;
 import org.springframework.security.config.annotation.authentication.configuration.AuthenticationConfiguration;
 import org.springframework.security.config.annotation.method.configuration.EnableMethodSecurity;
@@ -52,13 +54,15 @@ public class SecurityConfig {
                 .cors(cors -> cors.configurationSource(corsConfigurationSource()))
                 .authorizeHttpRequests(auth -> auth
                         .requestMatchers("/api/auth/change-password").authenticated()
+                        .requestMatchers(HttpMethod.POST, "/api/contact-inquiries").permitAll()
                         .requestMatchers("/api/auth/**").permitAll()
                         .requestMatchers("/uploads/**").permitAll()
                         .anyRequest().authenticated()
                 )
                 .sessionManagement(sess -> sess.sessionCreationPolicy(SessionCreationPolicy.STATELESS))
                 .addFilterBefore(jwtAuthFilter, UsernamePasswordAuthenticationFilter.class)
-                .addFilterBefore(new LoginRateLimitFilter(), UsernamePasswordAuthenticationFilter.class);
+                .addFilterBefore(new LoginRateLimitFilter(), UsernamePasswordAuthenticationFilter.class)
+                .addFilterBefore(new PublicContactRateLimitFilter(), UsernamePasswordAuthenticationFilter.class);
 
         return http.build();
     }

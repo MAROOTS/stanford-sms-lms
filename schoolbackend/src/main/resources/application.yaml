@@ -44,6 +44,7 @@ app:
     last-name: ${ADMIN_LAST_NAME:Administrator}
   mail:
     from: ${GMAIL_USERNAME}
+    sales-inbox: ${SALES_INBOX_EMAIL:${GMAIL_USERNAME}}
   frontend-url: ${FRONTEND_URL:http://localhost:5173}
 
 library:

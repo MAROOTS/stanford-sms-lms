@@ -10,7 +10,7 @@ import {
   ClipboardList,
   CreditCard,
   FileDown,
-  GraduationCap,
+  GraduationCap, Inbox,
   Layers3,
   LayoutDashboard,
   Library,
@@ -130,6 +130,10 @@ const adminTeacherNav = [
         label: 'Staff',
         roles: ['ADMIN'],
       },
+      { to: '/leads',
+        icon: Inbox,
+        label: 'Leads',
+        roles: ['ADMIN'] },
     ],
   },
 ];
@@ -329,7 +333,7 @@ export default function Sidebar() {
   return (
       <aside
           className={`bg-navy-900 text-white flex flex-col h-screen sticky top-0 transition-all duration-300 ease-in-out ${
-              collapsed ? 'w-[68px]' : 'w-64'
+              collapsed ? 'w-17' : 'w-64'
           }`}
       >
         {/* Logo area */}

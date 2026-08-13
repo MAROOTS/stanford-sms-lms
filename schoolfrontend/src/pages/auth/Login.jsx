@@ -46,9 +46,9 @@ export default function Login() {
       {/* Left panel — form */}
       <div className="w-full lg:w-[45%] flex flex-col justify-center px-6 sm:px-16 py-10 bg-white relative">
         {/* Decorative top gradient */}
-        <div className="absolute top-0 left-0 right-0 h-1 bg-gradient-to-r from-accent-400 via-primary-500 to-accent-400" />
+        <div className="absolute top-0 left-0 right-0 h-1 bg-linear-to-r from-accent-400 via-primary-500 to-accent-400" />
 
-        <div className="max-w-[380px] w-full mx-auto">
+        <div className="max-w-95 w-full mx-auto">
           {/* Logo */}
           <div className="flex items-center gap-3 mb-12">
             <img
@@ -77,7 +77,7 @@ export default function Login() {
           <form onSubmit={handleSubmit} className="space-y-5">
             <div>
               <label className="block text-sm font-medium text-slate-700 mb-1.5">
-                UserName
+                Username
               </label>
               <div className="relative">
                 <User
@@ -190,7 +190,7 @@ export default function Login() {
             <button
               type="submit"
               disabled={loading}
-              className="w-full flex items-center justify-center gap-2 bg-gradient-to-r from-primary-800 to-primary-900 hover:from-primary-700 hover:to-primary-800 text-white font-semibold py-2.5 rounded-xl transition-all duration-200 disabled:opacity-60 shadow-md shadow-primary-900/10 hover:shadow-lg hover:shadow-primary-900/15 active:scale-[0.98]"
+              className="w-full flex items-center justify-center gap-2 bg-linear-to-r from-primary-800 to-primary-900 hover:from-primary-700 hover:to-primary-800 text-white font-semibold py-2.5 rounded-xl transition-all duration-200 disabled:opacity-60 shadow-md shadow-primary-900/10 hover:shadow-lg hover:shadow-primary-900/15 active:scale-[0.98]"
             >
               {loading ? (
                 <>
@@ -208,9 +208,9 @@ export default function Login() {
 
           <p className="text-center text-sm text-slate-500 mt-8">
             New to StanfordOS?{" "}
-            <span className="text-accent-600 font-semibold">
+            <Link to="/contact" className="text-accent-600 font-semibold hover:underline">
               Contact us to get started
-            </span>
+            </Link>
           </p>
           
         </div>
@@ -221,7 +221,7 @@ export default function Login() {
       </div>
 
       {/* Right panel — brand showcase */}
-      <div className="hidden lg:flex lg:w-[55%] bg-gradient-to-br from-primary-950 via-primary-900 to-primary-950 relative overflow-hidden flex-col justify-center px-16">
+      <div className="hidden lg:flex lg:w-[55%] bg-linear-to-br from-primary-950 via-primary-900 to-primary-950 relative overflow-hidden flex-col justify-center px-16">
         {/* Dot pattern */}
         <div
           className="absolute inset-0 opacity-[0.04] pointer-events-none"
@@ -270,7 +270,7 @@ export default function Login() {
               {["S", "T", "A", "N"].map((letter) => (
                 <div
                   key={letter}
-                  className="w-8 h-8 rounded-full bg-gradient-to-br from-accent-400 to-accent-500 border-2 border-primary-900 flex items-center justify-center text-xs font-semibold text-white"
+                  className="w-8 h-8 rounded-full bg-linear-to-br from-accent-400 to-accent-500 border-2 border-primary-900 flex items-center justify-center text-xs font-semibold text-white"
                   aria-hidden="true"
                 >
                   {letter}
