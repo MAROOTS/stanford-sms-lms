@@ -37,4 +37,7 @@ public class RefreshToken {
 
     @Builder.Default
     private Instant createdAt = Instant.now();
+
+    private String ipAddress;
+    private String userAgent;
 }

@@ -32,7 +32,6 @@ public class AuthService {
     private final AuthenticationManager authenticationManager;
     private final EmailVerificationService emailVerificationService;
     private final AuthEventLogService  authEventLogService;
-
     private final RefreshTokenService refreshTokenService;
 
     private static final int MAX_FAILED_ATTEMPTS = 5;
@@ -106,17 +105,18 @@ public class AuthService {
         authEventLogService.log(AuthEventType.LOGIN_SUCCESS, request.getUsername(), user, httpRequest);
 
         String token = jwtService.generateToken(user.getUsername());
-        RefreshToken refreshToken = refreshTokenService.issue(user, request.isRemember());
-
+        RefreshToken refreshToken = refreshTokenService.issue(user, request.isRemember(),
+                resolveIp(httpRequest), httpRequest.getHeader("User-Agent"));
         return buildAuthResponse(user, token, refreshToken.getToken());
 
     }
-    public AuthResponse refresh(RefreshTokenRequest request) {
+    public AuthResponse refresh(RefreshTokenRequest request, HttpServletRequest httpRequest) {
         RefreshToken oldToken = refreshTokenService.validateAndConsume(request.getRefreshToken());
         User user = oldToken.getUser();
 
         String newAccessToken = jwtService.generateToken(user.getUsername());
-        RefreshToken newRefreshToken = refreshTokenService.issue(user, oldToken.isRemember());
+        RefreshToken newRefreshToken = refreshTokenService.issue(user, oldToken.isRemember(),
+                resolveIp(httpRequest), httpRequest.getHeader("User-Agent"));
 
         return buildAuthResponse(user, newAccessToken, newRefreshToken.getToken());
     }
@@ -164,5 +164,13 @@ public class AuthService {
             authEventLogService.log(AuthEventType.LOGIN_FAILURE, username, user, httpRequest);
             if (justLocked) authEventLogService.log(AuthEventType.ACCOUNT_LOCKED, username, user, httpRequest);
         }, () -> authEventLogService.log(AuthEventType.LOGIN_FAILURE, username, null, httpRequest));
+    }
+
+    private String resolveIp(HttpServletRequest request) {
+        String forwardedFor = request.getHeader("X-Forwarded-For");
+        if (forwardedFor != null && !forwardedFor.isBlank()) {
+            return forwardedFor.split(",")[0].trim();
+        }
+        return request.getRemoteAddr();
     }
 }

@@ -94,11 +94,12 @@ public class SubmissionService {
                 .studentId(s.getStudent().getId())
                 .studentName(s.getStudent().getFirstName() + " " + s.getStudent().getLastName())
                 .textContent(s.getTextContent())
-                .fileUrl(s.getFileUrl())
+                .fileUrl(fileStorageService.getPresignedUrl(s.getFileUrl()))
                 .submittedAt(s.getSubmittedAt())
                 .grade(s.getGrade())
                 .feedback(s.getFeedback())
                 .gradedAt(s.getGradedAt())
+
                 .build();
     }
 }

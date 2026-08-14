@@ -1,6 +1,10 @@
 package com.stanford.schoolbackend.core.auth;
 
 import com.stanford.schoolbackend.core.auth.dto.*;
+import com.stanford.schoolbackend.core.exception.ResourceNotFoundException;
+import com.stanford.schoolbackend.core.security.SecurityUtils;
+import com.stanford.schoolbackend.core.user.User;
+import com.stanford.schoolbackend.core.user.UserRepository;
 import com.stanford.schoolbackend.core.user.dto.ForgotPasswordRequest;
 import com.stanford.schoolbackend.core.user.dto.ResetPasswordRequest;
 import jakarta.servlet.http.HttpServletRequest;
@@ -10,6 +14,7 @@ import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
 
+import java.util.List;
 import java.util.Map;
 
 @RestController
@@ -20,7 +25,8 @@ public class AuthController {
     private final AuthService authService;
     private final PasswordResetService passwordResetService;
     private final EmailVerificationService emailVerificationService;
-
+    private final UserRepository userRepository;
+    private final RefreshTokenService refreshTokenService;
     @PostMapping("/register")
     public ResponseEntity<AuthResponse> register(@Valid @RequestBody RegisterRequest request) {
         return ResponseEntity.status(HttpStatus.CREATED).body(authService.register(request));
@@ -61,13 +67,28 @@ public class AuthController {
         return ResponseEntity.ok(Map.of("message", "If that account needs verification, a new email has been sent."));
     }
     @PostMapping("/refresh")
-    public ResponseEntity<AuthResponse> refresh(@Valid @RequestBody RefreshTokenRequest request) {
-        return ResponseEntity.ok(authService.refresh(request));
+    public ResponseEntity<AuthResponse> refresh(@Valid @RequestBody RefreshTokenRequest request, HttpServletRequest httpServletRequest) {
+        return ResponseEntity.ok(authService.refresh(request,httpServletRequest));
     }
 
     @PostMapping("/logout")
     public ResponseEntity<Void> logout(@Valid @RequestBody RefreshTokenRequest request) {
         authService.logout(request);
+        return ResponseEntity.noContent().build();
+    }
+
+    @GetMapping("/sessions")
+    public ResponseEntity<List<SessionResponse>> listSessions(@RequestParam(required = false) String currentToken) {
+        User user = userRepository.findByUsername(SecurityUtils.currentUsername())
+                .orElseThrow(() -> new ResourceNotFoundException("User not found"));
+        return ResponseEntity.ok(refreshTokenService.listActiveSessions(user, currentToken));
+    }
+
+    @DeleteMapping("/sessions/{sessionId}")
+    public ResponseEntity<Void> revokeSession(@PathVariable Long sessionId) {
+        User user = userRepository.findByUsername(SecurityUtils.currentUsername())
+                .orElseThrow(() -> new ResourceNotFoundException("User not found"));
+        refreshTokenService.revokeSessionForUser(user, sessionId);
         return ResponseEntity.noContent().build();
     }
 }

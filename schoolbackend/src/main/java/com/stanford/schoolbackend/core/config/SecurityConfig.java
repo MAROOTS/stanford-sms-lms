@@ -56,7 +56,6 @@ public class SecurityConfig {
                         .requestMatchers("/api/auth/change-password").authenticated()
                         .requestMatchers(HttpMethod.POST, "/api/contact-inquiries").permitAll()
                         .requestMatchers("/api/auth/**").permitAll()
-                        .requestMatchers("/uploads/**").permitAll()
                         .anyRequest().authenticated()
                 )
                 .sessionManagement(sess -> sess.sessionCreationPolicy(SessionCreationPolicy.STATELESS))
