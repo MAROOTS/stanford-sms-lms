@@ -1,4 +1,9 @@
+import {useState} from "react";
+import {useAuth} from '../../context/useAuth';
+import {useSidebar} from '../../context/useSidebar';
+import { useSchoolProfile } from '../../context/useSchoolProfile';
 import {NavLink, useLocation} from 'react-router-dom';
+
 import {
   BarChart3,
   BookOpen,
@@ -22,9 +27,7 @@ import {
   Users,
 } from 'lucide-react';
 
-import {useAuth} from '../../context/useAuth';
-import {useSidebar} from '../../context/useSidebar';
-import {useState} from "react";
+
 
 const adminTeacherNav = [
   {
@@ -279,6 +282,9 @@ export default function Sidebar() {
   const { user } = useAuth();
   const { collapsed, toggle } = useSidebar();
   const location = useLocation();
+  const { profile } = useSchoolProfile();
+  const schoolName = profile?.name || 'StanfordOS';
+  const logoSrc = profile?.logoUrl || '/logo.png';
 
   const navSections =
       user?.role === 'STUDENT'
@@ -342,7 +348,8 @@ export default function Sidebar() {
                 collapsed ? 'justify-center px-0' : ''
             }`}
         >
-          {!collapsed && <span className="font-bold text-lg">Stanford</span>}
+          <img src={logoSrc} alt={`${schoolName} logo`} className="w-8 h-8 rounded-lg object-cover shrink-0" />
+          {!collapsed && <span className="font-bold text-lg truncate">{schoolName}</span>}
         </div>
 
         {/* User badge */}

@@ -59,8 +59,18 @@ export function AuthProvider({ children }) {
     });
   };
 
+  const updateUserProfile = (updates) => {
+    setUser((prev) => {
+      if (!prev) return prev;
+      const updated = { ...prev, ...updates };
+      const storage = localStorage.getItem('user') ? localStorage : sessionStorage;
+      storage.setItem('user', JSON.stringify(updated));
+      return updated;
+    });
+  };
+
   return (
-      <AuthContext.Provider value={{ user, isLoading, login, logout, clearMustChangePassword }}>
+      <AuthContext.Provider value={{ user, isLoading, login, logout, clearMustChangePassword,updateUserProfile }}>
         {children}
       </AuthContext.Provider>
   );

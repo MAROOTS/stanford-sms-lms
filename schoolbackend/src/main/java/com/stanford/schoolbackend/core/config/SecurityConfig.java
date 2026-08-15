@@ -55,6 +55,7 @@ public class SecurityConfig {
                 .authorizeHttpRequests(auth -> auth
                         .requestMatchers("/api/auth/change-password").authenticated()
                         .requestMatchers(HttpMethod.POST, "/api/contact-inquiries").permitAll()
+                        .requestMatchers(HttpMethod.GET, "/api/school-profile").permitAll()
                         .requestMatchers("/api/auth/**").permitAll()
                         .anyRequest().authenticated()
                 )

@@ -19,8 +19,10 @@ public class NotificationService {
 
     private final NotificationRepository notificationRepository;
     private final UserRepository userRepository;
+    private final NotificationPreferenceService notificationPreferenceService;
 
     public void notifyUser(User recipient, NotificationType type, String message, String link) {
+        if (!notificationPreferenceService.isEnabled(recipient,type)) return;
         notificationRepository.save(Notification.builder()
                 .recipient(recipient)
                 .type(type)

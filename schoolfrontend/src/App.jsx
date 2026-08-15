@@ -5,6 +5,7 @@ import { ThemeProvider } from "./context/ThemeContext";
 import { SidebarProvider } from "./context/SidebarContext";
 import ProtectedRoute from "./routes/ProtectedRoute";
 import DashboardLayout from "./components/layout/DashboardLayout";
+import { SchoolProfileProvider } from './context/SchoolProfileContext';
 import Login from "./pages/auth/Login";
 import Classes from "./pages/classes/Classes";
 import Students from "./pages/students/Students";
@@ -43,10 +44,12 @@ import Parents from './pages/parents/Parents';
 import Admissions from './pages/admissions/Admissions';
 import ContactForm from './pages/public/ContactForm';
 import Leads from './pages/leads/Leads';
+import Settings from './pages/settings/Settings';
 export default function App() {
   return (
     <ThemeProvider>
     <ToastProvider>
+      <SchoolProfileProvider>
       <AuthProvider>
         <SidebarProvider>
           <BrowserRouter>
@@ -90,6 +93,7 @@ export default function App() {
                 <Route path="/staff" element={<Staff />} />
                 <Route path="/admissions" element={<Admissions />} />
                 <Route path="/leads" element={<Leads />} />
+                <Route path="/settings" element={<Settings />} />
 
                 {/* Parent Portal */}
                 <Route path="/parents" element={<Parents />} />
@@ -106,6 +110,7 @@ export default function App() {
           </BrowserRouter>
         </SidebarProvider>
       </AuthProvider>
+      </SchoolProfileProvider>
     </ToastProvider>
     </ThemeProvider>
   );

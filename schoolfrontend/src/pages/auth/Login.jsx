@@ -10,6 +10,7 @@ import {
 } from "lucide-react";
 import { useAuth } from "../../context/useAuth";
 import axiosClient from "../../api/axiosClient";
+import { useSchoolProfile } from '../../context/useSchoolProfile';
 
 export default function Login() {
   const [username, setUsername] = useState("");
@@ -23,6 +24,9 @@ export default function Login() {
   const [resendLoading, setResendLoading] = useState(false);
   const { login } = useAuth();
   const navigate = useNavigate();
+  const { profile } = useSchoolProfile();
+  const schoolName = profile?.name || 'StanfordOS';
+  const logoSrc = profile?.logoUrl || '/logo.png';
 
   const handleSubmit = async (e) => {
     e.preventDefault();
@@ -52,14 +56,14 @@ export default function Login() {
           {/* Logo */}
           <div className="flex items-center gap-3 mb-12">
             <img
-              src="/logo.png"
-              alt="Stanford Logo"
-              className="w-10 h-10 rounded-xl object-cover shadow-lg shadow-accent-500/25"
+                src={logoSrc}
+                alt={`${schoolName} logo`}
+                className="w-10 h-10 rounded-xl object-cover shadow-lg shadow-accent-500/25"
             />
             <div>
-              <span className="text-lg font-bold text-slate-900 tracking-tight">
-                Stanford
-              </span>
+  <span className="text-lg font-bold text-slate-900 tracking-tight">
+    {schoolName}
+  </span>
               <p className="text-[11px] text-slate-400 leading-tight">
                 School Management Platform
               </p>
