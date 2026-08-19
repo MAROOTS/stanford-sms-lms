@@ -31,6 +31,7 @@ public class UsernameGeneratorService {
             case STUDENT -> "ADM";
             case PARENT -> "PAR";
             case TEACHER, LIBRARIAN, ACCOUNTANT, ADMIN -> "EMP";
+            case PLATFORM_ADMIN -> "PTM";
         };
     }
 }

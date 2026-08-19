@@ -28,13 +28,14 @@ public class CustomUserDetailsService implements UserDetailsService {
         );
 
         return new AppUserPrincipal(
-                user.getId(),
-                user.getUsername(),
-                user.getPassword(),
-                user.isEnabled(),
-                !user.isAccountLocked(),
-                user.isMustChangePassword(),
-                authorities
-        );
+                        user.getId(),
+                        user.getUsername(),
+                        user.getPassword(),
+                        user.isEnabled(),
+                        !user.isAccountLocked(),
+                        user.isMustChangePassword(),
+                authorities,
+                user.getSchool() != null ? user.getSchool().getId() : null
+                );
     }
 }

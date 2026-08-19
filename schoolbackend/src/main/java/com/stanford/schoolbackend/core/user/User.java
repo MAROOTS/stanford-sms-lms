@@ -1,6 +1,7 @@
 package com.stanford.schoolbackend.core.user;
 
 import com.stanford.schoolbackend.core.enums.UserRole;
+import com.stanford.schoolbackend.core.school.School;
 import jakarta.persistence.*;
 import lombok.*;
 import lombok.experimental.SuperBuilder;
@@ -50,5 +51,9 @@ public class User {
     @Builder.Default
     @Column(nullable = false)
     private boolean accountLocked = false;
+
+    @ManyToOne(fetch = FetchType.LAZY)
+    @JoinColumn(name = "school_id")
+    private School school;
 }
 

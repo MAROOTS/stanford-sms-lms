@@ -13,7 +13,10 @@ import com.stanford.schoolbackend.core.exception.EmailAlreadyExistsException;
 import com.stanford.schoolbackend.core.exception.PasswordMismatchException;
 import com.stanford.schoolbackend.core.exception.ResourceNotFoundException;
 import com.stanford.schoolbackend.core.notification.NotificationService;
+import com.stanford.schoolbackend.core.school.School;
+import com.stanford.schoolbackend.core.school.SchoolRepository;
 import com.stanford.schoolbackend.core.security.SecurePasswordGenerator;
+import com.stanford.schoolbackend.core.security.SecurityUtils;
 import com.stanford.schoolbackend.core.user.User;
 import com.stanford.schoolbackend.core.user.UserRepository;
 import com.stanford.schoolbackend.core.user.UsernameGeneratorService;
@@ -30,7 +33,6 @@ import java.util.List;
 @Service
 @RequiredArgsConstructor
 public class AdminUserService {
-
     private final UserRepository userRepository;
     private final StudentRepository studentRepository;
     private final TeacherRepository teacherRepository;
@@ -40,11 +42,13 @@ public class AdminUserService {
     private final AuthEventLogService authEventLogService;
     private final SecurePasswordGenerator securePasswordGenerator;
     private final RefreshTokenService refreshTokenService;
+    private final SchoolRepository schoolRepository;
 
     public GenerateUsernameResponse generateUsername(UserRole role) {
         return GenerateUsernameResponse.builder().username(usernameGeneratorService.generateUsername(role)).build();
     }
     public CreatedUserResponse createUser(RegisterRequest request) {
+
         if (!request.getPassword().equals(request.getConfirmPassword())) {
             throw new PasswordMismatchException();
         }
@@ -57,6 +61,10 @@ public class AdminUserService {
 
         String encodedPassword = passwordEncoder.encode(request.getPassword());
         User saved;
+        Long currentSchoolId = SecurityUtils.currentSchoolId();
+        School school = currentSchoolId != null
+                ? schoolRepository.findById(currentSchoolId).orElseThrow(() -> new ResourceNotFoundException("School not found"))
+                : null;
 
         switch (request.getRole()) {
             case STUDENT -> {
@@ -67,6 +75,7 @@ public class AdminUserService {
                         .email(request.getEmail())
                         .password(encodedPassword)
                         .role(UserRole.STUDENT)
+                        .school(school)
                         .build();
                 saved = studentRepository.save(student);
                 notificationService.notifyRole(UserRole.ADMIN, NotificationType.STUDENT_REGISTERED,
@@ -81,6 +90,7 @@ public class AdminUserService {
                         .email(request.getEmail())
                         .password(encodedPassword)
                         .role(UserRole.TEACHER)
+                        .school(school)
                         .build();
                 saved = teacherRepository.save(teacher);
             }
@@ -92,6 +102,7 @@ public class AdminUserService {
                         .email(request.getEmail())
                         .password(encodedPassword)
                         .role(UserRole.ADMIN)
+                        .school(school)
                         .build();
                 saved = userRepository.save(admin);
             }
@@ -104,6 +115,7 @@ public class AdminUserService {
                         .email(request.getEmail())
                         .password(encodedPassword)
                         .role(UserRole.LIBRARIAN)
+                        .school(school)
                         .build();
                 saved = userRepository.save(librarian);
             }
@@ -116,6 +128,7 @@ public class AdminUserService {
                         .email(request.getEmail())
                         .password(encodedPassword)
                         .role(UserRole.ACCOUNTANT)
+                        .school(school)
                         .build();
                 saved = userRepository.save(accountant);
             }
@@ -128,6 +141,7 @@ public class AdminUserService {
                         .email(request.getEmail())
                         .password(encodedPassword)
                         .role(UserRole.PARENT)
+                        .school(school)
                         .build();
                 saved = userRepository.save(parent);
             }

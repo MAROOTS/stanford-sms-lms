@@ -13,4 +13,11 @@ public class SecurityUtils {
                 .getAuthorities().stream()
                 .anyMatch(a -> a.getAuthority().equals("ROLE_" + role));
     }
+    public static Long currentSchoolId() {
+        Object principal = SecurityContextHolder.getContext().getAuthentication().getPrincipal();
+        if (principal instanceof AppUserPrincipal appUserPrincipal) {
+            return appUserPrincipal.getSchoolId();
+        }
+        return null;
+    }
 }

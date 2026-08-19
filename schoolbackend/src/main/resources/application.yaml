@@ -37,6 +37,11 @@ app:
     expiration-ms: ${JWT_EXPIRATION_MS}
     refresh-expiration-remember-ms: 2592000000            # 30 days
     refresh-expiration-session-ms: 86400000
+  platform-admin:
+      email: ${PLATFORM_ADMIN_EMAIL:kademieugine@gmail.com}
+      password: ${PLATFORM_ADMIN_PASSWORD:}
+      first-name: ${PLATFORM_ADMIN_FIRST_NAME:Platform}
+      last-name: ${PLATFORM_ADMIN_LAST_NAME:Administrator}
   admin:
     email: ${ADMIN_EMAIL:admin@admin.com}
     password: ${ADMIN_PASSWORD:}

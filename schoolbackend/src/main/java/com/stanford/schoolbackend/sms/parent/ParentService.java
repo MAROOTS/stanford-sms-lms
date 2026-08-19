@@ -3,7 +3,10 @@ package com.stanford.schoolbackend.sms.parent;
 import com.stanford.schoolbackend.core.enums.UserRole;
 import com.stanford.schoolbackend.core.exception.EmailAlreadyExistsException;
 import com.stanford.schoolbackend.core.exception.ResourceNotFoundException;
+import com.stanford.schoolbackend.core.school.School;
+import com.stanford.schoolbackend.core.school.SchoolRepository;
 import com.stanford.schoolbackend.core.security.SecurePasswordGenerator;
+import com.stanford.schoolbackend.core.security.SecurityUtils;
 import com.stanford.schoolbackend.core.user.UserRepository;
 import com.stanford.schoolbackend.core.user.UsernameGeneratorService;
 import com.stanford.schoolbackend.sms.parent.dto.ParentRequest;
@@ -29,6 +32,7 @@ public class ParentService {
     private final PasswordEncoder passwordEncoder;
     private final UsernameGeneratorService usernameGeneratorService;
     private final SecurePasswordGenerator securePasswordGenerator;
+    private final SchoolRepository schoolRepository;
 
     @Transactional(readOnly = true)
     public List<ParentResponse> getAllParents() {
@@ -47,6 +51,10 @@ public class ParentService {
         if (userRepository.findByEmail(request.getEmail()).isPresent()) {
             throw new EmailAlreadyExistsException("Email already exists");
         }
+        Long currentSchoolId = SecurityUtils.currentSchoolId();
+        School school = currentSchoolId != null
+                ? schoolRepository.findById(currentSchoolId).orElseThrow(() -> new ResourceNotFoundException("School not found"))
+                : null;
 
         String username = usernameGeneratorService.generateUsername(UserRole.PARENT);
         String tempPassword = securePasswordGenerator.generate();
@@ -62,6 +70,7 @@ public class ParentService {
                 .occupation(request.getOccupation())
                 .alternatePhone(request.getAlternatePhone())
                 .address(request.getAddress())
+                .school(school)
                 .build();
 
         parent = parentRepository.save(parent);

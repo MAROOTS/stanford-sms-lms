@@ -45,6 +45,7 @@ import Admissions from './pages/admissions/Admissions';
 import ContactForm from './pages/public/ContactForm';
 import Leads from './pages/leads/Leads';
 import Settings from './pages/settings/Settings';
+import PlatformAdminDashboard from './pages/platform/PlatformAdminDashboard';
 export default function App() {
   return (
     <ThemeProvider>
@@ -94,6 +95,7 @@ export default function App() {
                 <Route path="/admissions" element={<Admissions />} />
                 <Route path="/leads" element={<Leads />} />
                 <Route path="/settings" element={<Settings />} />
+                <Route path="/platform/schools" element={<PlatformAdminDashboard />} />
 
                 {/* Parent Portal */}
                 <Route path="/parents" element={<Parents />} />

@@ -9,5 +9,6 @@ export default function DashboardRouter() {
     if (user?.role === 'LIBRARIAN') return <Navigate to="/library" replace />;
     if (user?.role === 'PARENT') return <Navigate to="/parent-dashboard" replace />;
     if (user?.role === 'ACCOUNTANT') return <Navigate to="/fees" replace />;
+    if (user?.role === 'PLATFORM_ADMIN') return <Navigate to="/platform/schools" replace />;
     return <Dashboard />;
 }

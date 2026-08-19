@@ -1,6 +1,7 @@
 package com.stanford.schoolbackend.core.auth;
 
 import com.stanford.schoolbackend.core.auth.dto.*;
+import com.stanford.schoolbackend.core.enums.SchoolStatus;
 import com.stanford.schoolbackend.core.enums.UserRole;
 import com.stanford.schoolbackend.core.exception.*;
 import com.stanford.schoolbackend.core.security.SecurityUtils;
@@ -100,6 +101,9 @@ public class AuthService {
         User user = userRepository.findByUsername(request.getUsername())
                 .orElseThrow(() -> new ResourceNotFoundException("User not found"));
 
+        if (user.getSchool() != null && user.getSchool().getStatus() == SchoolStatus.SUSPENDED) {
+            throw new SchoolSuspendedException("Your school's account is currently suspended. Please contact support.");
+        }
         user.setFailedLoginAttempts(0);
         userRepository.save(user);
         authEventLogService.log(AuthEventType.LOGIN_SUCCESS, request.getUsername(), user, httpRequest);

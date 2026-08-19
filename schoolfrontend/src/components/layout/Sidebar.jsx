@@ -6,7 +6,7 @@ import {NavLink, useLocation} from 'react-router-dom';
 
 import {
   BarChart3,
-  BookOpen,
+  BookOpen, Building2,
   Calendar,
   ChevronDown,
   ChevronsLeft,
@@ -277,6 +277,9 @@ const accountantNav = [
     ],
   },
 ];
+const platformAdminNav = [
+  { label: 'PLATFORM', items: [{ to: '/platform/schools', icon: Building2, label: 'Schools' }] },
+];
 
 export default function Sidebar() {
   const { user } = useAuth();
@@ -287,15 +290,18 @@ export default function Sidebar() {
   const logoSrc = profile?.logoUrl || '/logo.png';
 
   const navSections =
-      user?.role === 'STUDENT'
-          ? studentNav
-          : user?.role === 'PARENT'
-              ? parentNav
-              : user?.role === 'LIBRARIAN'
-                  ? librarianNav
-                  : user?.role === 'ACCOUNTANT'
-                      ? accountantNav
-                      : adminTeacherNav;
+      user?.role === 'PLATFORM_ADMIN'
+          ? platformAdminNav
+          : user?.role === 'STUDENT'
+              ? studentNav
+              : user?.role === 'PARENT'
+                  ? parentNav
+                  : user?.role === 'LIBRARIAN'
+                      ? librarianNav
+                      : user?.role === 'ACCOUNTANT'
+                          ? accountantNav
+                          : adminTeacherNav;
+
 
   const initials = user?.email
       ? user.email.slice(0, 2).toUpperCase()
