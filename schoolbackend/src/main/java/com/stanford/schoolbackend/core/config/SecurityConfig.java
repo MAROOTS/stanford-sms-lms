@@ -40,7 +40,13 @@ public class SecurityConfig {
         config.setAllowedOrigins(List.of("http://localhost:5173"));
         config.setAllowedMethods(List.of("GET", "POST", "PUT", "PATCH", "DELETE", "OPTIONS"));
         config.setAllowedHeaders(List.of("Authorization", "Content-Type"));
+        config.setAllowedOriginPatterns(List.of(
+                "http://*.localhost:5173",
+                "http://localhost:5173",
+                "https://*.yourapp.com"   // placeholder — replace this with my  real domain
+        ));
         config.setAllowCredentials(true);
+
 
         UrlBasedCorsConfigurationSource source = new UrlBasedCorsConfigurationSource();
         source.registerCorsConfiguration("/**", config);
@@ -55,7 +61,7 @@ public class SecurityConfig {
                 .authorizeHttpRequests(auth -> auth
                         .requestMatchers("/api/auth/change-password").authenticated()
                         .requestMatchers(HttpMethod.POST, "/api/contact-inquiries").permitAll()
-                        .requestMatchers(HttpMethod.GET, "/api/school-profile").permitAll()
+                        .requestMatchers("/api/public/**").permitAll()
                         .requestMatchers("/api/auth/**").permitAll()
                         .anyRequest().authenticated()
                 )

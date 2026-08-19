@@ -28,4 +28,7 @@ public class School {
 
     @Builder.Default
     private Instant createdAt = Instant.now();
+
+    @Column(nullable = false, unique = true)
+    private String slug;
 }

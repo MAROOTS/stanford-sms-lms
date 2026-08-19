@@ -104,6 +104,19 @@ public class AuthService {
         if (user.getSchool() != null && user.getSchool().getStatus() == SchoolStatus.SUSPENDED) {
             throw new SchoolSuspendedException("Your school's account is currently suspended. Please contact support.");
         }
+        String requestSubdomain = extractSubdomain(httpRequest.getHeader("Origin"));
+
+        if (user.getSchool() != null) {
+            // a tenant user — must log in through their own school's subdomain, no exceptions
+            if (requestSubdomain == null || !requestSubdomain.equalsIgnoreCase(user.getSchool().getSlug())) {
+                throw new SchoolMismatchException("Please sign in using your school's own web address.");
+            }
+        } else {
+            // PLATFORM_ADMIN — must use the generic, no-subdomain address, not any school's
+            if (requestSubdomain != null) {
+                throw new SchoolMismatchException("Platform administrators must sign in from the main platform address.");
+            }
+        }
         user.setFailedLoginAttempts(0);
         userRepository.save(user);
         authEventLogService.log(AuthEventType.LOGIN_SUCCESS, request.getUsername(), user, httpRequest);
@@ -176,5 +189,20 @@ public class AuthService {
             return forwardedFor.split(",")[0].trim();
         }
         return request.getRemoteAddr();
+    }
+
+    private String extractSubdomain(String originHeader) {
+        if (originHeader == null) return null;
+        try {
+            java.net.URI uri = new java.net.URI(originHeader);
+            String host = uri.getHost();
+            if (host == null) return null;
+            String[] parts = host.split("\\.");
+            if (parts.length < 2) return null;
+            String sub = parts[0];
+            return "www".equalsIgnoreCase(sub) ? null : sub;
+        } catch (Exception e) {
+            return null;
+        }
     }
 }

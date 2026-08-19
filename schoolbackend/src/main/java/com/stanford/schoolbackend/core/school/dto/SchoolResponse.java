@@ -11,6 +11,7 @@ import java.time.Instant;
 public class SchoolResponse {
     private Long id;
     private String name;
+    private String slug;
     private SchoolStatus status;
     private Instant createdAt;
     private long studentCount;

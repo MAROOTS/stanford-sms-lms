@@ -11,5 +11,6 @@ import lombok.Data;
         @NotBlank private String adminLastName;
         @NotBlank @Email
         private String adminEmail;
+        private String slug; // optional — auto-generated from schoolName if left blank
     }
 

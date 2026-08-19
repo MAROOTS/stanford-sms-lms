@@ -24,6 +24,7 @@ public class PlatformAdminService {
     private final PasswordEncoder passwordEncoder;
     private final UsernameGeneratorService usernameGeneratorService;
     private final SecurePasswordGenerator securePasswordGenerator;
+    private final SlugGenerator slugGenerator;
 
     @Transactional
     public OnboardSchoolResponse onboardSchool(OnboardSchoolRequest request) {
@@ -33,8 +34,15 @@ public class PlatformAdminService {
         if (userRepository.findByEmail(request.getAdminEmail()).isPresent()) {
             throw new EmailAlreadyExistsException("Email already exists");
         }
+        String slug = (request.getSlug() != null && !request.getSlug().isBlank())
+                ? slugGenerator.generate(request.getSlug())
+                : slugGenerator.generate(request.getSchoolName());
 
-        School school = schoolRepository.save(School.builder().name(request.getSchoolName()).build());
+        if (schoolRepository.existsBySlug(slug)) {
+            throw new IllegalArgumentException("This subdomain is already taken — please choose another");
+        }
+
+        School school = schoolRepository.save(School.builder().name(request.getSchoolName()).slug(slug).build());
 
         String username = usernameGeneratorService.generateUsername(UserRole.ADMIN);
         String tempPassword = securePasswordGenerator.generate();
@@ -73,6 +81,7 @@ public class PlatformAdminService {
                 .id(school.getId()).name(school.getName()).status(school.getStatus()).createdAt(school.getCreatedAt())
                 .studentCount(userRepository.countBySchoolIdAndRole(school.getId(), UserRole.STUDENT))
                 .teacherCount(userRepository.countBySchoolIdAndRole(school.getId(), UserRole.TEACHER))
+                .slug(school.getSlug())
                 .build();
     }
 }

@@ -13,7 +13,8 @@ import lombok.*;
 public class SchoolProfile {
 
     @Id
-    private Long id; // always 1L — deliberate singleton, no auto-generation
+    @GeneratedValue(strategy = GenerationType.IDENTITY)
+    private Long id;
 
     @Column(nullable = false)
     private String name;
@@ -25,4 +26,9 @@ public class SchoolProfile {
 
     private String contactEmail;
     private String contactPhone;
+
+
+    @OneToOne(fetch = FetchType.LAZY)
+    @JoinColumn(name = "school_id", nullable = false, unique = true)
+    private School school;
 }

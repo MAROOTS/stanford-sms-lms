@@ -93,6 +93,10 @@ public class GlobalExceptionHandler {
     public ResponseEntity<Map<String, Object>> handleSchoolSuspended(SchoolSuspendedException ex) {
         return build(HttpStatus.FORBIDDEN, ex.getMessage(), null);
     }
+    @ExceptionHandler(SchoolMismatchException.class)
+    public ResponseEntity<Map<String, Object>> handleSchoolMismatch(SchoolMismatchException ex) {
+        return build(HttpStatus.FORBIDDEN, ex.getMessage(), null);
+    }
     private ResponseEntity<Map<String, Object>> build(HttpStatus status, String message, Map<String, String> details) {
         Map<String, Object> body = new LinkedHashMap<>();
         body.put("timestamp", Instant.now().toString());
