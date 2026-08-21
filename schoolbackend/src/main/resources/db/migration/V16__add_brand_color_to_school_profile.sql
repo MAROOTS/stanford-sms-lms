@@ -1,0 +1,1 @@
+ALTER TABLE school_profile ADD COLUMN brand_color VARCHAR(7);

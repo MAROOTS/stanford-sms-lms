@@ -31,4 +31,5 @@ public class SchoolProfile {
     @OneToOne(fetch = FetchType.LAZY)
     @JoinColumn(name = "school_id", nullable = false, unique = true)
     private School school;
+    private String brandColor;
 }

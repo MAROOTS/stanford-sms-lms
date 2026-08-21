@@ -11,4 +11,5 @@ public class SchoolProfileResponse {
     private String address;
     private String contactEmail;
     private String contactPhone;
+    private String brandColor;
 }

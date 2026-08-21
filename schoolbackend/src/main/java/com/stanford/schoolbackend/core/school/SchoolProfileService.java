@@ -28,7 +28,7 @@ public class SchoolProfileService {
         profile.setAddress(request.getAddress());
         profile.setContactEmail(request.getContactEmail());
         profile.setContactPhone(request.getContactPhone());
-       // profile.setBrandColor(request.getBrandColor());
+        profile.setBrandColor(request.getBrandColor());
         return toResponse(schoolProfileRepository.save(profile));
     }
 
@@ -62,6 +62,7 @@ public class SchoolProfileService {
                 .address(p.getAddress())
                 .contactEmail(p.getContactEmail())
                 .contactPhone(p.getContactPhone())
+                .brandColor(p.getBrandColor())
                 .build();
     }
 }
