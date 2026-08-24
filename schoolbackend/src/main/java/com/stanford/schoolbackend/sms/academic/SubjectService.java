@@ -16,7 +16,7 @@ import java.util.List;
 public class SubjectService {
 
     private final SubjectRepository subjectRepository;
-    private SchoolRepository schoolRepository;
+    private final SchoolRepository schoolRepository;
     public SubjectResponse create(SubjectRequest request) {
         School school = schoolRepository.findById(SecurityUtils.currentSchoolId())
                 .orElseThrow(() -> new ResourceNotFoundException("School not found"));
