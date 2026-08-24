@@ -1,6 +1,8 @@
 package com.stanford.schoolbackend.lms.course;
 
 import com.stanford.schoolbackend.core.exception.ResourceNotFoundException;
+import com.stanford.schoolbackend.core.school.School;
+import com.stanford.schoolbackend.core.school.SchoolRepository;
 import com.stanford.schoolbackend.core.security.SecurityUtils;
 import com.stanford.schoolbackend.lms.course.dto.CourseRequest;
 import com.stanford.schoolbackend.lms.course.dto.CourseResponse;
@@ -18,15 +20,18 @@ public class CourseService {
 
     private final CourseRepository courseRepository;
     private final TeacherRepository teacherRepository;
+    private final SchoolRepository schoolRepository;
 
     public CourseResponse create(CourseRequest request) {
         Teacher teacher = teacherRepository.findByUsername(SecurityUtils.currentUsername())
                 .orElseThrow(() -> new ResourceNotFoundException("Teacher profile not found"));
-
+        School school = schoolRepository.findById(SecurityUtils.currentSchoolId())
+                .orElseThrow(() -> new ResourceNotFoundException("School not found"));
         Course course = Course.builder()
                 .title(request.getTitle())
                 .description(request.getDescription())
                 .teacher(teacher)
+                .school(school)
                 .build();
 
         return toResponse(courseRepository.save(course));

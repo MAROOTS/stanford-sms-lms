@@ -1,6 +1,9 @@
 package com.stanford.schoolbackend.sms.academic;
 
 import com.stanford.schoolbackend.core.exception.ResourceNotFoundException;
+import com.stanford.schoolbackend.core.school.School;
+import com.stanford.schoolbackend.core.school.SchoolRepository;
+import com.stanford.schoolbackend.core.security.SecurityUtils;
 import com.stanford.schoolbackend.sms.academic.dto.SubjectRequest;
 import com.stanford.schoolbackend.sms.academic.dto.SubjectResponse;
 import lombok.RequiredArgsConstructor;
@@ -13,9 +16,13 @@ import java.util.List;
 public class SubjectService {
 
     private final SubjectRepository subjectRepository;
-
+    private SchoolRepository schoolRepository;
     public SubjectResponse create(SubjectRequest request) {
+        School school = schoolRepository.findById(SecurityUtils.currentSchoolId())
+                .orElseThrow(() -> new ResourceNotFoundException("School not found"));
+
         Subject subject = Subject.builder()
+                .school(school)
                 .name(request.getName())
                 .code(request.getCode())
                 .build();

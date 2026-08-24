@@ -1,5 +1,6 @@
 package com.stanford.schoolbackend.sms.fees;
 
+import com.stanford.schoolbackend.core.school.School;
 import com.stanford.schoolbackend.sms.exams.Term;
 import com.stanford.schoolbackend.sms.student.Student;
 import jakarta.persistence.*;
@@ -41,4 +42,8 @@ public class FeeInvoice {
 
     private LocalDate dueDate; // nullable — no due date means never flagged overdue
     private Instant lastOverdueReminderAt; // nullable — tracks reminder cadence
+
+    @ManyToOne(fetch = FetchType.LAZY)
+    @JoinColumn(name = "school_id", nullable = false)
+    private School school;
 }

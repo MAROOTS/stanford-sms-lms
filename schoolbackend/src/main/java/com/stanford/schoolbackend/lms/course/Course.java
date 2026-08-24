@@ -1,5 +1,6 @@
 package com.stanford.schoolbackend.lms.course;
 
+import com.stanford.schoolbackend.core.school.School;
 import com.stanford.schoolbackend.sms.teacher.Teacher;
 import jakarta.persistence.*;
 import lombok.*;
@@ -31,4 +32,8 @@ public class Course {
 
     @Builder.Default
     private Instant createdAt = Instant.now();
+
+    @ManyToOne(fetch = FetchType.LAZY)
+    @JoinColumn(name = "school_id", nullable = false)
+    private School school;
 }

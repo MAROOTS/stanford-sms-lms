@@ -1,6 +1,9 @@
 package com.stanford.schoolbackend.sms.academic;
 
 import com.stanford.schoolbackend.core.exception.ResourceNotFoundException;
+import com.stanford.schoolbackend.core.school.School;
+import com.stanford.schoolbackend.core.school.SchoolRepository;
+import com.stanford.schoolbackend.core.security.SecurityUtils;
 import com.stanford.schoolbackend.sms.academic.dto.GradeLevelRequest;
 import com.stanford.schoolbackend.sms.academic.dto.GradeLevelResponse;
 import lombok.RequiredArgsConstructor;
@@ -14,9 +17,15 @@ import java.util.List;
 public class GradeLevelService {
 
     private final GradeLevelRepository gradeLevelRepository;
+    private final SchoolRepository schoolRepository;
+
 
     public GradeLevelResponse create(GradeLevelRequest request) {
+        School school = schoolRepository.findById(SecurityUtils.currentSchoolId())
+                .orElseThrow(() -> new ResourceNotFoundException("School not found"));
+
         GradeLevel gradeLevel = GradeLevel.builder()
+                .school(school)
                 .name(request.getName())
                 .stage(request.getStage())
                 .sortOrder(request.getSortOrder())

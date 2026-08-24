@@ -1,6 +1,8 @@
 package com.stanford.schoolbackend.sms.fees;
 
 import com.stanford.schoolbackend.core.exception.ResourceNotFoundException;
+import com.stanford.schoolbackend.core.school.School;
+import com.stanford.schoolbackend.core.school.SchoolRepository;
 import com.stanford.schoolbackend.core.security.SecurityUtils;
 import com.stanford.schoolbackend.sms.exams.Term;
 import com.stanford.schoolbackend.sms.exams.TermRepository;
@@ -32,6 +34,7 @@ public class FeeInvoiceService {
     private final StudentRepository studentRepository;
     private final TermRepository termRepository;
     private final ParentAccessService parentAccessService;
+    private final SchoolRepository schoolRepository;
     public FeeInvoiceResponse create(CreateInvoiceRequest request) {
         if (feeInvoiceRepository.findByStudentIdAndTermId(request.getStudentId(), request.getTermId()).isPresent()) {
             throw new IllegalArgumentException("An invoice already exists for this student and term — use update instead");
@@ -41,11 +44,18 @@ public class FeeInvoiceService {
                 .orElseThrow(() -> new ResourceNotFoundException("Student not found"));
         Term term = termRepository.findById(request.getTermId())
                 .orElseThrow(() -> new ResourceNotFoundException("Term not found"));
+        Long currentSchoolId = SecurityUtils.currentSchoolId();
 
+        if (currentSchoolId == null) {
+            throw new ResourceNotFoundException("School context not found");
+        }
+        School school = schoolRepository.findById(SecurityUtils.currentSchoolId())
+                .orElseThrow(() -> new ResourceNotFoundException("School not found"));
         FeeInvoice invoice = FeeInvoice.builder()
                 .student(student)
                 .term(term)
                 .dueDate(request.getDueDate())
+                .school(school)
                 .build();
         invoice.setLineItems(buildLineItems(invoice, request.getLineItems()));
 

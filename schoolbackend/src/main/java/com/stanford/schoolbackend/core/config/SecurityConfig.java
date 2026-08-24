@@ -3,6 +3,7 @@ package com.stanford.schoolbackend.core.config;
 import com.stanford.schoolbackend.core.security.JwtAuthenticationFilter;
 import com.stanford.schoolbackend.core.security.LoginRateLimitFilter;
 import com.stanford.schoolbackend.core.security.PublicContactRateLimitFilter;
+import com.stanford.schoolbackend.core.tenant.TenantContextFilter;
 import lombok.RequiredArgsConstructor;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
@@ -34,6 +35,7 @@ public class SecurityConfig {
 
     private final JwtAuthenticationFilter jwtAuthFilter;
     private final UserDetailsService userDetailsService;
+    private final TenantContextFilter tenantContextFilter;
     @Bean
     public CorsConfigurationSource corsConfigurationSource() {
         CorsConfiguration config = new CorsConfiguration();
@@ -68,7 +70,8 @@ public class SecurityConfig {
                 .sessionManagement(sess -> sess.sessionCreationPolicy(SessionCreationPolicy.STATELESS))
                 .addFilterBefore(jwtAuthFilter, UsernamePasswordAuthenticationFilter.class)
                 .addFilterBefore(new LoginRateLimitFilter(), UsernamePasswordAuthenticationFilter.class)
-                .addFilterBefore(new PublicContactRateLimitFilter(), UsernamePasswordAuthenticationFilter.class);
+                .addFilterBefore(new PublicContactRateLimitFilter(), UsernamePasswordAuthenticationFilter.class)
+                .addFilterAfter(tenantContextFilter, JwtAuthenticationFilter.class);
 
         return http.build();
     }

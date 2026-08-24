@@ -32,7 +32,12 @@ public class NotificationService {
     }
 
     public void notifyRole(UserRole role, NotificationType type, String message, String link) {
-        userRepository.findByRole(role).forEach(recipient -> notifyUser(recipient, type, message, link));
+       // userRepository.findByRole(role).forEach(recipient -> notifyUser(recipient, type, message, link));
+        Long schoolId = SecurityUtils.currentSchoolId();
+        List<User> recipients = schoolId != null
+                ? userRepository.findByRoleAndSchoolId(role, schoolId)
+                : userRepository.findByRole(role); // only reachable from Platform-Admin-triggered code, if ever added
+        recipients.forEach(recipient -> notifyUser(recipient, type, message, link));
     }
 
     public List<NotificationResponse> listForCurrentUser() {

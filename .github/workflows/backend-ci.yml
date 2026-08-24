@@ -31,6 +31,21 @@ jobs:
           --health-timeout=5s
           --health-retries=5
 
+      minio:
+        image: minio/minio
+        env:
+          MINIO_ROOT_USER: minioadmin
+          MINIO_ROOT_PASSWORD: minioadmin
+        ports:
+          - 9000:9000
+          - 9001:9001
+        options: >-
+          --health-cmd="curl -f http://localhost:9000/minio/health/live"
+          --health-interval=10s
+          --health-timeout=5s
+          --health-retries=5
+        command: server /data --console-address ":9001"
+
     defaults:
       run:
         working-directory: schoolbackend
@@ -50,8 +65,16 @@ jobs:
         env:
           DB_USERNAME: postgres
           DB_PASSWORD: postgres123
+
           JWT_SECRET: ${{ secrets.JWT_SECRET_CI }}
           JWT_EXPIRATION_MS: 86400000
+
           GMAIL_USERNAME: N/A
           GMAIL_APP_PASSWORD: N/A
+
+          MINIO_ENDPOINT: http://localhost:9000
+          MINIO_ACCESS_KEY: minioadmin
+          MINIO_SECRET_KEY: minioadmin123
+          MINIO_BUCKET: schoolos-uploads
+
         run: mvn -B clean verify
