@@ -1,5 +1,6 @@
 package com.stanford.schoolbackend.sms.exams;
 
+import com.stanford.schoolbackend.core.school.School;
 import jakarta.persistence.*;
 import lombok.*;
 
@@ -17,6 +18,10 @@ public class Term {
     @Id
     @GeneratedValue(strategy = GenerationType.IDENTITY)
     private Long id;
+
+    @ManyToOne(fetch = FetchType.LAZY)
+    @JoinColumn(name = "school_id", nullable = false)
+    private School school;
 
     @Column(nullable = false, unique = true)
     private String name; // e.g. "Term 2 2026"

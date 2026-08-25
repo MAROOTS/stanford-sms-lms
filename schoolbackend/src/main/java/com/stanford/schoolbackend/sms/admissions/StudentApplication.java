@@ -1,5 +1,6 @@
 package com.stanford.schoolbackend.sms.admissions;
 
+import com.stanford.schoolbackend.core.school.School;
 import com.stanford.schoolbackend.sms.academic.GradeLevel;
 import jakarta.persistence.*;
 import lombok.*;
@@ -19,6 +20,10 @@ public class StudentApplication {
     @Id
     @GeneratedValue(strategy = GenerationType.IDENTITY)
     private Long id;
+
+    @ManyToOne(fetch = FetchType.LAZY)
+    @JoinColumn(name = "school_id", nullable = false)
+    private School school;
 
     @Column(nullable = false)
     private String firstName;

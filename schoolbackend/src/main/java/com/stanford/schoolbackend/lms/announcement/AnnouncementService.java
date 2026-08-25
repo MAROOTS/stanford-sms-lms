@@ -5,6 +5,8 @@ import com.stanford.schoolbackend.core.enums.NotificationType;
 import com.stanford.schoolbackend.core.enums.UserRole;
 import com.stanford.schoolbackend.core.exception.ResourceNotFoundException;
 import com.stanford.schoolbackend.core.notification.NotificationService;
+import com.stanford.schoolbackend.core.school.School;
+import com.stanford.schoolbackend.core.school.SchoolRepository;
 import com.stanford.schoolbackend.core.security.SecurityUtils;
 import com.stanford.schoolbackend.lms.announcement.dto.AnnouncementRequest;
 import com.stanford.schoolbackend.lms.announcement.dto.AnnouncementResponse;
@@ -26,10 +28,11 @@ public class AnnouncementService {
     private final CourseRepository courseRepository;
     private final TeacherRepository teacherRepository;
     private final NotificationService  notificationService;
-
+    private SchoolRepository schoolRepository;
     public AnnouncementResponse create(AnnouncementRequest request) {
         Teacher teacher = teacherRepository.findByUsername(SecurityUtils.currentUsername()).orElse(null);
-
+        School school = schoolRepository.findById(SecurityUtils.currentSchoolId())
+                .orElseThrow(() -> new ResourceNotFoundException("School not found"));
         Course course = null;
         AnnouncementAudience audience = null;
 
@@ -50,6 +53,7 @@ public class AnnouncementService {
         }
 
         Announcement announcement = Announcement.builder()
+                .school(school)
                 .title(request.getTitle())
                 .content(request.getContent())
                 .course(course)

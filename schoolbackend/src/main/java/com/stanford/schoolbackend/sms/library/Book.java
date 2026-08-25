@@ -1,5 +1,6 @@
 package com.stanford.schoolbackend.sms.library;
 
+import com.stanford.schoolbackend.core.school.School;
 import jakarta.persistence.*;
 import lombok.*;
 
@@ -15,6 +16,10 @@ public class Book {
     @Id
     @GeneratedValue(strategy = GenerationType.IDENTITY)
     private Long id;
+
+    @ManyToOne(fetch = FetchType.LAZY)
+    @JoinColumn(name = "school_id", nullable = false)
+    private School school;
 
     @Column(nullable = false)
     private String title;

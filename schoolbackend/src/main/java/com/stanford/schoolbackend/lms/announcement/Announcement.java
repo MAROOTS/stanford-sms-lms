@@ -1,6 +1,7 @@
 package com.stanford.schoolbackend.lms.announcement;
 
 import com.stanford.schoolbackend.core.enums.AnnouncementAudience;
+import com.stanford.schoolbackend.core.school.School;
 import com.stanford.schoolbackend.lms.course.Course;
 import com.stanford.schoolbackend.sms.teacher.Teacher;
 import jakarta.persistence.*;
@@ -20,6 +21,10 @@ public class Announcement {
     @Id
     @GeneratedValue(strategy = GenerationType.IDENTITY)
     private Long id;
+
+    @ManyToOne(fetch = FetchType.LAZY)
+    @JoinColumn(name = "school_id", nullable = false)
+    private School school;
 
     @ManyToOne(fetch = FetchType.LAZY)
     @JoinColumn(name = "course_id") // nullable: null = school-wide announcement

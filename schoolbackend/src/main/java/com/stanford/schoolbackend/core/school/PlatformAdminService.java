@@ -44,7 +44,7 @@ public class PlatformAdminService {
 
         School school = schoolRepository.save(School.builder().name(request.getSchoolName()).slug(slug).build());
 
-        String username = usernameGeneratorService.generateUsername(UserRole.ADMIN);
+        String username = usernameGeneratorService.generateUsername(UserRole.ADMIN, school.getId());
         String tempPassword = securePasswordGenerator.generate();
 
         User admin = User.builder()

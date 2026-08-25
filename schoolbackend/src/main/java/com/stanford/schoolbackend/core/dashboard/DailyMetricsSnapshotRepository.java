@@ -7,7 +7,7 @@ import java.util.List;
 import java.util.Optional;
 
 public interface DailyMetricsSnapshotRepository extends JpaRepository<DailyMetricsSnapshot, Long> {
-    Optional<DailyMetricsSnapshot> findBySnapshotDate(LocalDate date);
-    Optional<DailyMetricsSnapshot> findTopBySnapshotDateLessThanOrderBySnapshotDateDesc(LocalDate date);
-    List<DailyMetricsSnapshot> findBySnapshotDateBetweenOrderBySnapshotDateAsc(LocalDate start, LocalDate end);
+    Optional<DailyMetricsSnapshot> findBySchoolIdAndSnapshotDate(Long schoolId, LocalDate date);
+    Optional<DailyMetricsSnapshot> findTopBySchoolIdAndSnapshotDateLessThanOrderBySnapshotDateDesc(Long schoolId, LocalDate date);
+    List<DailyMetricsSnapshot> findBySchoolIdAndSnapshotDateBetweenOrderBySnapshotDateAsc(Long schoolId, LocalDate start, LocalDate end);
 }

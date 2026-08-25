@@ -1,9 +1,12 @@
 package com.stanford.schoolbackend.core.dashboard;
 
-import com.stanford.schoolbackend.core.enums.AttendanceStatus;
-import com.stanford.schoolbackend.core.exception.ResourceNotFoundException;
 import com.stanford.schoolbackend.core.dashboard.dto.AttendanceTrendPoint;
 import com.stanford.schoolbackend.core.dashboard.dto.DashboardSummaryResponse;
+import com.stanford.schoolbackend.core.enums.AttendanceStatus;
+import com.stanford.schoolbackend.core.exception.ResourceNotFoundException;
+import com.stanford.schoolbackend.core.school.School;
+import com.stanford.schoolbackend.core.school.SchoolRepository;
+import com.stanford.schoolbackend.core.security.SecurityUtils;
 import com.stanford.schoolbackend.sms.academic.ClassSectionRepository;
 import com.stanford.schoolbackend.sms.attendance.ClassAttendanceRecord;
 import com.stanford.schoolbackend.sms.attendance.ClassAttendanceRecordRepository;
@@ -30,10 +33,14 @@ public class DashboardService {
     private final ClassSessionRepository classSessionRepository;
     private final ClassAttendanceRecordRepository classAttendanceRecordRepository;
     private final TermRepository termRepository;
+    private final SchoolRepository schoolRepository;
 
-    public DailyMetricsSnapshot captureSnapshot(LocalDate date) {
-        DailyMetricsSnapshot snapshot = snapshotRepository.findBySnapshotDate(date)
-                .orElse(DailyMetricsSnapshot.builder().snapshotDate(date).build());
+    public DailyMetricsSnapshot captureSnapshot(Long schoolId, LocalDate date) {
+        School school = schoolRepository.findById(schoolId)
+                .orElseThrow(() -> new ResourceNotFoundException("School not found"));
+
+        DailyMetricsSnapshot snapshot = snapshotRepository.findBySchoolIdAndSnapshotDate(schoolId, date)
+                .orElse(DailyMetricsSnapshot.builder().school(school).snapshotDate(date).build());
 
         snapshot.setTotalStudents((int) studentRepository.count());
         snapshot.setTotalTeachers((int) teacherRepository.count());
@@ -44,11 +51,12 @@ public class DashboardService {
     }
 
     public DashboardSummaryResponse getSummary() {
+        Long schoolId = SecurityUtils.currentSchoolId();
         LocalDate today = LocalDate.now();
-        DailyMetricsSnapshot todaySnapshot = captureSnapshot(today); // always refresh "today" live
+        DailyMetricsSnapshot todaySnapshot = captureSnapshot(schoolId, today);
 
         DailyMetricsSnapshot comparison = snapshotRepository
-                .findTopBySnapshotDateLessThanOrderBySnapshotDateDesc(today)
+                .findTopBySchoolIdAndSnapshotDateLessThanOrderBySnapshotDateDesc(schoolId, today)
                 .orElse(null);
 
         return DashboardSummaryResponse.builder()
@@ -69,6 +77,7 @@ public class DashboardService {
     }
 
     public List<AttendanceTrendPoint> getAttendanceTrend(String range, Long termId) {
+        Long schoolId = SecurityUtils.currentSchoolId();
         LocalDate today = LocalDate.now();
         LocalDate start;
 
@@ -80,10 +89,10 @@ public class DashboardService {
                         : termRepository.findByIsCurrentTrue().orElse(null);
                 start = (term != null && term.getStartDate() != null) ? term.getStartDate() : today.minusDays(29);
             }
-            default -> start = today.minusDays(6); // WEEK
+            default -> start = today.minusDays(6);
         }
 
-        return snapshotRepository.findBySnapshotDateBetweenOrderBySnapshotDateAsc(start, today).stream()
+        return snapshotRepository.findBySchoolIdAndSnapshotDateBetweenOrderBySnapshotDateAsc(schoolId, start, today).stream()
                 .filter(s -> s.getAttendancePercentage() != null)
                 .map(s -> AttendanceTrendPoint.builder()
                         .date(s.getSnapshotDate())

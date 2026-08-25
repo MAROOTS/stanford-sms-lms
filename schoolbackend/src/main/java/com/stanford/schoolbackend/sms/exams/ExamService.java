@@ -1,6 +1,9 @@
 package com.stanford.schoolbackend.sms.exams;
 
 import com.stanford.schoolbackend.core.exception.ResourceNotFoundException;
+import com.stanford.schoolbackend.core.school.School;
+import com.stanford.schoolbackend.core.school.SchoolRepository;
+import com.stanford.schoolbackend.core.security.SecurityUtils;
 import com.stanford.schoolbackend.sms.academic.ClassSection;
 import com.stanford.schoolbackend.sms.academic.ClassSectionRepository;
 import com.stanford.schoolbackend.sms.academic.Subject;
@@ -22,12 +25,14 @@ public class ExamService {
     private final TermRepository termRepository;
     private final ClassSectionRepository classSectionRepository;
     private final SubjectRepository subjectRepository;
-
+    private final SchoolRepository schoolRepository;
     public ExamResponse create(ExamRequest request) {
         Term term = termRepository.findById(request.getTermId())
                 .orElseThrow(() -> new ResourceNotFoundException("Term not found"));
-
+        School school = schoolRepository.findById(SecurityUtils.currentSchoolId())
+                .orElseThrow(() -> new ResourceNotFoundException("School not found"));
         Exam exam = Exam.builder()
+                .school(school)
                 .name(request.getName())
                 .examType(request.getExamType())
                 .term(term)

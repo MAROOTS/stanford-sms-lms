@@ -56,7 +56,7 @@ public class ParentService {
                 ? schoolRepository.findById(currentSchoolId).orElseThrow(() -> new ResourceNotFoundException("School not found"))
                 : null;
 
-        String username = usernameGeneratorService.generateUsername(UserRole.PARENT);
+        String username = usernameGeneratorService.generateUsername(UserRole.PARENT, school.getId());
         String tempPassword = securePasswordGenerator.generate();
 
         Parent parent = Parent.builder()

@@ -1,5 +1,6 @@
 package com.stanford.schoolbackend.sms.attendance;
 
+import com.stanford.schoolbackend.core.school.School;
 import com.stanford.schoolbackend.sms.academic.ClassSection;
 import jakarta.persistence.*;
 import lombok.*;
@@ -19,6 +20,10 @@ public class ClassSession {
     @Id
     @GeneratedValue(strategy = GenerationType.IDENTITY)
     private Long id;
+
+    @ManyToOne(fetch = FetchType.LAZY)
+    @JoinColumn(name = "school_id", nullable = false)
+    private School school;
 
     @ManyToOne(fetch = FetchType.LAZY)
     @JoinColumn(name = "class_section_id", nullable = false)

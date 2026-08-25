@@ -1,6 +1,9 @@
 package com.stanford.schoolbackend.sms.exams;
 
 import com.stanford.schoolbackend.core.exception.ResourceNotFoundException;
+import com.stanford.schoolbackend.core.school.School;
+import com.stanford.schoolbackend.core.school.SchoolRepository;
+import com.stanford.schoolbackend.core.security.SecurityUtils;
 import com.stanford.schoolbackend.sms.exams.dto.TermRequest;
 import com.stanford.schoolbackend.sms.exams.dto.TermResponse;
 import lombok.RequiredArgsConstructor;
@@ -14,14 +17,17 @@ import java.util.List;
 public class TermService {
 
     private final TermRepository termRepository;
+    private final SchoolRepository schoolRepository;
 
     @Transactional
     public TermResponse create(TermRequest request) {
         if (request.isCurrent()) {
             unsetExistingCurrent();
         }
-
+        School school = schoolRepository.findById(SecurityUtils.currentSchoolId())
+                .orElseThrow(() -> new ResourceNotFoundException("School not found"));
         Term term = Term.builder()
+                .school(school)
                 .name(request.getName())
                 .startDate(request.getStartDate())
                 .endDate(request.getEndDate())

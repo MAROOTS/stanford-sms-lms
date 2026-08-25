@@ -2,6 +2,9 @@ package com.stanford.schoolbackend.sms.library;
 
 import com.stanford.schoolbackend.core.enums.CopyStatus;
 import com.stanford.schoolbackend.core.exception.ResourceNotFoundException;
+import com.stanford.schoolbackend.core.school.School;
+import com.stanford.schoolbackend.core.school.SchoolRepository;
+import com.stanford.schoolbackend.core.security.SecurityUtils;
 import com.stanford.schoolbackend.sms.library.dto.*;
 import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Service;
@@ -15,9 +18,12 @@ public class BookService {
     private final BookRepository bookRepository;
     private final BookCopyRepository bookCopyRepository;
     private final BookLoanRepository bookLoanRepository;
-
+    private final SchoolRepository schoolRepository;
     public BookResponse create(BookRequest request) {
+        School school = schoolRepository.findById(SecurityUtils.currentSchoolId())
+                .orElseThrow(() -> new ResourceNotFoundException("School not found"));
         Book book = Book.builder()
+                .school(school)
                 .title(request.getTitle())
                 .author(request.getAuthor())
                 .isbn(request.getIsbn())

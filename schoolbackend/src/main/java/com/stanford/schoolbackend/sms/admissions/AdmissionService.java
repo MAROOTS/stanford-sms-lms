@@ -8,6 +8,9 @@ import com.stanford.schoolbackend.core.enums.UserRole;
 import com.stanford.schoolbackend.core.exception.PasswordMismatchException;
 import com.stanford.schoolbackend.core.exception.ResourceNotFoundException;
 import com.stanford.schoolbackend.core.notification.NotificationService;
+import com.stanford.schoolbackend.core.school.School;
+import com.stanford.schoolbackend.core.school.SchoolRepository;
+import com.stanford.schoolbackend.core.security.SecurityUtils;
 import com.stanford.schoolbackend.sms.academic.GradeLevel;
 import com.stanford.schoolbackend.sms.academic.GradeLevelRepository;
 import com.stanford.schoolbackend.sms.admissions.dto.*;
@@ -25,11 +28,13 @@ public class AdmissionService {
     private final GradeLevelRepository gradeLevelRepository;
     private final AdminUserService adminUserService;
     private final NotificationService notificationService;
-
+    private final SchoolRepository schoolRepository;
     public StudentApplicationResponse create(CreateApplicationRequest request) {
         GradeLevel gradeLevel = resolveGradeLevel(request.getDesiredGradeLevelId());
-
+        School school = schoolRepository.findById(SecurityUtils.currentSchoolId())
+                .orElseThrow(() -> new ResourceNotFoundException("School not found"));
         StudentApplication application = StudentApplication.builder()
+                .school(school)
                 .firstName(request.getFirstName())
                 .lastName(request.getLastName())
                 .dateOfBirth(request.getDateOfBirth())

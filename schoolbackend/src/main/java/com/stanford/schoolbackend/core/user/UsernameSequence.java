@@ -1,5 +1,6 @@
 package com.stanford.schoolbackend.core.user;
 
+import com.stanford.schoolbackend.core.school.School;
 import jakarta.persistence.*;
 import lombok.*;
 
@@ -16,7 +17,11 @@ public class UsernameSequence {
     @GeneratedValue(strategy = GenerationType.IDENTITY)
     private Long id;
 
-    @Column(nullable = false, unique = true)
+    @ManyToOne(fetch = FetchType.LAZY)
+    @JoinColumn(name = "school_id", nullable = false)
+    private School school;
+
+    @Column(nullable = false)
     private String sequenceKey;
 
     @Builder.Default

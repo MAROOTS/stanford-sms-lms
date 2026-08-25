@@ -1,6 +1,9 @@
 package com.stanford.schoolbackend.sms.academic;
 
 import com.stanford.schoolbackend.core.exception.ResourceNotFoundException;
+import com.stanford.schoolbackend.core.school.School;
+import com.stanford.schoolbackend.core.school.SchoolRepository;
+import com.stanford.schoolbackend.core.security.SecurityUtils;
 import com.stanford.schoolbackend.sms.academic.dto.ClassSectionRequest;
 import com.stanford.schoolbackend.sms.academic.dto.ClassSectionResponse;
 import com.stanford.schoolbackend.sms.teacher.Teacher;
@@ -17,7 +20,7 @@ public class ClassSectionService {
     private final ClassSectionRepository classSectionRepository;
     private final GradeLevelRepository gradeLevelRepository;
     private final TeacherRepository teacherRepository;
-
+    private final SchoolRepository schoolRepository;
     public ClassSectionResponse create(ClassSectionRequest request) {
         GradeLevel gradeLevel = gradeLevelRepository.findById(request.getGradeLevelId())
                 .orElseThrow(() -> new ResourceNotFoundException("Grade level not found"));
@@ -27,8 +30,11 @@ public class ClassSectionService {
             homeroomTeacher = teacherRepository.findById(request.getHomeroomTeacherId())
                     .orElseThrow(() -> new ResourceNotFoundException("Teacher not found"));
         }
+        School school = schoolRepository.findById(SecurityUtils.currentSchoolId())
+                .orElseThrow(() -> new ResourceNotFoundException("School not found"));
 
         ClassSection section = ClassSection.builder()
+                .school(school)
                 .name(request.getName())
                 .gradeLevel(gradeLevel)
                 .homeroomTeacher(homeroomTeacher)

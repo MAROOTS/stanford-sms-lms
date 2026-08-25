@@ -45,7 +45,7 @@ public class AdminUserService {
     private final SchoolRepository schoolRepository;
 
     public GenerateUsernameResponse generateUsername(UserRole role) {
-        return GenerateUsernameResponse.builder().username(usernameGeneratorService.generateUsername(role)).build();
+        return GenerateUsernameResponse.builder().username(usernameGeneratorService.generateUsername(role, SecurityUtils.currentSchoolId())).build();
     }
     public CreatedUserResponse createUser(RegisterRequest request) {
 
