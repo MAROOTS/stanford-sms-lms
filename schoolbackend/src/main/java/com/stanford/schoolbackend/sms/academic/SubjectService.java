@@ -41,12 +41,20 @@ public class SubjectService {
     }
 
     public List<SubjectResponse> listAll() {
-        return subjectRepository.findAll().stream().map(this::toResponse).toList();
+        return subjectRepository.findBySchoolId(SecurityUtils.currentSchoolId()).stream()
+                .map(this::toResponse)
+                .toList();
     }
 
     private Subject getOrThrow(Long id) {
-        return subjectRepository.findById(id)
+        Subject subject = subjectRepository.findById(id)
                 .orElseThrow(() -> new ResourceNotFoundException("Subject not found"));
+        Long schoolId = SecurityUtils.currentSchoolId();
+        if (schoolId == null || subject.getSchool() == null
+                || !schoolId.equals(subject.getSchool().getId())) {
+            throw new ResourceNotFoundException("Subject not found");
+        }
+        return subject;
     }
 
     private SubjectResponse toResponse(Subject s) {

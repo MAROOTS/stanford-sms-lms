@@ -58,19 +58,27 @@ public class TermService {
     }
 
     public List<TermResponse> listAll() {
-        return termRepository.findAll().stream().map(this::toResponse).toList();
-    }
+        return termRepository.findBySchoolId(SecurityUtils.currentSchoolId()).stream()
+                .map(this::toResponse)
+                .toList();    }
 
     private void unsetExistingCurrent() {
-        termRepository.findByIsCurrentTrue().ifPresent(existing -> {
-            existing.setCurrent(false);
-            termRepository.save(existing);
-        });
+        termRepository.findByIsCurrentTrueAndSchoolId(SecurityUtils.currentSchoolId())
+                .ifPresent(existing -> {
+                    existing.setCurrent(false);
+                    termRepository.save(existing);
+                });
     }
 
     private Term getOrThrow(Long id) {
-        return termRepository.findById(id)
-                .orElseThrow(() -> new ResourceNotFoundException("Term not found"));
+        Term term = termRepository.findById(id)
+                .orElseThrow(() -> new ResourceNotFoundException("Grade level not found"));
+        Long schoolId = SecurityUtils.currentSchoolId();
+        if (schoolId == null || term.getSchool() == null
+                || !schoolId.equals(term.getSchool().getId())) {
+            throw new ResourceNotFoundException("Grade level not found");
+        }
+        return term;
     }
 
     private TermResponse toResponse(Term t) {

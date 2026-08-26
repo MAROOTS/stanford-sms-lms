@@ -46,15 +46,21 @@ public class GradeLevelService {
     }
 
     public List<GradeLevelResponse> listAll() {
-        return gradeLevelRepository.findAll().stream()
+        return gradeLevelRepository.findBySchoolId(SecurityUtils.currentSchoolId()).stream()
                 .sorted(Comparator.comparing(GradeLevel::getSortOrder))
                 .map(this::toResponse)
                 .toList();
     }
 
     private GradeLevel getOrThrow(Long id) {
-        return gradeLevelRepository.findById(id)
+        GradeLevel gradeLevel = gradeLevelRepository.findById(id)
                 .orElseThrow(() -> new ResourceNotFoundException("Grade level not found"));
+        Long schoolId = SecurityUtils.currentSchoolId();
+        if (schoolId == null || gradeLevel.getSchool() == null
+                || !schoolId.equals(gradeLevel.getSchool().getId())) {
+            throw new ResourceNotFoundException("Grade level not found");
+        }
+        return gradeLevel;
     }
 
     private GradeLevelResponse toResponse(GradeLevel g) {
