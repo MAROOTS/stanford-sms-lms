@@ -42,10 +42,10 @@ public class DashboardService {
         DailyMetricsSnapshot snapshot = snapshotRepository.findBySchoolIdAndSnapshotDate(schoolId, date)
                 .orElse(DailyMetricsSnapshot.builder().school(school).snapshotDate(date).build());
 
-        snapshot.setTotalStudents((int) studentRepository.count());
-        snapshot.setTotalTeachers((int) teacherRepository.count());
-        snapshot.setActiveClasses((int) classSectionRepository.count());
-        snapshot.setAttendancePercentage(computeAttendancePercentage(date));
+        snapshot.setTotalStudents((int) studentRepository.countBySchoolId(schoolId));
+        snapshot.setTotalTeachers((int) teacherRepository.countBySchoolId(schoolId));
+        snapshot.setActiveClasses((int) classSectionRepository.countBySchoolId(schoolId));
+        snapshot.setAttendancePercentage(computeAttendancePercentage(schoolId, date));
 
         return snapshotRepository.save(snapshot);
     }
@@ -101,8 +101,8 @@ public class DashboardService {
                 .toList();
     }
 
-    private Double computeAttendancePercentage(LocalDate date) {
-        List<ClassSession> sessions = classSessionRepository.findBySessionDate(date);
+    private Double computeAttendancePercentage(Long schoolId, LocalDate date) {
+        List<ClassSession> sessions = classSessionRepository.findBySchoolIdAndSessionDate(schoolId, date);
         if (sessions.isEmpty()) return null;
 
         int total = 0;

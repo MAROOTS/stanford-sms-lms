@@ -24,11 +24,17 @@ public class ClassSectionService {
     public ClassSectionResponse create(ClassSectionRequest request) {
         GradeLevel gradeLevel = gradeLevelRepository.findById(request.getGradeLevelId())
                 .orElseThrow(() -> new ResourceNotFoundException("Grade level not found"));
+        if (!SecurityUtils.currentSchoolId().equals(gradeLevel.getSchool().getId())) {
+            throw new ResourceNotFoundException("Grade level not found");
+        }
 
         Teacher homeroomTeacher = null;
         if (request.getHomeroomTeacherId() != null) {
             homeroomTeacher = teacherRepository.findById(request.getHomeroomTeacherId())
                     .orElseThrow(() -> new ResourceNotFoundException("Teacher not found"));
+            if (!SecurityUtils.currentSchoolId().equals(homeroomTeacher.getSchool().getId())) {
+                throw new ResourceNotFoundException("Teacher not found");
+            }
         }
         School school = schoolRepository.findById(SecurityUtils.currentSchoolId())
                 .orElseThrow(() -> new ResourceNotFoundException("School not found"));
@@ -50,13 +56,12 @@ public class ClassSectionService {
     }
 
     public List<ClassSectionResponse> listAll() {
-        return classSectionRepository.findAll().stream()
+        return classSectionRepository.findBySchoolId(SecurityUtils.currentSchoolId()).stream()
                 .map(this::toResponse)
                 .toList();
     }
     public ClassSectionResponse update(Long id, ClassSectionRequest request) {
-        ClassSection section = classSectionRepository.findById(id)
-                .orElseThrow(() -> new ResourceNotFoundException("Class section not found"));
+        ClassSection section = getOwnedOrThrow(id);
 
         GradeLevel gradeLevel = gradeLevelRepository.findById(request.getGradeLevelId())
                 .orElseThrow(() -> new ResourceNotFoundException("Grade level not found"));
@@ -75,11 +80,20 @@ public class ClassSectionService {
     }
 
     public void delete(Long id) {
-        ClassSection section = classSectionRepository.findById(id)
-                .orElseThrow(() -> new ResourceNotFoundException("Class section not found"));
+        ClassSection section = getOwnedOrThrow(id);
         classSectionRepository.delete(section);
     }
 
+    private ClassSection getOwnedOrThrow(Long id) {
+        ClassSection section = classSectionRepository.findById(id)
+                .orElseThrow(() -> new ResourceNotFoundException("Class section not found"));
+        Long schoolId = SecurityUtils.currentSchoolId();
+        if (schoolId == null || section.getSchool() == null
+                || !schoolId.equals(section.getSchool().getId())) {
+            throw new ResourceNotFoundException("Class section not found");
+        }
+        return section;
+    }
     private ClassSectionResponse toResponse(ClassSection s) {
         return ClassSectionResponse.builder()
                 .id(s.getId())

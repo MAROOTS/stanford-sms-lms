@@ -29,8 +29,7 @@ public class StudentService {
     private final ParentAccessService parentAccessService;
 
     public void assignSection(Long studentId, AssignSectionRequest request) {
-        Student student = studentRepository.findById(studentId)
-                .orElseThrow(() -> new ResourceNotFoundException("Student not found"));
+        Student student = getOwnedOrThrow(studentId);
 
         ClassSection section = classSectionRepository.findById(request.getClassSectionId())
                 .orElseThrow(() -> new ResourceNotFoundException("Class section not found"));
@@ -40,6 +39,7 @@ public class StudentService {
     }
 
     public List<StudentResponse> listAll(Long classSectionId) {
+        Long schoolId = SecurityUtils.currentSchoolId();
         boolean isAdmin = SecurityUtils.currentUserHasRole("ADMIN");
         boolean isLibrarianOrAccountant = SecurityUtils.currentUserHasRole("LIBRARIAN")
                 || SecurityUtils.currentUserHasRole("ACCOUNTANT");
@@ -49,8 +49,7 @@ public class StudentService {
         if (isAdmin || isLibrarianOrAccountant) {
             baseList = (classSectionId != null)
                     ? studentRepository.findByClassSectionId(classSectionId)
-                    : studentRepository.findAll();
-
+                    : studentRepository.findBySchoolId(schoolId);
         } else if (SecurityUtils.currentUserHasRole("TEACHER")) {
             Teacher teacher = teacherRepository.findByUsername(SecurityUtils.currentUsername())
                     .orElseThrow(() -> new ResourceNotFoundException("Teacher profile not found"));
@@ -76,8 +75,7 @@ public class StudentService {
     }
 
     public StudentResponse getById(Long studentId) {
-        Student student = studentRepository.findById(studentId)
-                .orElseThrow(() -> new ResourceNotFoundException("Student not found"));
+        Student student = getOwnedOrThrow(studentId);
 
         boolean isAdmin = SecurityUtils.currentUserHasRole("ADMIN");
         boolean isTeacher = SecurityUtils.currentUserHasRole("TEACHER");
@@ -106,8 +104,7 @@ public class StudentService {
     }
 
     public StudentResponse update(Long studentId, StudentUpdateRequest request) {
-        Student student = studentRepository.findById(studentId)
-                .orElseThrow(() -> new ResourceNotFoundException("Student not found"));
+        Student student = getOwnedOrThrow(studentId);
 
         if (!student.getEmail().equalsIgnoreCase(request.getEmail())
                 && userRepository.findByEmail(request.getEmail()).isPresent()) {
@@ -131,11 +128,21 @@ public class StudentService {
     }
 
     public void delete(Long studentId) {
-        Student student = studentRepository.findById(studentId)
-                .orElseThrow(() -> new ResourceNotFoundException("Student not found"));
+        Student student = getOwnedOrThrow(studentId);
+
         studentRepository.delete(student);
     }
 
+    private Student getOwnedOrThrow(Long studentId) {
+        Student student = studentRepository.findById(studentId)
+                .orElseThrow(() -> new ResourceNotFoundException("Student not found"));
+        Long schoolId = SecurityUtils.currentSchoolId();
+        if (schoolId == null || student.getSchool() == null
+                || !schoolId.equals(student.getSchool().getId())) {
+            throw new ResourceNotFoundException("Student not found");
+        }
+        return student;
+    }
     private StudentResponse toResponse(Student s) {
         return StudentResponse.builder()
                 .id(s.getId())

@@ -77,9 +77,10 @@ public class AdmissionService {
     }
 
     public List<StudentApplicationResponse> listAll(ApplicationStatus statusFilter) {
+        Long schoolId = SecurityUtils.currentSchoolId();
         List<StudentApplication> applications = statusFilter != null
-                ? studentApplicationRepository.findByStatus(statusFilter)
-                : studentApplicationRepository.findAll();
+                ? studentApplicationRepository.findByStatusAndSchoolId(statusFilter, schoolId)
+                : studentApplicationRepository.findBySchoolId(schoolId);
         return applications.stream().map(this::toResponse).toList();
     }
 
@@ -156,8 +157,14 @@ public class AdmissionService {
     }
 
     private StudentApplication getOrThrow(Long id) {
-        return studentApplicationRepository.findById(id)
+        StudentApplication application = studentApplicationRepository.findById(id)
                 .orElseThrow(() -> new ResourceNotFoundException("Application not found"));
+        Long schoolId = SecurityUtils.currentSchoolId();
+        if (schoolId == null || application.getSchool() == null
+                || !schoolId.equals(application.getSchool().getId())) {
+            throw new ResourceNotFoundException("Application not found");
+        }
+        return application;
     }
 
     private StudentApplicationResponse toResponse(StudentApplication a) {

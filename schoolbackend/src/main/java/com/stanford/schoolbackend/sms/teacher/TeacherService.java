@@ -2,6 +2,7 @@ package com.stanford.schoolbackend.sms.teacher;
 
 import com.stanford.schoolbackend.core.exception.EmailAlreadyExistsException;
 import com.stanford.schoolbackend.core.exception.ResourceNotFoundException;
+import com.stanford.schoolbackend.core.security.SecurityUtils;
 import com.stanford.schoolbackend.core.user.UserRepository;
 import com.stanford.schoolbackend.sms.teacher.dto.TeacherResponse;
 import com.stanford.schoolbackend.sms.teacher.dto.TeacherUpdateRequest;
@@ -17,7 +18,9 @@ public class TeacherService {
     private final TeacherRepository teacherRepository;
     private final UserRepository userRepository;
     public List<TeacherResponse> listAll() {
-        return teacherRepository.findAll().stream()
+        Long schoolId = SecurityUtils.currentSchoolId();
+        return teacherRepository.findBySchoolId(schoolId).stream()
+
                 .map(t -> TeacherResponse.builder()
                         .id(t.getId())
                         .firstName(t.getFirstName())
@@ -27,8 +30,7 @@ public class TeacherService {
                 .toList();
     }
     public TeacherResponse update(Long teacherId, TeacherUpdateRequest request) {
-        Teacher teacher = teacherRepository.findById(teacherId)
-                .orElseThrow(() -> new ResourceNotFoundException("Teacher not found"));
+        Teacher teacher = getOwnedOrThrow(teacherId);
 
         if (!teacher.getEmail().equalsIgnoreCase(request.getEmail())
                 && userRepository.findByEmail(request.getEmail()).isPresent()) {
@@ -49,8 +51,17 @@ public class TeacherService {
     }
 
     public void delete(Long teacherId) {
+        Teacher teacher = getOwnedOrThrow(teacherId);
+        teacherRepository.delete(teacher);
+    }
+    private Teacher getOwnedOrThrow(Long teacherId) {
         Teacher teacher = teacherRepository.findById(teacherId)
                 .orElseThrow(() -> new ResourceNotFoundException("Teacher not found"));
-        teacherRepository.delete(teacher);
+        Long schoolId = SecurityUtils.currentSchoolId();
+        if (schoolId == null || teacher.getSchool() == null
+                || !schoolId.equals(teacher.getSchool().getId())) {
+            throw new ResourceNotFoundException("Teacher not found");
+        }
+        return teacher;
     }
 }
