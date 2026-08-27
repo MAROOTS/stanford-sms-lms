@@ -9,4 +9,6 @@ public interface FeePaymentRepository extends JpaRepository<FeePayment, Long> {
     List<FeePayment> findByInvoiceId(Long invoiceId);
     List<FeePayment> findByInvoiceIdIn(List<Long> invoiceIds);
     List<FeePayment> findByPaymentDateBetween(LocalDate start, LocalDate end);
+    List<FeePayment> findByInvoice_School_IdAndPaymentDateBetween(
+            Long schoolId, LocalDate start, LocalDate end);
 }

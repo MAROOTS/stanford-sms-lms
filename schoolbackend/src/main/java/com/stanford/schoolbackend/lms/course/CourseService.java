@@ -48,20 +48,23 @@ public class CourseService {
         Course course = getOwnedCourseOrThrow(courseId);
         courseRepository.delete(course);
     }
-
     public CourseResponse getById(Long courseId) {
-        return toResponse(courseRepository.findById(courseId)
-                .orElseThrow(() -> new ResourceNotFoundException("Course not found")));
+        return toResponse(getOwnedCourseOrThrow(courseId));
     }
 
     public List<CourseResponse> listAll() {
-        return courseRepository.findAll().stream().map(this::toResponse).toList();
-    }
+        return courseRepository.findBySchoolId(SecurityUtils.currentSchoolId()).stream()
+                .map(this::toResponse)
+                .toList();    }
 
     private Course getOwnedCourseOrThrow(Long courseId) {
         Course course = courseRepository.findById(courseId)
                 .orElseThrow(() -> new ResourceNotFoundException("Course not found"));
-
+        Long schoolId = SecurityUtils.currentSchoolId();
+        if (schoolId == null || course.getSchool() == null
+                || !schoolId.equals(course.getSchool().getId())) {
+            throw new ResourceNotFoundException("Course not found");
+        }
         boolean isAdmin = SecurityUtils.currentUserHasRole("ADMIN");
         boolean ownsCourse = course.getTeacher().getUsername().equals(SecurityUtils.currentUsername());
 

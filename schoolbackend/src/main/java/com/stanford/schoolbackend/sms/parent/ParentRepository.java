@@ -2,6 +2,9 @@ package com.stanford.schoolbackend.sms.parent;
 
 import org.springframework.data.jpa.repository.JpaRepository;
 
+import java.util.List;
+
 public interface ParentRepository extends JpaRepository<Parent, Long> {
+    List<Parent> findBySchoolId(Long schoolId);
 
 }

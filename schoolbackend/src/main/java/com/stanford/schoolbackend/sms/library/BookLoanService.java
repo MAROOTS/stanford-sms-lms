@@ -3,6 +3,7 @@ package com.stanford.schoolbackend.sms.library;
 import com.stanford.schoolbackend.core.enums.CopyStatus;
 import com.stanford.schoolbackend.core.enums.UserRole;
 import com.stanford.schoolbackend.core.exception.ResourceNotFoundException;
+import com.stanford.schoolbackend.core.school.School;
 import com.stanford.schoolbackend.core.security.SecurityUtils;
 import com.stanford.schoolbackend.core.user.User;
 import com.stanford.schoolbackend.core.user.UserRepository;
@@ -41,9 +42,11 @@ public class BookLoanService {
     public BookLoanResponse issueLoan(IssueLoanRequest request) {
         Book book = bookRepository.findById(request.getBookId())
                 .orElseThrow(() -> new ResourceNotFoundException("Book not found"));
+        assertCurrentSchool(book.getSchool(), "Book not found");
 
         User borrower = userRepository.findById(request.getBorrowerId())
                 .orElseThrow(() -> new ResourceNotFoundException("Borrower not found"));
+        assertCurrentSchool(borrower.getSchool(), "Borrower not found");
 
         if (borrower.getRole() != UserRole.STUDENT && borrower.getRole() != UserRole.TEACHER) {
             throw new IllegalArgumentException("Only students and teachers can borrow books");
@@ -72,6 +75,7 @@ public class BookLoanService {
     public BookLoanResponse returnLoan(Long loanId) {
         BookLoan loan = bookLoanRepository.findById(loanId)
                 .orElseThrow(() -> new ResourceNotFoundException("Loan not found"));
+        assertCurrentSchool(loan.getBookCopy().getBook().getSchool(), "Loan not found");
 
         if (loan.getReturnedDate() != null) {
             throw new IllegalArgumentException("This loan has already been returned");
@@ -109,7 +113,7 @@ public class BookLoanService {
     public List<BookLoanResponse> listByBorrower(Long borrowerId) {
         User borrower = userRepository.findById(borrowerId)
                 .orElseThrow(() -> new ResourceNotFoundException("Borrower not found"));
-
+        assertCurrentSchool(borrower.getSchool(), "Borrower not found");
         boolean isPrivileged = SecurityUtils.currentUserHasRole("ADMIN");
         if (!isPrivileged && !borrower.getUsername().equals(SecurityUtils.currentUsername())) {
             throw new AccessDeniedException("You can only view your own loan history");
@@ -119,8 +123,12 @@ public class BookLoanService {
     }
 
     private List<BookLoan> resolveLoans(Long classSectionId, boolean activeOnly) {
+        Long schoolId = SecurityUtils.currentSchoolId();
+
         if (classSectionId == null) {
-            return activeOnly ? bookLoanRepository.findByReturnedDateIsNull() : bookLoanRepository.findAll();
+            return activeOnly
+                    ? bookLoanRepository.findByBookCopy_Book_School_IdAndReturnedDateIsNull(schoolId)
+                    : bookLoanRepository.findByBookCopy_Book_School_Id(schoolId);
         }
 
         List<Long> studentIds = studentRepository.findByClassSectionId(classSectionId).stream()
@@ -134,6 +142,12 @@ public class BookLoanService {
                 : bookLoanRepository.findByBorrowerIdIn(studentIds);
     }
 
+    private void assertCurrentSchool(School school, String notFoundMessage) {
+        Long schoolId = SecurityUtils.currentSchoolId();
+        if (schoolId == null || school == null || !schoolId.equals(school.getId())) {
+            throw new ResourceNotFoundException(notFoundMessage);
+        }
+    }
     private BookLoanResponse toResponse(BookLoan loan) {
         LocalDate today = LocalDate.now();
         String status;

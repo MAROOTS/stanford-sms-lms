@@ -10,4 +10,7 @@ public interface FeeInvoiceRepository extends JpaRepository<FeeInvoice, Long> {
     List<FeeInvoice> findByTermId(Long termId);
     List<FeeInvoice> findByStudentId(Long studentId);
     List<FeeInvoice> findByTermIdAndStudent_ClassSection_Id(Long termId, Long classSectionId);
+    List<FeeInvoice> findBySchoolIdAndTermId(Long schoolId, Long termId);
+    List<FeeInvoice> findBySchoolIdAndTermIdAndStudent_ClassSection_Id(
+     Long schoolId, Long termId, Long classSectionId);
 }

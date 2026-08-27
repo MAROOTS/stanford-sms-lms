@@ -44,6 +44,13 @@ public class FeeInvoiceService {
                 .orElseThrow(() -> new ResourceNotFoundException("Student not found"));
         Term term = termRepository.findById(request.getTermId())
                 .orElseThrow(() -> new ResourceNotFoundException("Term not found"));
+        Long schoolId = SecurityUtils.currentSchoolId();
+        if (student.getSchool() == null || !schoolId.equals(student.getSchool().getId())) {
+            throw new ResourceNotFoundException("Student not found");
+        }
+        if (term.getSchool() == null || !schoolId.equals(term.getSchool().getId())) {
+            throw new ResourceNotFoundException("Term not found");
+        }
         Long currentSchoolId = SecurityUtils.currentSchoolId();
 
         if (currentSchoolId == null) {
@@ -77,12 +84,13 @@ public class FeeInvoiceService {
     }
 
     public List<FeeInvoiceResponse> listByTerm(Long termId, Long classSectionId) {
+        Long schoolId = SecurityUtils.currentSchoolId();
         List<FeeInvoice> invoices = (classSectionId != null)
-                ? feeInvoiceRepository.findByTermIdAndStudent_ClassSection_Id(termId, classSectionId)
-                : feeInvoiceRepository.findByTermId(termId);
+                ? feeInvoiceRepository.findBySchoolIdAndTermIdAndStudent_ClassSection_Id(
+                schoolId, termId, classSectionId)
+                : feeInvoiceRepository.findBySchoolIdAndTermId(schoolId, termId);
         return invoices.stream().map(this::toResponse).toList();
     }
-
     public List<FeeInvoiceResponse> listByStudent(Long studentId) {
         Student student = studentRepository.findById(studentId)
                 .orElseThrow(() -> new ResourceNotFoundException("Student not found"));
@@ -161,7 +169,10 @@ public class FeeInvoiceService {
         YearMonth currentMonth = YearMonth.from(today);
         LocalDate start = currentMonth.atDay(1);
 
-        BigDecimal total = feePaymentRepository.findByPaymentDateBetween(start, today).stream()
+        BigDecimal total = feePaymentRepository
+                .findByInvoice_School_IdAndPaymentDateBetween(
+                        SecurityUtils.currentSchoolId(), start, today)
+                .stream()
                 .map(FeePayment::getAmount)
                 .reduce(BigDecimal.ZERO, BigDecimal::add);
 
@@ -173,6 +184,9 @@ public class FeeInvoiceService {
                 .map(li -> {
                     FeeItem feeItem = feeItemRepository.findById(li.getFeeItemId())
                             .orElseThrow(() -> new ResourceNotFoundException("Fee item not found: " + li.getFeeItemId()));
+                    if (!SecurityUtils.currentSchoolId().equals(feeItem.getSchool().getId())) {
+                        throw new ResourceNotFoundException("Fee item not found: " + li.getFeeItemId());
+                    }
                     return FeeInvoiceLineItem.builder()
                             .invoice(invoice)
                             .feeItem(feeItem)
@@ -183,10 +197,15 @@ public class FeeInvoiceService {
     }
 
     private FeeInvoice getOrThrow(Long invoiceId) {
-        return feeInvoiceRepository.findById(invoiceId)
+        FeeInvoice invoice = feeInvoiceRepository.findById(invoiceId)
                 .orElseThrow(() -> new ResourceNotFoundException("Invoice not found"));
+        Long schoolId = SecurityUtils.currentSchoolId();
+        if (schoolId == null || invoice.getSchool() == null
+                || !schoolId.equals(invoice.getSchool().getId())) {
+            throw new ResourceNotFoundException("Invoice not found");
+        }
+        return invoice;
     }
-
     private FeeInvoiceResponse toResponse(FeeInvoice invoice) {
         BigDecimal totalBilled = invoice.getLineItems().stream()
                 .map(FeeInvoiceLineItem::getAmount)

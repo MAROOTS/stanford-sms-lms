@@ -29,6 +29,9 @@ public class ExamService {
     public ExamResponse create(ExamRequest request) {
         Term term = termRepository.findById(request.getTermId())
                 .orElseThrow(() -> new ResourceNotFoundException("Term not found"));
+        if (!SecurityUtils.currentSchoolId().equals(term.getSchool().getId())) {
+            throw new ResourceNotFoundException("Term not found");
+        }
         School school = schoolRepository.findById(SecurityUtils.currentSchoolId())
                 .orElseThrow(() -> new ResourceNotFoundException("School not found"));
         Exam exam = Exam.builder()
@@ -48,7 +51,9 @@ public class ExamService {
 
         Term term = termRepository.findById(request.getTermId())
                 .orElseThrow(() -> new ResourceNotFoundException("Term not found"));
-
+        if (!SecurityUtils.currentSchoolId().equals(term.getSchool().getId())) {
+            throw new ResourceNotFoundException("Term not found");
+        }
         exam.setName(request.getName());
         exam.setExamType(request.getExamType());
         exam.setTerm(term);
@@ -63,8 +68,9 @@ public class ExamService {
     }
 
     public List<ExamResponse> listAll() {
-        return examRepository.findAll().stream().map(this::toResponse).toList();
-    }
+        return examRepository.findBySchoolId(SecurityUtils.currentSchoolId()).stream()
+                .map(this::toResponse)
+                .toList();    }
 
     public ExamResponse getById(Long id) {
         return toResponse(getOrThrow(id));
@@ -72,6 +78,12 @@ public class ExamService {
 
     private Set<ClassSection> resolveClassSections(List<Long> ids) {
         Set<ClassSection> sections = new HashSet<>(classSectionRepository.findAllById(ids));
+        Long schoolId = SecurityUtils.currentSchoolId();
+        boolean foreign = sections.stream()
+                .anyMatch(s -> s.getSchool() == null || !schoolId.equals(s.getSchool().getId()));
+        if (foreign) {
+            throw new ResourceNotFoundException("One or more class sections not found");
+        }
         if (sections.size() != ids.size()) {
             throw new ResourceNotFoundException("One or more class sections not found");
         }
@@ -80,6 +92,12 @@ public class ExamService {
 
     private Set<Subject> resolveSubjects(List<Long> ids) {
         Set<Subject> subjects = new HashSet<>(subjectRepository.findAllById(ids));
+        Long schoolId = SecurityUtils.currentSchoolId();
+        boolean foreign = subjects.stream()
+                .anyMatch(s -> s.getSchool() == null || !schoolId.equals(s.getSchool().getId()));
+        if (foreign) {
+            throw new ResourceNotFoundException("One or more class sections not found");
+        }
         if (subjects.size() != ids.size()) {
             throw new ResourceNotFoundException("One or more subjects not found");
         }
@@ -87,8 +105,14 @@ public class ExamService {
     }
 
     private Exam getOrThrow(Long id) {
-        return examRepository.findById(id)
+        Exam exam = examRepository.findById(id)
                 .orElseThrow(() -> new ResourceNotFoundException("Exam not found"));
+        Long schoolId = SecurityUtils.currentSchoolId();
+        if (schoolId == null || exam.getSchool() == null
+                || !schoolId.equals(exam.getSchool().getId())) {
+            throw new ResourceNotFoundException("Exam  not found");
+        }
+        return exam;
     }
 
     private ExamResponse toResponse(Exam e) {

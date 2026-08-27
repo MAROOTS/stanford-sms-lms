@@ -9,4 +9,7 @@ public interface AnnouncementRepository extends JpaRepository<Announcement, Long
     List<Announcement> findByCourseId(Long courseId);
     List<Announcement> findByCourseIsNull(); // school-wide
     List<Announcement> findByCourseIsNullAndAudienceInOrderByPostedAtDesc(List<AnnouncementAudience> audiences);
+    List<Announcement> findBySchoolIdAndCourseIsNull(Long schoolId);
+    List<Announcement> findBySchoolIdAndCourseIsNullAndAudienceInOrderByPostedAtDesc(
+            Long schoolId, List<AnnouncementAudience> audiences);
 }

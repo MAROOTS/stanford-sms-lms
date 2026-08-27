@@ -40,12 +40,20 @@ public class FeeItemService {
     }
 
     public List<FeeItemResponse> listAll() {
-        return feeItemRepository.findAll().stream().map(this::toResponse).toList();
+        return feeItemRepository.findBySchoolId(SecurityUtils.currentSchoolId()).stream()
+                .map(this::toResponse)
+                .toList();
     }
 
     private FeeItem getOrThrow(Long id) {
-        return feeItemRepository.findById(id)
+        FeeItem item = feeItemRepository.findById(id)
                 .orElseThrow(() -> new ResourceNotFoundException("Fee item not found"));
+        Long schoolId = SecurityUtils.currentSchoolId();
+        if (schoolId == null || item.getSchool() == null
+                || !schoolId.equals(item.getSchool().getId())) {
+            throw new ResourceNotFoundException("Fee item not found");
+        }
+        return item;
     }
 
     private FeeItemResponse toResponse(FeeItem i) {

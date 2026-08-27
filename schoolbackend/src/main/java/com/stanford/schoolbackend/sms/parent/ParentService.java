@@ -36,13 +36,14 @@ public class ParentService {
 
     @Transactional(readOnly = true)
     public List<ParentResponse> getAllParents() {
-        return parentRepository.findAll().stream().map(this::toResponse).collect(Collectors.toList());
-    }
+        return parentRepository.findBySchoolId(SecurityUtils.currentSchoolId()).stream()
+                .map(this::toResponse)
+                .collect(Collectors.toList());    }
 
     @Transactional(readOnly = true)
     public ParentResponse getParentById(Long id) {
-        Parent parent = parentRepository.findById(id)
-                .orElseThrow(() -> new ResourceNotFoundException("Parent not found with id: " + id));
+        Parent parent =getOwnedOrThrow(id);
+
         return toResponse(parent);
     }
 
@@ -76,11 +77,17 @@ public class ParentService {
         parent = parentRepository.save(parent);
 
         if (request.getStudentIds() != null && !request.getStudentIds().isEmpty()) {
+
             String relationship = request.getRelationship() != null ? request.getRelationship() : "GUARDIAN";
             boolean isPrimary = Boolean.TRUE.equals(request.getIsPrimary());
             for (Long studentId : request.getStudentIds()) {
                 Student student = studentRepository.findById(studentId)
                         .orElseThrow(() -> new ResourceNotFoundException("Student not found with id: " + studentId));
+
+                if (!SecurityUtils.currentSchoolId().equals(student.getSchool().getId())) {
+                    throw new ResourceNotFoundException("Student not found with id: " + studentId);
+                }
+
                 parentStudentLinkRepository.save(ParentStudentLink.builder()
                         .parent(parent).student(student)
                         .relationship(relationship).primary(isPrimary)
@@ -95,8 +102,7 @@ public class ParentService {
 
     @Transactional
     public ParentResponse updateParent(Long id, ParentRequest request) {
-        Parent parent = parentRepository.findById(id)
-                .orElseThrow(() -> new ResourceNotFoundException("Parent not found with id: " + id));
+        Parent parent = getOwnedOrThrow(id);
 
         parent.setFirstName(request.getFirstName());
         parent.setLastName(request.getLastName());
@@ -116,19 +122,20 @@ public class ParentService {
 
     @Transactional
     public void deleteParent(Long id) {
-        Parent parent = parentRepository.findById(id)
-                .orElseThrow(() -> new ResourceNotFoundException("Parent not found with id: " + id));
+        Parent parent = getOwnedOrThrow(id);
         parentStudentLinkRepository.deleteAll(parentStudentLinkRepository.findByParentId(id));
         parentRepository.delete(parent);
     }
 
     @Transactional
     public ParentResponse linkChild(Long parentId, Long studentId, String relationship, boolean isPrimary) {
-        Parent parent = parentRepository.findById(parentId)
-                .orElseThrow(() -> new ResourceNotFoundException("Parent not found with id: " + parentId));
+        Parent parent = getOwnedOrThrow(parentId);
         Student student = studentRepository.findById(studentId)
                 .orElseThrow(() -> new ResourceNotFoundException("Student not found with id: " + studentId));
 
+        if (!SecurityUtils.currentSchoolId().equals(student.getSchool().getId())) {
+            throw new ResourceNotFoundException("Student not found with id: " + studentId);
+        }
         if (parentStudentLinkRepository.existsByParentIdAndStudentId(parentId, studentId)) {
             throw new IllegalArgumentException("This student is already linked to this parent");
         }
@@ -143,8 +150,7 @@ public class ParentService {
 
     @Transactional
     public ParentResponse unlinkChild(Long parentId, Long studentId) {
-        Parent parent = parentRepository.findById(parentId)
-                .orElseThrow(() -> new ResourceNotFoundException("Parent not found with id: " + parentId));
+        Parent parent = getOwnedOrThrow(parentId);
         parentStudentLinkRepository.findByParentIdAndStudentId(parentId, studentId)
                 .ifPresent(parentStudentLinkRepository::delete);
         return toResponse(parent);
@@ -152,11 +158,23 @@ public class ParentService {
 
     @Transactional(readOnly = true)
     public List<ParentResponse.ChildSummary> getMyChildren(Long parentId) {
+        getOwnedOrThrow(parentId);
         return parentStudentLinkRepository.findByParentId(parentId).stream()
                 .map(link -> toChildSummary(link.getStudent(), link))
                 .collect(Collectors.toList());
     }
 
+
+    private Parent getOwnedOrThrow(Long id) {
+        Parent parent = parentRepository.findById(id)
+                .orElseThrow(() -> new ResourceNotFoundException("Parent not found with id: " + id));
+        Long schoolId = SecurityUtils.currentSchoolId();
+        if (schoolId == null || parent.getSchool() == null
+                || !schoolId.equals(parent.getSchool().getId())) {
+            throw new ResourceNotFoundException("Parent not found with id: " + id);
+        }
+        return parent;
+    }
     private ParentResponse toResponse(Parent parent) {
         List<ParentStudentLink> links = parentStudentLinkRepository.findByParentId(parent.getId());
         return ParentResponse.builder()

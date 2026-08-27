@@ -158,8 +158,7 @@ public class AdminUserService {
     }
 
     public AdminResetPasswordResponse resetPassword(Long userId) {
-        User user = userRepository.findById(userId)
-                .orElseThrow(() -> new ResourceNotFoundException("User not found"));
+        User user = getOwnedOrThrow(userId);
 
         String tempPassword = securePasswordGenerator.generate(); // reuse the same generator pattern as AdminSeeder
         user.setPassword(passwordEncoder.encode(tempPassword));
@@ -175,8 +174,7 @@ public class AdminUserService {
     }
 
     public void unlockAccount(Long userId) {
-        User user = userRepository.findById(userId)
-                .orElseThrow(() -> new ResourceNotFoundException("User not found"));
+        User user = getOwnedOrThrow(userId);
         user.setAccountLocked(false);
         user.setFailedLoginAttempts(0);
         userRepository.save(user);
@@ -184,7 +182,7 @@ public class AdminUserService {
     }
 
     public List<CreatedUserResponse> listByRoles(List<UserRole> roles) {
-        return userRepository.findByRoleIn(roles).stream()
+        return userRepository.findByRoleInAndSchoolId(roles, SecurityUtils.currentSchoolId()).stream()
                 .map(u -> CreatedUserResponse.builder()
                         .id(u.getId())
                         .firstName(u.getFirstName())
@@ -193,5 +191,17 @@ public class AdminUserService {
                         .role(u.getRole())
                         .build())
                 .toList();
+    }
+
+
+    private User getOwnedOrThrow(Long userId) {
+        User user = userRepository.findById(userId)
+                .orElseThrow(() -> new ResourceNotFoundException("User not found"));
+        Long schoolId = SecurityUtils.currentSchoolId();
+        if (schoolId == null || user.getSchool() == null
+                || !schoolId.equals(user.getSchool().getId())) {
+            throw new ResourceNotFoundException("User not found");
+        }
+        return user;
     }
 }

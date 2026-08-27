@@ -75,6 +75,12 @@ public class AnnouncementService {
         Announcement announcement = announcementRepository.findById(announcementId)
                 .orElseThrow(() -> new ResourceNotFoundException("Announcement not found"));
 
+        Long schoolId = SecurityUtils.currentSchoolId();
+        if (schoolId == null || announcement.getSchool() == null
+                || !schoolId.equals(announcement.getSchool().getId())) {
+            throw new ResourceNotFoundException("Announcement not found");
+        }
+
         boolean isAdmin = SecurityUtils.currentUserHasRole("ADMIN");
         boolean owns = announcement.getTeacher() != null
                 && announcement.getTeacher().getUsername().equals(SecurityUtils.currentUsername());
@@ -93,7 +99,8 @@ public class AnnouncementService {
     }
 
     public List<AnnouncementResponse> listSchoolWide() {
-        return announcementRepository.findByCourseIsNull().stream()
+        return announcementRepository
+                .findBySchoolIdAndCourseIsNull(SecurityUtils.currentSchoolId()).stream()
                 .map(this::toResponse)
                 .toList();
     }
@@ -109,7 +116,10 @@ public class AnnouncementService {
         } else {
             allowed = List.of(AnnouncementAudience.ALL, AnnouncementAudience.TEACHERS, AnnouncementAudience.STUDENTS);
         }
-        return announcementRepository.findByCourseIsNullAndAudienceInOrderByPostedAtDesc(allowed).stream()
+        return announcementRepository
+                .findBySchoolIdAndCourseIsNullAndAudienceInOrderByPostedAtDesc(
+                        SecurityUtils.currentSchoolId(), allowed)
+                .stream()
                 .map(this::toResponse)
                 .toList();
     }

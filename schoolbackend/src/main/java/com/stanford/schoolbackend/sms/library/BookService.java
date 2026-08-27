@@ -58,7 +58,9 @@ public class BookService {
     }
 
     public List<BookResponse> listAll() {
-        return bookRepository.findAll().stream().map(this::toResponse).toList();
+        return bookRepository.findBySchoolId(SecurityUtils.currentSchoolId()).stream()
+                .map(this::toResponse)
+                .toList();
     }
 
     public BookCopyResponse addCopy(Long bookId, AddCopyRequest request) {
@@ -109,13 +111,25 @@ public class BookService {
     }
 
     private Book getOrThrow(Long id) {
-        return bookRepository.findById(id)
+        Book book = bookRepository.findById(id)
                 .orElseThrow(() -> new ResourceNotFoundException("Book not found"));
+        Long schoolId = SecurityUtils.currentSchoolId();
+        if (schoolId == null || book.getSchool() == null
+                || !schoolId.equals(book.getSchool().getId())) {
+            throw new ResourceNotFoundException("Book not found");
+        }
+        return book;
     }
 
     private BookCopy getCopyOrThrow(Long copyId) {
-        return bookCopyRepository.findById(copyId)
+        BookCopy copy = bookCopyRepository.findById(copyId)
                 .orElseThrow(() -> new ResourceNotFoundException("Copy not found"));
+        Long schoolId = SecurityUtils.currentSchoolId();
+        if (schoolId == null || copy.getBook().getSchool() == null
+                || !schoolId.equals(copy.getBook().getSchool().getId())) {
+            throw new ResourceNotFoundException("Copy not found");
+        }
+        return copy;
     }
 
     private BookResponse toResponse(Book book) {
