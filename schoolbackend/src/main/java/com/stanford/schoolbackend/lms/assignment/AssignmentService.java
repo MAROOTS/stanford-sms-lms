@@ -47,11 +47,11 @@ public class AssignmentService {
     }
 
     public AssignmentResponse getById(Long assignmentId) {
-        return toResponse(assignmentRepository.findById(assignmentId)
-                .orElseThrow(() -> new ResourceNotFoundException("Assignment not found")));
+        return toResponse(getOwnedAssignmentOrThrow(assignmentId));
     }
 
     public List<AssignmentResponse> listByCourse(Long courseId) {
+        getOwnedCourseOrThrow(courseId);
         return assignmentRepository.findByCourseId(courseId).stream()
                 .map(this::toResponse)
                 .toList();
@@ -60,7 +60,7 @@ public class AssignmentService {
     public Assignment getOwnedAssignmentOrThrow(Long assignmentId) {
         Assignment assignment = assignmentRepository.findById(assignmentId)
                 .orElseThrow(() -> new ResourceNotFoundException("Assignment not found"));
-
+        assertCurrentSchool(assignment.getCourse().getSchool(), "Assignment not found");
         boolean isAdmin = SecurityUtils.currentUserHasRole("ADMIN");
         boolean owns = assignment.getCourse().getTeacher().getUsername().equals(SecurityUtils.currentUsername());
 
@@ -73,7 +73,7 @@ public class AssignmentService {
     private Course getOwnedCourseOrThrow(Long courseId) {
         Course course = courseRepository.findById(courseId)
                 .orElseThrow(() -> new ResourceNotFoundException("Course not found"));
-
+        assertCurrentSchool(course.getSchool(), "Course not found");
         boolean isAdmin = SecurityUtils.currentUserHasRole("ADMIN");
         boolean owns = course.getTeacher().getUsername().equals(SecurityUtils.currentUsername());
 
@@ -82,7 +82,12 @@ public class AssignmentService {
         }
         return course;
     }
-
+    private void assertCurrentSchool(com.stanford.schoolbackend.core.school.School school, String notFoundMessage) {
+        Long schoolId = SecurityUtils.currentSchoolId();
+        if (schoolId == null || school == null || !schoolId.equals(school.getId())) {
+            throw new ResourceNotFoundException(notFoundMessage);
+        }
+    }
     private AssignmentResponse toResponse(Assignment a) {
         return AssignmentResponse.builder()
                 .id(a.getId())

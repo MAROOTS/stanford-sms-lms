@@ -3,6 +3,7 @@ package com.stanford.schoolbackend.sms.exams;
 import com.stanford.schoolbackend.core.enums.NotificationType;
 import com.stanford.schoolbackend.core.exception.ResourceNotFoundException;
 import com.stanford.schoolbackend.core.notification.NotificationService;
+import com.stanford.schoolbackend.core.security.SecurityUtils;
 import com.stanford.schoolbackend.sms.academic.ClassSection;
 import com.stanford.schoolbackend.sms.academic.ClassSectionOwnershipService;
 import com.stanford.schoolbackend.sms.academic.Subject;
@@ -35,7 +36,7 @@ public class MarkService {
         classSectionOwnershipService.getOwnedClassSectionOrThrow(classSectionId);
         Exam exam = examRepository.findById(examId)
                 .orElseThrow(() -> new ResourceNotFoundException("Exam not found"));
-
+        assertCurrentSchool(exam.getSchool(), "Exam not found");
         boolean examCoversSubject = exam.getSubjects().stream().anyMatch(s -> s.getId().equals(subjectId));
         boolean examCoversClass = exam.getClassSections().stream().anyMatch(cs -> cs.getId().equals(classSectionId));
         if (!examCoversSubject || !examCoversClass) {
@@ -66,9 +67,11 @@ public class MarkService {
 
         Exam exam = examRepository.findById(request.getExamId())
                 .orElseThrow(() -> new ResourceNotFoundException("Exam not found"));
+        assertCurrentSchool(exam.getSchool(), "Exam not found");
 
         Subject subject = subjectRepository.findById(request.getSubjectId())
                 .orElseThrow(() -> new ResourceNotFoundException("Subject not found"));
+        assertCurrentSchool(subject.getSchool(), "Subject not found");
 
         boolean examCoversSubject = exam.getSubjects().stream().anyMatch(s -> s.getId().equals(subject.getId()));
         boolean examCoversClass = exam.getClassSections().stream().anyMatch(cs -> cs.getId().equals(classSection.getId()));
@@ -81,6 +84,7 @@ public class MarkService {
                     Student student = studentRepository.findById(entry.getStudentId())
                             .orElseThrow(() -> new ResourceNotFoundException(
                                     "Student not found: " + entry.getStudentId()));
+                    assertCurrentSchool(student.getSchool(), "Student not found: " + entry.getStudentId());
 
                     if (student.getClassSection() == null
                             || !student.getClassSection().getId().equals(classSection.getId())) {
@@ -113,11 +117,25 @@ public class MarkService {
     }
 
     public List<MarkResponse> listByStudentAndExam(Long studentId, Long examId) {
+        Student student = studentRepository.findById(studentId)
+                .orElseThrow(() -> new ResourceNotFoundException("Student not found"));
+        assertCurrentSchool(student.getSchool(), "Student not found");
+
+        Exam exam = examRepository.findById(examId)
+                .orElseThrow(() -> new ResourceNotFoundException("Exam not found"));
+        assertCurrentSchool(exam.getSchool(), "Exam not found");
+
         return markRepository.findByStudentIdAndExamId(studentId, examId).stream()
                 .map(this::toResponse)
                 .toList();
     }
 
+    private void assertCurrentSchool(com.stanford.schoolbackend.core.school.School school, String notFoundMessage) {
+        Long schoolId = SecurityUtils.currentSchoolId();
+        if (schoolId == null || school == null || !schoolId.equals(school.getId())) {
+            throw new ResourceNotFoundException(notFoundMessage);
+        }
+    }
     private MarkResponse toResponse(Mark m) {
         double percentage = (m.getScore() / m.getMaxScore()) * 100;
         return MarkResponse.builder()

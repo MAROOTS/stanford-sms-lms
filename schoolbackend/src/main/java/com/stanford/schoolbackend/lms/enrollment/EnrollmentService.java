@@ -33,7 +33,7 @@ public class EnrollmentService {
 
         Student student = studentRepository.findById(request.getStudentId())
                 .orElseThrow(() -> new ResourceNotFoundException("Student not found"));
-
+        assertCurrentSchool(student.getSchool(), "Student not found");
         Enrollment enrollment = Enrollment.builder()
                 .student(student)
                 .course(course)
@@ -55,7 +55,7 @@ public class EnrollmentService {
     public EnrollmentResponse selfEnroll(Long courseId) {
         Course course = courseRepository.findById(courseId)
                 .orElseThrow(() -> new ResourceNotFoundException("Course not found"));
-
+        assertCurrentSchool(course.getSchool(), "Course not found");
         Student student = studentRepository.findByUsername(SecurityUtils.currentUsername())
                 .orElseThrow(() -> new ResourceNotFoundException("Student profile not found"));
 
@@ -92,7 +92,7 @@ public class EnrollmentService {
     public List<EnrollmentResponse> listByStudent(Long studentId) {
         Student student = studentRepository.findById(studentId)
                 .orElseThrow(() -> new ResourceNotFoundException("Student not found"));
-
+        assertCurrentSchool(student.getSchool(), "Student not found");
         boolean isPrivileged = SecurityUtils.currentUserHasRole("TEACHER")
                 || SecurityUtils.currentUserHasRole("ADMIN");
 
@@ -108,7 +108,7 @@ public class EnrollmentService {
     private Course getOwnedCourseOrThrow(Long courseId) {
         Course course = courseRepository.findById(courseId)
                 .orElseThrow(() -> new ResourceNotFoundException("Course not found"));
-
+        assertCurrentSchool(course.getSchool(), "Course not found");
         boolean isAdmin = SecurityUtils.currentUserHasRole("ADMIN");
         boolean ownsCourse = course.getTeacher().getUsername().equals(SecurityUtils.currentUsername());
 
@@ -117,6 +117,13 @@ public class EnrollmentService {
         }
 
         return course;
+    }
+
+    private void assertCurrentSchool(com.stanford.schoolbackend.core.school.School school, String notFoundMessage) {
+        Long schoolId = SecurityUtils.currentSchoolId();
+        if (schoolId == null || school == null || !schoolId.equals(school.getId())) {
+            throw new ResourceNotFoundException(notFoundMessage);
+        }
     }
 
     private EnrollmentResponse toResponse(Enrollment enrollment) {

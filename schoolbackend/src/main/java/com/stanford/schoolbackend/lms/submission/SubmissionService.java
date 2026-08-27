@@ -33,7 +33,7 @@ public class SubmissionService {
     public SubmissionResponse submit(Long assignmentId, String textContent, MultipartFile file) {
         Assignment assignment = assignmentRepository.findById(assignmentId)
                 .orElseThrow(() -> new ResourceNotFoundException("Assignment not found"));
-
+        assertCurrentSchool(assignment.getCourse().getSchool(), "Assignment not found");
         Student student = studentRepository.findByUsername(SecurityUtils.currentUsername())
                 .orElseThrow(() -> new ResourceNotFoundException("Student profile not found"));
 
@@ -59,7 +59,7 @@ public class SubmissionService {
     public SubmissionResponse grade(Long submissionId, GradeRequest request) {
         Submission submission = submissionRepository.findById(submissionId)
                 .orElseThrow(() -> new ResourceNotFoundException("Submission not found"));
-
+        assertCurrentSchool(submission.getStudent().getSchool(), "Submission not found");
         // reuses the same ownership check as AssignmentService — confirms the
         // current teacher owns the course this submission's assignment belongs to
         assignmentService.getOwnedAssignmentOrThrow(submission.getAssignment().getId());
@@ -87,6 +87,13 @@ public class SubmissionService {
                 .orElseThrow(() -> new ResourceNotFoundException("You have not submitted this assignment"));
     }
 
+
+    private void assertCurrentSchool(com.stanford.schoolbackend.core.school.School school, String notFoundMessage) {
+        Long schoolId = SecurityUtils.currentSchoolId();
+        if (schoolId == null || school == null || !schoolId.equals(school.getId())) {
+            throw new ResourceNotFoundException(notFoundMessage);
+        }
+    }
     private SubmissionResponse toResponse(Submission s) {
         return SubmissionResponse.builder()
                 .id(s.getId())

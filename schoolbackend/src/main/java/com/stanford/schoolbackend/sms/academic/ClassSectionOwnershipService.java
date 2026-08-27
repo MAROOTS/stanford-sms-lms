@@ -16,6 +16,12 @@ public class ClassSectionOwnershipService {
         ClassSection classSection = classSectionRepository.findById(classSectionId)
                 .orElseThrow(() -> new ResourceNotFoundException("Class section not found"));
 
+        Long schoolId = SecurityUtils.currentSchoolId();
+        if (schoolId == null || classSection.getSchool() == null
+                || !schoolId.equals(classSection.getSchool().getId())) {
+            throw new ResourceNotFoundException("Class section not found");
+        }
+
         boolean isAdmin = SecurityUtils.currentUserHasRole("ADMIN");
         boolean isHomeroomTeacher = classSection.getHomeroomTeacher() != null
                 && classSection.getHomeroomTeacher().getUsername().equals(SecurityUtils.currentUsername());
@@ -25,4 +31,6 @@ public class ClassSectionOwnershipService {
         }
         return classSection;
     }
+
+
 }
