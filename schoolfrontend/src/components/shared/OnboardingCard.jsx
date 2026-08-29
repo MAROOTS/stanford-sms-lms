@@ -23,7 +23,7 @@ export default function OnboardingCard() {
   if (dismissed) return null;
 
   return (
-    <div className="bg-gradient-to-r from-primary-800 to-primary-900 rounded-2xl p-6 mb-8 text-white relative overflow-hidden shadow-elevated animate-fade-in">
+    <div className="bg-linear-to-r from-primary-800 to-primary-900 rounded-2xl p-6 mb-8 text-white relative overflow-hidden shadow-elevated animate-fade-in">
       <div className="absolute top-0 right-0 w-64 h-64 bg-white/5 rounded-full -translate-y-1/2 translate-x-1/4 pointer-events-none" />
       <div className="absolute bottom-0 left-1/2 w-48 h-48 bg-accent-500/10 rounded-full translate-y-1/2 pointer-events-none" />
 
