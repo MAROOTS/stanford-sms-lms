@@ -21,17 +21,28 @@ public class LibraryFineService {
     private final TermRepository termRepository;
 
     void applyFine(User borrower, Book book, BigDecimal amount, long daysLate) {
-        if (!(borrower instanceof Student student)) return; // fines only apply where a fee invoice can exist
+        if (!(borrower instanceof Student student)) return;
 
-        Term currentTerm = termRepository.findByIsCurrentTrue()
-                .orElseThrow(() -> new IllegalStateException("No current term set — cannot assess library fine"));
+        Long schoolId = student.getSchool().getId();
 
-        FeeItem fineItem = feeItemRepository.findByNameIgnoreCase(FINE_ITEM_NAME)
-                .orElseGet(() -> feeItemRepository.save(FeeItem.builder().name(FINE_ITEM_NAME).build()));
+        Term currentTerm = termRepository.findByIsCurrentTrueAndSchoolId(schoolId)
+                .orElseThrow(() -> new IllegalStateException(
+                        "No current term set — cannot assess library fine"));
 
-        FeeInvoice invoice = feeInvoiceRepository.findByStudentIdAndTermId(student.getId(), currentTerm.getId())
+        FeeItem fineItem = feeItemRepository.findByNameIgnoreCaseAndSchoolId(FINE_ITEM_NAME, schoolId)
+                .orElseGet(() -> feeItemRepository.save(FeeItem.builder()
+                        .school(student.getSchool())
+                        .name(FINE_ITEM_NAME)
+                        .build()));
+
+        FeeInvoice invoice = feeInvoiceRepository
+                .findByStudentIdAndTermId(student.getId(), currentTerm.getId())
                 .orElseGet(() -> feeInvoiceRepository.save(
-                        FeeInvoice.builder().student(student).term(currentTerm).build()));
+                        FeeInvoice.builder()
+                                .school(student.getSchool())
+                                .student(student)
+                                .term(currentTerm)
+                                .build()));
 
         FeeInvoiceLineItem lineItem = FeeInvoiceLineItem.builder()
                 .invoice(invoice)

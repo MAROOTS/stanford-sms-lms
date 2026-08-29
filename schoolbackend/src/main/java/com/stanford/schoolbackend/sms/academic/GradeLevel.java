@@ -5,7 +5,7 @@ import jakarta.persistence.*;
 import lombok.*;
 
 @Entity
-@Table(name = "grade_levels")
+@Table(name = "grade_levels",uniqueConstraints = @UniqueConstraint(columnNames = {"school_id", "name"}))
 @NoArgsConstructor
 @AllArgsConstructor
 @Getter
@@ -21,7 +21,7 @@ public class GradeLevel {
     @JoinColumn(name = "school_id", nullable = false)
     private School school;
 
-    @Column(nullable = false, unique = true)
+    @Column(nullable = false)
     private String name; // e.g. "Grade 10", "Freshman Year", "Form 3"
 
     @Column(nullable = false)

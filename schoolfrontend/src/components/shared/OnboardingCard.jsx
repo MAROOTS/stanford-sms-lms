@@ -3,7 +3,7 @@ import { Sparkles, X, Users, GraduationCap, ClipboardList, ArrowRight } from 'lu
 import { Link } from 'react-router-dom';
 
 const STEPS = [
-  { icon: Users, title: 'Add students', desc: 'Import or manually add your student roster.', to: '/students' },
+  { icon: Users, title: 'View Students', desc: 'View and filter students based on their classes.', to: '/students' },
   { icon: GraduationCap, title: 'Add teachers', desc: 'Register your teaching staff.', to: '/teachers' },
   { icon: ClipboardList, title: 'Create first term', desc: 'Set up academic terms and exams.', to: '/terms' },
 ];

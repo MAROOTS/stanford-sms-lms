@@ -33,7 +33,7 @@ public class TermReminderScheduler {
         LocalDate today = LocalDate.now();
         LocalDate cutoff = today.plusDays(14);
 
-        for (Term term : termRepository.findAll()) {
+        for (Term term : termRepository.findBySchoolId(tenantContext.getCurrentSchool())) {
             if (term.isEndingSoonNotified() || term.getEndDate() == null) continue;
             if (term.getEndDate().isBefore(today) || term.getEndDate().isAfter(cutoff)) continue;
 

@@ -5,7 +5,7 @@ import jakarta.persistence.*;
 import lombok.*;
 
 @Entity
-@Table(name = "books")
+@Table(name = "books",uniqueConstraints = @UniqueConstraint(columnNames = {"school_id", "isbn"}))
 @NoArgsConstructor
 @AllArgsConstructor
 @Getter
@@ -26,7 +26,7 @@ public class Book {
 
     private String author;
 
-    @Column(unique = true)
+    @Column
     private String isbn; // optional — Postgres allows multiple NULLs under a unique constraint
 
     private String publisher;

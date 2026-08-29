@@ -22,7 +22,7 @@ public class FeePaymentService {
     public FeePaymentResponse recordPayment(Long invoiceId, RecordPaymentRequest request) {
         FeeInvoice invoice = feeInvoiceRepository.findById(invoiceId)
                 .orElseThrow(() -> new ResourceNotFoundException("Invoice not found"));
-
+        assertCurrentSchool(invoice.getSchool(), "Invoice not found");
         FeePayment payment = FeePayment.builder()
                 .invoice(invoice)
                 .amount(request.getAmount())
@@ -40,7 +40,7 @@ public class FeePaymentService {
     public List<FeePaymentResponse> listByInvoice(Long invoiceId) {
         FeeInvoice invoice = feeInvoiceRepository.findById(invoiceId)
                 .orElseThrow(() -> new ResourceNotFoundException("Invoice not found"));
-
+        assertCurrentSchool(invoice.getSchool(), "Invoice not found");
         boolean isAdmin = SecurityUtils.currentUserHasRole("ADMIN");
         if (!isAdmin && !invoice.getStudent().getUsername().equals(SecurityUtils.currentUsername())) {
             throw new AccessDeniedException("You can only view your own payment history");
@@ -48,7 +48,12 @@ public class FeePaymentService {
 
         return feePaymentRepository.findByInvoiceId(invoiceId).stream().map(this::toResponse).toList();
     }
-
+    private void assertCurrentSchool(com.stanford.schoolbackend.core.school.School school, String notFoundMessage) {
+        Long schoolId = SecurityUtils.currentSchoolId();
+        if (schoolId == null || school == null || !schoolId.equals(school.getId())) {
+            throw new ResourceNotFoundException(notFoundMessage);
+        }
+    }
     private FeePaymentResponse toResponse(FeePayment p) {
         return FeePaymentResponse.builder()
                 .id(p.getId())

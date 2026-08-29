@@ -37,7 +37,7 @@ public class FeeOverdueReminderScheduler {
         LocalDate today = LocalDate.now();
         Instant reminderCutoff = Instant.now().minus(REMINDER_INTERVAL_DAYS, ChronoUnit.DAYS);
 
-        for (FeeInvoice invoice : feeInvoiceRepository.findAll()) {
+        for (FeeInvoice invoice : feeInvoiceRepository.findBySchoolId(tenantContext.getCurrentSchool())) {
             if (invoice.getDueDate() == null || !invoice.getDueDate().isBefore(today)) continue;
             if (invoice.getLastOverdueReminderAt() != null && invoice.getLastOverdueReminderAt().isAfter(reminderCutoff)) continue;
 

@@ -113,7 +113,7 @@ public class ExamResultService {
         Long classSectionId = student.getClassSection().getId();
         ClassSection classSection = classSectionRepository.findById(classSectionId)
                 .orElseThrow(() -> new ResourceNotFoundException("Class section not found"));
-
+        assertCurrentSchool(classSection.getSchool(), "Class section not found");
         List<Mark> marks = markRepository.findByStudentIdAndExamId(studentId, examId);
 
         List<MarkResponse> subjectResults = marks.stream()

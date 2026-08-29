@@ -7,7 +7,7 @@ import lombok.*;
 import java.time.LocalDate;
 
 @Entity
-@Table(name = "terms")
+@Table(name = "terms",uniqueConstraints = @UniqueConstraint(columnNames = {"school_id", "name"}))
 @NoArgsConstructor
 @AllArgsConstructor
 @Getter
@@ -23,7 +23,7 @@ public class Term {
     @JoinColumn(name = "school_id", nullable = false)
     private School school;
 
-    @Column(nullable = false, unique = true)
+    @Column(nullable = false)
     private String name; // e.g. "Term 2 2026"
 
     private LocalDate startDate;

@@ -3,6 +3,7 @@ package com.stanford.schoolbackend.sms.library;
 import com.stanford.schoolbackend.core.enums.NotificationType;
 import com.stanford.schoolbackend.core.exception.ResourceNotFoundException;
 import com.stanford.schoolbackend.core.notification.NotificationService;
+import com.stanford.schoolbackend.core.security.SecurityUtils;
 import com.stanford.schoolbackend.core.user.User;
 import com.stanford.schoolbackend.core.user.UserRepository;
 import com.stanford.schoolbackend.sms.library.dto.BookHoldResponse;
@@ -24,8 +25,11 @@ public class BookHoldService {
     public BookHoldResponse placeHold(Long bookId, PlaceHoldRequest request) {
         Book book = bookRepository.findById(bookId)
                 .orElseThrow(() -> new ResourceNotFoundException("Book not found"));
+        assertCurrentSchool(book.getSchool(), "Book not found");
+
         User borrower = userRepository.findById(request.getBorrowerId())
                 .orElseThrow(() -> new ResourceNotFoundException("Borrower not found"));
+        assertCurrentSchool(borrower.getSchool(), "Borrower not found");
 
         BookHold hold = BookHold.builder().book(book).borrower(borrower).build();
         return toResponse(bookHoldRepository.save(hold));
@@ -34,10 +38,15 @@ public class BookHoldService {
     public void cancelHold(Long holdId) {
         BookHold hold = bookHoldRepository.findById(holdId)
                 .orElseThrow(() -> new ResourceNotFoundException("Hold not found"));
+        assertCurrentSchool(hold.getBook().getSchool(), "Hold not found");
         bookHoldRepository.delete(hold);
     }
 
     public List<BookHoldResponse> listForBook(Long bookId) {
+        Book book = bookRepository.findById(bookId)
+                .orElseThrow(() -> new ResourceNotFoundException("Book not found"));
+        assertCurrentSchool(book.getSchool(), "Book not found");
+
         return bookHoldRepository.findByBookIdAndFulfilledFalseOrderByRequestedAtAsc(bookId).stream()
                 .map(this::toResponse)
                 .toList();
@@ -62,6 +71,14 @@ public class BookHoldService {
                 });
     }
 
+
+
+    private void assertCurrentSchool(com.stanford.schoolbackend.core.school.School school, String notFoundMessage) {
+        Long schoolId = SecurityUtils.currentSchoolId();
+        if (schoolId == null || school == null || !schoolId.equals(school.getId())) {
+            throw new ResourceNotFoundException(notFoundMessage);
+        }
+    }
     private BookHoldResponse toResponse(BookHold h) {
         return BookHoldResponse.builder()
                 .id(h.getId())

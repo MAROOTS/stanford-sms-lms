@@ -7,7 +7,7 @@ import lombok.*;
 import java.math.BigDecimal;
 
 @Entity
-@Table(name = "fee_items")
+@Table(name = "fee_items",uniqueConstraints = @UniqueConstraint(columnNames = {"school_id", "name"}))
 @NoArgsConstructor
 @AllArgsConstructor
 @Getter
@@ -23,7 +23,7 @@ public class FeeItem {
     @JoinColumn(name = "school_id", nullable = false)
     private School school;
 
-    @Column(nullable = false, unique = true)
+    @Column(nullable = false)
     private String name; // e.g. "Tuition", "Transport", "Lunch"
 
     @Column(name = "default_amount", precision = 12, scale = 2)

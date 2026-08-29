@@ -5,7 +5,7 @@ import jakarta.persistence.*;
 import lombok.*;
 
 @Entity
-@Table(name = "subjects")
+@Table(name = "subjects",uniqueConstraints = @UniqueConstraint(columnNames = {"school_id", "name"}))
 @NoArgsConstructor
 @AllArgsConstructor
 @Getter
@@ -21,7 +21,7 @@ public class Subject {
     @JoinColumn(name = "school_id", nullable = false)
     private School school;
 
-    @Column(nullable = false, unique = true)
+    @Column(nullable = false)
     private String name; // e.g. "Mathematics"
 
     private String code; // optional short code, e.g. "MATH"
