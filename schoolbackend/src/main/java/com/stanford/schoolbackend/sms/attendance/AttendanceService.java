@@ -28,7 +28,7 @@ public class AttendanceService {
                     Student student = studentRepository.findById(entry.getStudentId())
                             .orElseThrow(() -> new ResourceNotFoundException(
                                     "Student not found: " + entry.getStudentId()));
-
+                    assertCurrentSchool(student.getSchool(), "Student not found");
                     AttendanceRecord record = attendanceRecordRepository
                             .findBySessionId(session.getId()).stream()
                             .filter(r -> r.getStudent().getId().equals(student.getId()))
@@ -53,7 +53,7 @@ public class AttendanceService {
     public List<AttendanceRecordResponse> listByStudent(Long studentId) {
         Student student = studentRepository.findById(studentId)
                 .orElseThrow(() -> new ResourceNotFoundException("Student not found"));
-
+        assertCurrentSchool(student.getSchool(), "Student not found");
         boolean isPrivileged = SecurityUtils.currentUserHasRole("TEACHER")
                 || SecurityUtils.currentUserHasRole("ADMIN");
 
@@ -67,6 +67,12 @@ public class AttendanceService {
                 .toList();
     }
 
+    private void assertCurrentSchool(com.stanford.schoolbackend.core.school.School school, String notFoundMessage) {
+        Long schoolId = SecurityUtils.currentSchoolId();
+        if (schoolId == null || school == null || !schoolId.equals(school.getId())) {
+            throw new ResourceNotFoundException(notFoundMessage);
+        }
+    }
     private AttendanceRecordResponse toResponse(AttendanceRecord r) {
         return AttendanceRecordResponse.builder()
                 .id(r.getId())

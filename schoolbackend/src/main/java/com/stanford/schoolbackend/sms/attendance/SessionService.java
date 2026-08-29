@@ -32,6 +32,7 @@ public class SessionService {
     }
 
     public List<SessionResponse> listByCourse(Long courseId) {
+        getOwnedCourseOrThrow(courseId);
         return sessionRepository.findByCourseId(courseId).stream()
                 .map(this::toResponse)
                 .toList();
@@ -40,7 +41,7 @@ public class SessionService {
     public Session getOwnedSessionOrThrow(Long sessionId) {
         Session session = sessionRepository.findById(sessionId)
                 .orElseThrow(() -> new ResourceNotFoundException("Session not found"));
-
+        assertCurrentSchool(session.getCourse().getSchool(), "Session not found");
         boolean isAdmin = SecurityUtils.currentUserHasRole("ADMIN");
         boolean owns = session.getCourse().getTeacher().getUsername().equals(SecurityUtils.currentUsername());
 
@@ -53,7 +54,7 @@ public class SessionService {
     private Course getOwnedCourseOrThrow(Long courseId) {
         Course course = courseRepository.findById(courseId)
                 .orElseThrow(() -> new ResourceNotFoundException("Course not found"));
-
+        assertCurrentSchool(course.getSchool(), "Course not found");
         boolean isAdmin = SecurityUtils.currentUserHasRole("ADMIN");
         boolean owns = course.getTeacher().getUsername().equals(SecurityUtils.currentUsername());
 
@@ -61,6 +62,13 @@ public class SessionService {
             throw new AccessDeniedException("You do not own this course");
         }
         return course;
+    }
+
+    private void assertCurrentSchool(com.stanford.schoolbackend.core.school.School school, String notFoundMessage) {
+        Long schoolId = SecurityUtils.currentSchoolId();
+        if (schoolId == null || school == null || !schoolId.equals(school.getId())) {
+            throw new ResourceNotFoundException(notFoundMessage);
+        }
     }
 
     private SessionResponse toResponse(Session s) {

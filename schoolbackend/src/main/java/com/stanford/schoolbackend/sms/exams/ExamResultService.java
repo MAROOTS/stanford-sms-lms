@@ -31,7 +31,7 @@ public class ExamResultService {
     public List<ClassExamResultRow> getClassResults(Long examId, Long classSectionId) {
         Exam exam = examRepository.findById(examId)
                 .orElseThrow(() -> new ResourceNotFoundException("Exam not found"));
-
+        assertCurrentSchool(exam.getSchool(), "Exam not found");
         boolean examCoversClass = exam.getClassSections().stream()
                 .anyMatch(cs -> cs.getId().equals(classSectionId));
         if (!examCoversClass) {
@@ -89,7 +89,7 @@ public class ExamResultService {
     public StudentExamResultResponse getStudentResult(Long studentId, Long examId) {
         Student student = studentRepository.findById(studentId)
                 .orElseThrow(() -> new ResourceNotFoundException("Student not found"));
-
+        assertCurrentSchool(student.getSchool(), "Student not found");
         boolean isPrivileged = SecurityUtils.currentUserHasRole("TEACHER")
                 || SecurityUtils.currentUserHasRole("ADMIN");
 
@@ -171,6 +171,12 @@ public class ExamResultService {
                 ));
     }
 
+    private void assertCurrentSchool(com.stanford.schoolbackend.core.school.School school, String notFoundMessage) {
+        Long schoolId = SecurityUtils.currentSchoolId();
+        if (schoolId == null || school == null || !schoolId.equals(school.getId())) {
+            throw new ResourceNotFoundException(notFoundMessage);
+        }
+    }
     private double round2(double value) {
         return Math.round(value * 100.0) / 100.0;
     }

@@ -62,7 +62,7 @@ private final NotificationService notificationService;
                     Student student = studentRepository.findById(entry.getStudentId())
                             .orElseThrow(() -> new ResourceNotFoundException(
                                     "Student not found: " + entry.getStudentId()));
-
+                    assertCurrentSchool(student.getSchool(), "Student not found: " + entry.getStudentId());
                     ClassAttendanceRecord record = classAttendanceRecordRepository
                             .findByClassSessionId(session.getId()).stream()
                             .filter(r -> r.getStudent().getId().equals(student.getId()))
@@ -90,7 +90,7 @@ private final NotificationService notificationService;
     public List<ClassAttendanceRecordResponse> listByStudent(Long studentId) {
         Student student = studentRepository.findById(studentId)
                 .orElseThrow(() -> new ResourceNotFoundException("Student not found"));
-
+        assertCurrentSchool(student.getSchool(), "Student not found");
         boolean isPrivileged = SecurityUtils.currentUserHasRole("TEACHER")
                 || SecurityUtils.currentUserHasRole("ADMIN");
 
@@ -115,9 +115,20 @@ private final NotificationService notificationService;
     private ClassSession getOrCreateSession(ClassSection classSection, LocalDate date) {
         return classSessionRepository.findByClassSectionIdAndSessionDate(classSection.getId(), date)
                 .orElseGet(() -> classSessionRepository.save(
-                        ClassSession.builder().classSection(classSection).sessionDate(date).build()));
+                        ClassSession.builder()
+                                .school(classSection.getSchool())
+                                .classSection(classSection)
+                                .sessionDate(date)
+                                .build()));
     }
 
+
+    private void assertCurrentSchool(com.stanford.schoolbackend.core.school.School school, String notFoundMessage) {
+        Long schoolId = SecurityUtils.currentSchoolId();
+        if (schoolId == null || school == null || !schoolId.equals(school.getId())) {
+            throw new ResourceNotFoundException(notFoundMessage);
+        }
+    }
 
 
     private ClassSessionResponse toSessionResponse(ClassSession s) {

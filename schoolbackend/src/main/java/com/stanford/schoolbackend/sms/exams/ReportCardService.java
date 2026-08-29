@@ -2,6 +2,7 @@ package com.stanford.schoolbackend.sms.exams;
 
 import com.openhtmltopdf.pdfboxout.PdfRendererBuilder;
 import com.stanford.schoolbackend.core.exception.ResourceNotFoundException;
+import com.stanford.schoolbackend.core.security.SecurityUtils;
 import com.stanford.schoolbackend.sms.exams.dto.MarkResponse;
 import com.stanford.schoolbackend.sms.exams.dto.StudentExamResultResponse;
 import com.stanford.schoolbackend.sms.student.Student;
@@ -27,7 +28,8 @@ public class ReportCardService {
                 .orElseThrow(() -> new ResourceNotFoundException("Exam not found"));
         Student student = studentRepository.findById(studentId)
                 .orElseThrow(() -> new ResourceNotFoundException("Student not found"));
-
+        assertCurrentSchool(exam.getSchool(), "Exam not found");
+        assertCurrentSchool(student.getSchool(), "Student not found");
         String html = buildHtml(result, exam, student);
 
         try {
@@ -43,6 +45,12 @@ public class ReportCardService {
         }
     }
 
+    private void assertCurrentSchool(com.stanford.schoolbackend.core.school.School school, String notFoundMessage) {
+        Long schoolId = SecurityUtils.currentSchoolId();
+        if (schoolId == null || school == null || !schoolId.equals(school.getId())) {
+            throw new ResourceNotFoundException(notFoundMessage);
+        }
+    }
     private String buildHtml(StudentExamResultResponse result, Exam exam, Student student) {
         String admissionNumber = student.getAdmissionNumber() != null ? student.getAdmissionNumber() : "—";
 
