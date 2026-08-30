@@ -84,9 +84,16 @@ public class DashboardService {
         switch (range.toUpperCase()) {
             case "MONTH" -> start = today.minusDays(29);
             case "TERM" -> {
-                Term term = termId != null
-                        ? termRepository.findById(termId).orElseThrow(() -> new ResourceNotFoundException("Term not found"))
-                        : termRepository.findByIsCurrentTrue().orElse(null);
+                Term term;
+                if (termId != null) {
+                    term = termRepository.findById(termId)
+                            .orElseThrow(() -> new ResourceNotFoundException("Term not found"));
+                    if (term.getSchool() == null || !schoolId.equals(term.getSchool().getId())) {
+                        throw new ResourceNotFoundException("Term not found");
+                    }
+                } else {
+                    term = termRepository.findByIsCurrentTrueAndSchoolId(schoolId).orElse(null);
+                }
                 start = (term != null && term.getStartDate() != null) ? term.getStartDate() : today.minusDays(29);
             }
             default -> start = today.minusDays(6);

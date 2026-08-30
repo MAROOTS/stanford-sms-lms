@@ -50,6 +50,13 @@ public class ClassSectionService {
     }
 
     public List<ClassSectionResponse> listByGradeLevel(Long gradeLevelId) {
+        GradeLevel gradeLevel = gradeLevelRepository.findById(gradeLevelId)
+                .orElseThrow(() -> new ResourceNotFoundException("Grade level not found"));
+        Long schoolId = SecurityUtils.currentSchoolId();
+        if (schoolId == null || gradeLevel.getSchool() == null
+                || !schoolId.equals(gradeLevel.getSchool().getId())) {
+            throw new ResourceNotFoundException("Grade level not found");
+        }
         return classSectionRepository.findByGradeLevelId(gradeLevelId).stream()
                 .map(this::toResponse)
                 .toList();
