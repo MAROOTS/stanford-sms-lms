@@ -11,5 +11,7 @@ public interface StudentRepository extends JpaRepository<Student, Long> {
     Optional<Student> findByUsername(String username);
     long countBySchoolId(Long schoolId);
     List<Student> findBySchoolId(Long schoolId);
+    boolean existsByAdmissionNumberAndSchoolId(String admissionNumber, Long schoolId);
+    boolean existsByAdmissionNumberAndSchoolIdAndIdNot(String admissionNumber, Long schoolId, Long id);
 
 }

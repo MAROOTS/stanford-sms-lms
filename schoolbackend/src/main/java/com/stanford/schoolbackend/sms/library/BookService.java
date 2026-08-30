@@ -65,7 +65,10 @@ public class BookService {
 
     public BookCopyResponse addCopy(Long bookId, AddCopyRequest request) {
         Book book = getOrThrow(bookId);
-        BookCopy copy = BookCopy.builder().book(book).copyCode(request.getCopyCode()).build();
+        BookCopy copy = BookCopy.builder()
+                .book(book)
+                .school(book.getSchool())
+                .copyCode(request.getCopyCode()).build();
         return toCopyResponse(bookCopyRepository.save(copy));
     }
 

@@ -72,6 +72,7 @@ public class AdminUserService {
                         .firstName(request.getFirstName())
                         .lastName(request.getLastName())
                         .username(request.getUsername()).mustChangePassword(true)
+                        .admissionNumber(usernameGeneratorService.admissionNumberFromUsername(request.getUsername()))
                         .email(request.getEmail())
                         .password(encodedPassword)
                         .role(UserRole.STUDENT)

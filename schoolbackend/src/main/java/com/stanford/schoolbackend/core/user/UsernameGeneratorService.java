@@ -8,27 +8,52 @@ import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Service;
 
 import java.time.Year;
+import java.util.concurrent.ThreadLocalRandom;
 
 @Service
 @RequiredArgsConstructor
 public class UsernameGeneratorService {
 
-    private final UsernameSequenceRepository usernameSequenceRepository;
     private final SchoolRepository schoolRepository;
+    private final UserRepository userRepository;
+
     public synchronized String generateUsername(UserRole role, Long schoolId) {
         School school = schoolRepository.findById(schoolId)
                 .orElseThrow(() -> new ResourceNotFoundException("School not found"));
+
         String prefix = prefixFor(role);
-        String sequenceKey = prefix + "-" + Year.now().getValue();
+        int year = Year.now().getValue();
 
-        UsernameSequence sequence = usernameSequenceRepository.findBySchoolIdAndSequenceKey(schoolId, sequenceKey)
-                .orElseGet(() -> UsernameSequence.builder().school(school).sequenceKey(sequenceKey).lastValue(0).build());
+        for (int attempt = 0; attempt < 25; attempt++) {
+            int code = ThreadLocalRandom.current().nextInt(1000, 10000);
 
-        int next = sequence.getLastValue() + 1;
-        sequence.setLastValue(next);
-        usernameSequenceRepository.save(sequence);
+            String username = String.format(
+                    "%s-%s-%d-%04d",
+                    school.getSlug(),
+                    prefix,
+                    year,
+                    code
+            );
 
-        return String.format("%s-%03d", sequenceKey, next); // e.g. ADM-2026-001
+            if (!userRepository.existsByUsername(username)) {
+                return username;
+            }
+        }
+
+        throw new IllegalStateException(
+                "Could not generate a unique username — try again"
+        );
+    }
+
+    public String admissionNumberFromUsername(String username) {
+        // alliance-ADM-2026-6487 -> ADM-2026-6487
+        int firstDash = username.indexOf('-');
+
+        if (firstDash < 0) {
+            return username;
+        }
+
+        return username.substring(firstDash + 1);
     }
 
     private String prefixFor(UserRole role) {

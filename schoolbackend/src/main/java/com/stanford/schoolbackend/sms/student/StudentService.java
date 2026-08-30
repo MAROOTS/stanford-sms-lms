@@ -105,7 +105,14 @@ public class StudentService {
 
     public StudentResponse update(Long studentId, StudentUpdateRequest request) {
         Student student = getOwnedOrThrow(studentId);
-
+        if (request.getAdmissionNumber() != null
+                && !request.getAdmissionNumber().equals(student.getAdmissionNumber())
+                && studentRepository.existsByAdmissionNumberAndSchoolIdAndIdNot(
+                request.getAdmissionNumber(),
+                SecurityUtils.currentSchoolId(),
+                student.getId())) {
+            throw new IllegalArgumentException("Admission number already exists at this school");
+        }
         if (!student.getEmail().equalsIgnoreCase(request.getEmail())
                 && userRepository.findByEmail(request.getEmail()).isPresent()) {
             throw new EmailAlreadyExistsException("Email already exists");
