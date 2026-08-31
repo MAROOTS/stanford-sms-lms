@@ -4,10 +4,7 @@ import com.stanford.schoolbackend.core.enums.NotificationType;
 import com.stanford.schoolbackend.core.exception.ResourceNotFoundException;
 import com.stanford.schoolbackend.core.notification.NotificationService;
 import com.stanford.schoolbackend.core.security.SecurityUtils;
-import com.stanford.schoolbackend.sms.academic.ClassSection;
-import com.stanford.schoolbackend.sms.academic.ClassSectionOwnershipService;
-import com.stanford.schoolbackend.sms.academic.Subject;
-import com.stanford.schoolbackend.sms.academic.SubjectRepository;
+import com.stanford.schoolbackend.sms.academic.*;
 import com.stanford.schoolbackend.sms.exams.dto.MarkEntryRequest;
 import com.stanford.schoolbackend.sms.exams.dto.MarkResponse;
 import com.stanford.schoolbackend.sms.exams.dto.MarkSheetRow;
@@ -29,11 +26,11 @@ public class MarkService {
     private final ExamRepository examRepository;
     private final SubjectRepository subjectRepository;
     private final StudentRepository studentRepository;
-    private final ClassSectionOwnershipService classSectionOwnershipService;
+    //private final ClassSectionOwnershipService classSectionOwnershipService;
     private final NotificationService notificationService;
-
+    private final TeachingAssignmentService teachingAssignmentService;
     public List<MarkSheetRow> getEntrySheet(Long examId, Long subjectId, Long classSectionId) {
-        classSectionOwnershipService.getOwnedClassSectionOrThrow(classSectionId);
+        teachingAssignmentService.assertCanEnterMarks(classSectionId, subjectId);
         Exam exam = examRepository.findById(examId)
                 .orElseThrow(() -> new ResourceNotFoundException("Exam not found"));
         assertCurrentSchool(exam.getSchool(), "Exam not found");
@@ -63,8 +60,8 @@ public class MarkService {
     }
 
     public List<MarkResponse> saveMarks(MarkEntryRequest request) {
-        ClassSection classSection = classSectionOwnershipService.getOwnedClassSectionOrThrow(request.getClassSectionId());
-
+        ClassSection classSection = teachingAssignmentService.assertCanEnterMarks(
+                request.getClassSectionId(), request.getSubjectId());
         Exam exam = examRepository.findById(request.getExamId())
                 .orElseThrow(() -> new ResourceNotFoundException("Exam not found"));
         assertCurrentSchool(exam.getSchool(), "Exam not found");

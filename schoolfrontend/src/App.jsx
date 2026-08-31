@@ -46,6 +46,7 @@ import ContactForm from './pages/public/ContactForm';
 import Leads from './pages/leads/Leads';
 import Settings from './pages/settings/Settings';
 import PlatformAdminDashboard from './pages/platform/PlatformAdminDashboard';
+import TeachingAssignments from "./pages/classes/TeachingAssignments";
 export default function App() {
   return (
     <ThemeProvider>
@@ -66,6 +67,7 @@ export default function App() {
               >
                 <Route path="/dashboard" element={<DashboardRouter />} />
                 <Route path="/classes" element={<Classes />} />
+                <Route path="/teaching-assignments" element={<TeachingAssignments />} />
                 <Route path="/students" element={<Students />} />
                 <Route path="/teachers" element={<Teachers />} />
                 <Route path="/subjects" element={<Subjects />} />

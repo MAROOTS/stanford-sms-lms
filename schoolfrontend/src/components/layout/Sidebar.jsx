@@ -90,6 +90,12 @@ const adminTeacherNav = [
         label: 'Classes',
       },
       {
+        to: '/teaching-assignments',
+        icon: BookOpen,
+        label: 'Teaching assignments',
+        roles: ['ADMIN'],
+      },
+      {
         to: '/subjects',
         icon: BookOpen,
         label: 'Subjects',

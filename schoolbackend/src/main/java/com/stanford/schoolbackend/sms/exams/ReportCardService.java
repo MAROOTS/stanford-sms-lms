@@ -52,8 +52,7 @@ public class ReportCardService {
         }
     }
     private String buildHtml(StudentExamResultResponse result, Exam exam, Student student) {
-        String admissionNumber = student.getAdmissionNumber() != null ? student.getAdmissionNumber() : "—";
-
+        String admissionNumber = student.getUsername() != null ? student.getUsername() : "—";
         StringBuilder subjectRows = new StringBuilder();
         for (MarkResponse subject : result.getSubjectResults()) {
             subjectRows.append("<tr>")
