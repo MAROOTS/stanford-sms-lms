@@ -117,3 +117,5 @@ export default function MyResults() {
         </div>
     );
 }
+
+//TODO another is also, what if a school has their on data either in csv or xsxl or any format is there a way we can do so that they can upload directly and continue using the platform?, if it is students, the students page becomes populated correctly somehow. Another thing is about admitting a student and adding a teacher, i have very less data about them leaving important things like medical records and other things which i cant remember
