@@ -4,7 +4,8 @@ import { BarChart, Bar, XAxis, YAxis, CartesianGrid, ResponsiveContainer, Toolti
 import axiosClient from '../../api/axiosClient';
 import EmptyState from '../../components/shared/EmptyState';
 import { TableSkeleton } from '../../components/shared/LoadingSkeleton';
-
+import NoticeCard from '../../components/shared/NoticeCard';
+import { readApiError } from '../../utils/readApiError';
 const GRADE_COLORS = {
     EE: 'bg-emerald-50 text-emerald-700 border border-emerald-200',
     ME: 'bg-teal-50 text-teal-700 border border-teal-200',
@@ -27,10 +28,9 @@ export default function Results() {
     const [rows, setRows] = useState([]);
     const [distribution, setDistribution] = useState(null);
     const [loading, setLoading] = useState(false);
-    const [error, setError] = useState('');
-
+    const [notice, setNotice] = useState(null);
     useEffect(() => {
-        axiosClient.get('/exams').then((res) => setExams(res.data)).catch(() => setError('Could not load exams'));
+        axiosClient.get('/exams').then((res) => setExams(res.data)).catch((err) => setNotice(readApiError(err, { error: 'Could not load exams' })));
     }, []);
 
     useEffect(() => {
@@ -41,7 +41,7 @@ export default function Results() {
 
     const loadResults = useCallback(async () => {
         if (!examId || !classSectionId) return;
-        setLoading(true); setError('');
+        setLoading(true); setNotice('');
         try {
             const [resultsRes, distRes] = await Promise.all([
                 axiosClient.get(`/results/exam/${examId}/class/${classSectionId}`),
@@ -49,7 +49,11 @@ export default function Results() {
             ]);
             setRows(resultsRes.data);
             setDistribution(distRes.data);
-        } catch { setError('Could not load results for this combination'); }
+        } catch(err) {setNotice(readApiError(err, {
+            forbidden: 'You can only view results for classes you are allowed to access.',
+            mismatch: 'This exam does not cover the selected class.',
+            error: 'Could not load results for this exam and class.',
+        })); }
         finally { setLoading(false); }
     }, [examId, classSectionId]);
 
@@ -106,7 +110,7 @@ export default function Results() {
                 </div>
             </div>
 
-            {error && <p className="text-sm text-red-600 bg-red-50 border border-red-100 rounded-lg px-3 py-2 mb-4">{error}</p>}
+            {notice && <NoticeCard notice={notice} onRetry={loadResults} />}
             {loading && <TableSkeleton columns={5} rows={5} />}
 
             {!loading && distribution && Object.keys(distribution).length > 0 && (
@@ -188,7 +192,7 @@ export default function Results() {
                 </div>
             )}
 
-            {!loading && examId && classSectionId && rows.length === 0 && !error && (
+            {!loading && examId && classSectionId && rows.length === 0 && !notice && (
                 <EmptyState
                     icon={TrendingUp}
                     title="No results yet"

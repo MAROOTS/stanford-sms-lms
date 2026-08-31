@@ -3,7 +3,8 @@ import { FileDown, FileText } from 'lucide-react';
 import axiosClient from '../../api/axiosClient';
 import EmptyState from '../../components/shared/EmptyState';
 import { useToast } from '../../context/useToast';
-
+import NoticeCard from '../../components/shared/NoticeCard';
+import { readApiError, readApiErrorAsync } from '../../utils/readApiError';
 export default function ReportCards() {
     const [exams, setExams] = useState([]);
     const [examId, setExamId] = useState('');
@@ -12,12 +13,11 @@ export default function ReportCards() {
     const [students, setStudents] = useState([]);
     const [studentId, setStudentId] = useState('');
     const [generating, setGenerating] = useState(false);
-    const [error, setError] = useState('');
-
+    const [notice, setNotice] = useState(null);
     const toast = useToast();
 
     useEffect(() => {
-        axiosClient.get('/exams').then((res) => setExams(res.data)).catch(() => setError('Could not load exams'));
+        axiosClient.get('/exams').then((res) => setExams(res.data)).catch((err) =>setNotice(readApiError(err, { error: 'Could not load exams' })))
     }, []);
 
     useEffect(() => {
@@ -34,16 +34,24 @@ export default function ReportCards() {
     }, [classSectionId]);
 
     const handleGenerate = async () => {
-        setGenerating(true); setError('');
+        setGenerating(true); setNotice('');
         try {
             const response = await axiosClient.get(`/report-cards/student/${studentId}/exam/${examId}`, { responseType: 'blob' });
+            if (response.data.type && response.data.type.includes('json')) {
+                throw { response: { status: 400, data: JSON.parse(await response.data.text()) } };
+            }
             const url = window.URL.createObjectURL(new Blob([response.data], { type: 'application/pdf' }));
             const win = window.open(url, '_blank');
             if (!win) {
                 toast.warning('Pop-up blocked. Please allow pop-ups for this site to view the report card.');
             }
-        } catch {
-            setError('Could not generate this report card — the student may not have any marks recorded for this exam yet.');
+        } catch (err) {
+            const parsed = await readApiErrorAsync(err, {
+                forbidden: 'You are not allowed to generate this report card.',
+                notFound: 'No marks have been posted for this student and exam yet.',
+                error: 'Could not generate this report card.',
+            });
+            setNotice(parsed);
         } finally { setGenerating(false); }
     };
 
@@ -83,8 +91,7 @@ export default function ReportCards() {
                         </select>
                     </div>
 
-                    {error && <p className="text-sm text-red-600 bg-red-50 border border-red-100 rounded-lg px-3 py-2">{error}</p>}
-
+                    {notice && <NoticeCard notice={notice} />}
                     <button onClick={handleGenerate} disabled={!studentId || generating}
                             className="flex items-center gap-1.5 bg-navy-900 hover:bg-navy-800 text-white text-sm font-medium px-4 py-2.5 rounded-lg transition-colors disabled:opacity-50">
                         <FileDown size={16} /> {generating ? 'Generating...' : 'Generate report card'}

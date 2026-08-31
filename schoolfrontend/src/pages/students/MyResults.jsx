@@ -1,7 +1,8 @@
 import { useEffect, useState, useCallback } from 'react';
 import axiosClient from '../../api/axiosClient';
 import { useAuth } from '../../context/useAuth';
-
+import NoticeCard from '../../components/shared/NoticeCard';
+import { readApiError } from '../../utils/readApiError';
 const GRADE_COLORS = {
     EE: 'bg-emerald-50 text-emerald-700 border border-emerald-200',
     ME: 'bg-teal-50 text-teal-700 border border-teal-200',
@@ -21,7 +22,7 @@ export default function MyResults() {
     const [examId, setExamId] = useState('');
     const [result, setResult] = useState(null);
     const [loading, setLoading] = useState(false);
-    const [error, setError] = useState('');
+    const [notice, setNotice] = useState('');
 
     useEffect(() => {
         if (!user?.userId) return;
@@ -37,13 +38,17 @@ export default function MyResults() {
 
     const loadResult = useCallback(async () => {
         if (!examId) { setResult(null); return; }
-        setLoading(true); setError('');
+        setLoading(true); setNotice('');
         try {
             const { data } = await axiosClient.get(`/results/student/${user.userId}/exam/${examId}`);
             setResult(data);
-        } catch {
-            setError('No results found for this exam yet');
+        } catch(err) {
             setResult(null);
+            setNotice(readApiError(err, {
+                forbidden: 'You can only view your own results.',
+                notFound: 'No results have been posted for this exam yet.',
+                error: 'Could not load your results.',
+            }));
         } finally { setLoading(false); }
     }, [examId, user]);
 
@@ -66,8 +71,7 @@ export default function MyResults() {
             </div>
 
             {loading && <p className="text-sm text-slate-400">Loading...</p>}
-            {error && <p className="text-sm text-red-600 bg-red-50 border border-red-100 rounded-lg px-3 py-2">{error}</p>}
-
+            {notice && <NoticeCard notice={notice} onRetry={loadResult} />}
             {!loading && result && (
                 <>
                     <div className="grid grid-cols-2 sm:grid-cols-4 gap-4 mb-6">

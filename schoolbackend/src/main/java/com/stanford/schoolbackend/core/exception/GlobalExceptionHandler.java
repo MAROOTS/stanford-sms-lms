@@ -58,7 +58,10 @@ public class GlobalExceptionHandler {
 
     @ExceptionHandler(AccessDeniedException.class)
     public ResponseEntity<Map<String, Object>> handleAccessDenied(AccessDeniedException ex) {
-        return build(HttpStatus.FORBIDDEN, "You do not have permission to perform this action", null);
+        String message = (ex.getMessage() != null && !ex.getMessage().isBlank())
+                ? ex.getMessage()
+                : "You do not have permission to perform this action";
+        return build(HttpStatus.FORBIDDEN, message, null);
     }
 
     @ExceptionHandler(UnsupportedRoleRegistrationException.class)
