@@ -1,5 +1,6 @@
 import { useEffect, useState, useCallback } from 'react';
-import {Users, Eye, Pencil, Trash2, Unlock, KeyRound} from 'lucide-react';
+import {Users, Eye, Pencil, Trash2, Unlock, KeyRound,Upload} from 'lucide-react';
+import {Link} from 'react-router-dom'
 import axiosClient from '../../api/axiosClient';
 import StudentModal from './StudentModal';
 import ConfirmDialog from '../../components/shared/ConfirmDialog';
@@ -89,6 +90,12 @@ export default function Students() {
                         ))}
                     </select>
 
+                    {user?.role === 'ADMIN' && (
+                        <Link to="/students/import"
+                              className="flex items-center gap-1.5 border border-slate-200 text-slate-600 hover:bg-slate-50 text-sm font-medium px-4 py-2.5 rounded-lg transition-colors">
+                            <Upload size={16} /> Import
+                        </Link>
+                    )}
                 </div>
             </div>
 

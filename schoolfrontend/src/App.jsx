@@ -47,6 +47,7 @@ import Leads from './pages/leads/Leads';
 import Settings from './pages/settings/Settings';
 import PlatformAdminDashboard from './pages/platform/PlatformAdminDashboard';
 import TeachingAssignments from "./pages/classes/TeachingAssignments";
+import StudentImport from './pages/students/StudentImport';
 export default function App() {
   return (
     <ThemeProvider>
@@ -98,6 +99,7 @@ export default function App() {
                 <Route path="/leads" element={<Leads />} />
                 <Route path="/settings" element={<Settings />} />
                 <Route path="/platform/schools" element={<PlatformAdminDashboard />} />
+                <Route path="/students/import" element={<StudentImport />} />
 
                 {/* Parent Portal */}
                 <Route path="/parents" element={<Parents />} />
