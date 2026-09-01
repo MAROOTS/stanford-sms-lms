@@ -113,6 +113,17 @@ public class TeachingAssignmentService {
         return section;
     }
 
+    public TeachingAssignmentResponse updateTeacher(Long id, Long teacherId) {
+        TeachingAssignment assignment = teachingAssignmentRepository.findById(id)
+                .orElseThrow(() -> new ResourceNotFoundException("Teaching assignment not found"));
+        Long schoolId = SecurityUtils.currentSchoolId();
+        if (assignment.getSchool() == null || !schoolId.equals(assignment.getSchool().getId())) {
+            throw new ResourceNotFoundException("Teaching assignment not found");
+        }
+        assignment.setTeacher(ownedTeacher(teacherId, schoolId));
+        return toResponse(teachingAssignmentRepository.save(assignment));
+    }
+
     private TeachingAssignmentResponse toResponse(TeachingAssignment a) {
         return TeachingAssignmentResponse.builder()
                 .id(a.getId())

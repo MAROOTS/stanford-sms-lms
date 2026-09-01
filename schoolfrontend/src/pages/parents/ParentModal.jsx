@@ -19,7 +19,7 @@ export default function ParentModal({ initialData, onClose, onSaved }) {
     const [createdCredentials, setCreatedCredentials] = useState(null);
 
     useEffect(() => {
-        axiosClient.get('/students').then(res => setAllStudents(res.data)).catch(() => {});
+        axiosClient.get('/students').then(res => setAllStudents(res.data)).catch((err) => setError(err.response?.data?.message || 'Could not load students to link'));
     }, []);
 
     const availableStudents = allStudents.filter(

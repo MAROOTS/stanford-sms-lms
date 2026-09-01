@@ -3,16 +3,20 @@ import { Link } from 'react-router-dom';
 import { Users, ClipboardCheck, TrendingUp, Wallet, BookOpen } from 'lucide-react';
 import axiosClient from '../../api/axiosClient';
 import { useAuth } from '../../context/useAuth';
-
+import NoticeCard from '../../components/shared/NoticeCard';
+import { readApiError } from '../../utils/readApiError';
 export default function ParentDashboard() {
     const { user } = useAuth();
     const [children, setChildren] = useState([]);
     const [loading, setLoading] = useState(true);
-
+    const [notice, setNotice] = useState(null);
     useEffect(() => {
         axiosClient.get('/parents/my-children')
             .then(res => setChildren(res.data))
-            .catch(() => {})
+            .catch((err) => setNotice(readApiError(err, {
+                forbidden: 'You are not allowed to view this parent portal.',
+                error: 'Could not load your children. Try again.',
+            })))
             .finally(() => setLoading(false));
     }, []);
 
@@ -27,7 +31,8 @@ export default function ParentDashboard() {
                 </p>
             </div>
 
-            {children.length === 0 ? (
+            {notice ? ( <NoticeCard notice={notice} onRetry={() => window.location.reload()} /> ) :
+                children.length === 0 ? (
                 <div className="bg-white rounded-xl border border-slate-200 p-10 text-center">
                     <Users size={40} className="mx-auto text-slate-300 mb-4" />
                     <p className="text-slate-600 font-medium">No children linked to your account</p>

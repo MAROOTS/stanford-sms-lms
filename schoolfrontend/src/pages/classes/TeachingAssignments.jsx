@@ -79,6 +79,15 @@ export default function TeachingAssignments() {
         }
     };
 
+    const handleChangeTeacher = async (id, teacherId) => {
+        try {
+            const { data } = await axiosClient.put(`/teaching-assignments/${id}`, { teacherId });
+            setRows((prev) => prev.map((row) => (row.id === id ? data : row)));
+            toast.success('Teacher updated');
+        } catch (err) {
+            toast.error(err.response?.data?.message || 'Could not change teacher');
+        }
+    };
     return (
         <div>
             <div className="mb-6">
@@ -132,7 +141,17 @@ export default function TeachingAssignments() {
                         <tbody>
                         {rows.map((r) => (
                             <tr key={r.id} className="border-b border-slate-50 last:border-0">
-                                <td className="px-6 py-3 font-medium text-slate-800">{r.teacherName}</td>
+                                <td className="px-6 py-3">
+                                    <select
+                                        value={r.teacherId}
+                                        onChange={(e) => handleChangeTeacher(r.id, Number(e.target.value))}
+                                        className="w-full max-w-55 px-2.5 py-1.5 rounded-lg bg-slate-50 border border-slate-200 text-sm"
+                                    >
+                                        {teachers.map((t) => (
+                                            <option key={t.id} value={t.id}>{t.firstName} {t.lastName}</option>
+                                        ))}
+                                    </select>
+                                </td>
                                 <td className="px-6 py-3 text-slate-600">{r.subjectName}</td>
                                 <td className="px-6 py-3 text-slate-600">{r.classSectionName}</td>
                                 <td className="px-6 py-3 text-right">

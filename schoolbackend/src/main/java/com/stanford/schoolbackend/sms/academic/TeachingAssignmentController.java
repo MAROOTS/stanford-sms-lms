@@ -2,6 +2,7 @@ package com.stanford.schoolbackend.sms.academic;
 
 import com.stanford.schoolbackend.sms.academic.dto.TeachingAssignmentRequest;
 import com.stanford.schoolbackend.sms.academic.dto.TeachingAssignmentResponse;
+import com.stanford.schoolbackend.sms.academic.dto.UpdateTeacherRequest;
 import jakarta.validation.Valid;
 import lombok.RequiredArgsConstructor;
 import org.springframework.http.HttpStatus;
@@ -42,5 +43,14 @@ public class TeachingAssignmentController {
     @PreAuthorize("hasRole('TEACHER')")
     public ResponseEntity<List<TeachingAssignmentResponse>> listMine() {
         return ResponseEntity.ok(teachingAssignmentService.listMine());
+    }
+
+    @PutMapping("/{id}")
+    @PreAuthorize("hasRole('ADMIN')")
+    public ResponseEntity<TeachingAssignmentResponse> updateTeacher(
+            @PathVariable Long id,
+            @Valid @RequestBody UpdateTeacherRequest request) {
+        return ResponseEntity.ok(
+                teachingAssignmentService.updateTeacher(id, request.getTeacherId()));
     }
 }
