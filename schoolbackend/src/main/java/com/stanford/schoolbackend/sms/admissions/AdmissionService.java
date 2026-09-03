@@ -141,6 +141,7 @@ public class AdmissionService {
         student.setGuardianPhone(application.getGuardianPhone());
         student.setParentContactNumber(application.getGuardianPhone());
         student.setPreviousSchool(application.getPreviousSchool());
+        student.setAdmissionDate(java.time.LocalDate.now());
         studentRepository.save(student);
         application.setStatus(ApplicationStatus.ENROLLED);
         application.setEnrolledStudentId(created.getId());
