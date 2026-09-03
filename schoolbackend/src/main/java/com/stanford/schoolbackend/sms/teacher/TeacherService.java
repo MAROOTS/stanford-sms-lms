@@ -17,18 +17,14 @@ public class TeacherService {
 
     private final TeacherRepository teacherRepository;
     private final UserRepository userRepository;
+
     public List<TeacherResponse> listAll() {
         Long schoolId = SecurityUtils.currentSchoolId();
         return teacherRepository.findBySchoolId(schoolId).stream()
-
-                .map(t -> TeacherResponse.builder()
-                        .id(t.getId())
-                        .firstName(t.getFirstName())
-                        .lastName(t.getLastName())
-                        .email(t.getEmail())
-                        .build())
+                .map(this::toResponse)
                 .toList();
     }
+
     public TeacherResponse update(Long teacherId, TeacherUpdateRequest request) {
         Teacher teacher = getOwnedOrThrow(teacherId);
 
@@ -40,20 +36,24 @@ public class TeacherService {
         teacher.setFirstName(request.getFirstName());
         teacher.setLastName(request.getLastName());
         teacher.setEmail(request.getEmail());
+        teacher.setQualification(request.getQualification());
+        teacher.setDepartment(request.getDepartment());
+        teacher.setPhone(request.getPhone());
+        teacher.setTscNumber(request.getTscNumber());
+        teacher.setNationalId(request.getNationalId());
+        teacher.setDateOfBirth(request.getDateOfBirth());
+        teacher.setGender(request.getGender());
+        teacher.setDateOfEmployment(request.getDateOfEmployment());
+        teacher.setAddress(request.getAddress());
 
-        Teacher saved = teacherRepository.save(teacher);
-        return TeacherResponse.builder()
-                .id(saved.getId())
-                .firstName(saved.getFirstName())
-                .lastName(saved.getLastName())
-                .email(saved.getEmail())
-                .build();
+        return toResponse(teacherRepository.save(teacher));
     }
 
     public void delete(Long teacherId) {
         Teacher teacher = getOwnedOrThrow(teacherId);
         teacherRepository.delete(teacher);
     }
+
     private Teacher getOwnedOrThrow(Long teacherId) {
         Teacher teacher = teacherRepository.findById(teacherId)
                 .orElseThrow(() -> new ResourceNotFoundException("Teacher not found"));
@@ -63,5 +63,23 @@ public class TeacherService {
             throw new ResourceNotFoundException("Teacher not found");
         }
         return teacher;
+    }
+
+    private TeacherResponse toResponse(Teacher t) {
+        return TeacherResponse.builder()
+                .id(t.getId())
+                .firstName(t.getFirstName())
+                .lastName(t.getLastName())
+                .email(t.getEmail())
+                .qualification(t.getQualification())
+                .department(t.getDepartment())
+                .phone(t.getPhone())
+                .tscNumber(t.getTscNumber())
+                .nationalId(t.getNationalId())
+                .dateOfBirth(t.getDateOfBirth())
+                .gender(t.getGender())
+                .dateOfEmployment(t.getDateOfEmployment())
+                .address(t.getAddress())
+                .build();
     }
 }

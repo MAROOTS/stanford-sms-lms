@@ -4,6 +4,8 @@ import jakarta.validation.constraints.Email;
 import jakarta.validation.constraints.NotBlank;
 import lombok.Data;
 
+import java.time.LocalDate;
+
 @Data
 public class TeacherUpdateRequest {
     @NotBlank(message = "firstName is required")
@@ -15,4 +17,14 @@ public class TeacherUpdateRequest {
     @NotBlank(message = "email is required")
     @Email(message = "email must be valid")
     private String email;
+
+    private String qualification;
+    private String department;
+    private String phone;
+    private String tscNumber;
+    private String nationalId;
+    private LocalDate dateOfBirth;
+    private String gender;
+    private LocalDate dateOfEmployment;
+    private String address;
 }

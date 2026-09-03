@@ -23,4 +23,21 @@ public class Student extends User {
     private ClassSection classSection; // nullable — assigned later, not at registration
     @Column(unique = true)
     private String admissionNumber; // nullable — assigned by admin after enrollment, not at signup
+    private java.time.LocalDate dateOfBirth;
+    private String gender;
+    private String nationality;
+    private String religion;
+    private java.time.LocalDate admissionDate;
+    private String birthCertificateNo;
+    private String address;
+    private String guardianName;
+    private String guardianPhone;
+    private String guardianEmail;
+    private String guardianRelationship;
+    private String bloodGroup;
+    private String allergies;
+    private String medicalConditions;
+    private String emergencyContactName;
+    private String emergencyContactPhone;
+    private String previousSchool;
 }

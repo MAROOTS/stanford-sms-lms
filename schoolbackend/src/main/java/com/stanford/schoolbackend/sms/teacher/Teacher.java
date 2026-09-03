@@ -19,4 +19,11 @@ public class Teacher extends User {
 
     private String qualification;
     private String department;
+    private String phone;
+    private String tscNumber;
+    private String nationalId;
+    private java.time.LocalDate dateOfBirth;
+    private String gender;
+    private java.time.LocalDate dateOfEmployment;
+    private String address;
 }

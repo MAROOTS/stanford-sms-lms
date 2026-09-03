@@ -122,6 +122,25 @@ public class StudentService {
         student.setLastName(request.getLastName());
         student.setEmail(request.getEmail());
         student.setAdmissionNumber(request.getAdmissionNumber());
+        student.setRollNumber(request.getRollNumber());
+        student.setParentContactNumber(request.getParentContactNumber());
+        student.setDateOfBirth(request.getDateOfBirth());
+        student.setGender(request.getGender());
+        student.setNationality(request.getNationality());
+        student.setReligion(request.getReligion());
+        student.setAdmissionDate(request.getAdmissionDate());
+        student.setBirthCertificateNo(request.getBirthCertificateNo());
+        student.setAddress(request.getAddress());
+        student.setGuardianName(request.getGuardianName());
+        student.setGuardianPhone(request.getGuardianPhone());
+        student.setGuardianEmail(request.getGuardianEmail());
+        student.setGuardianRelationship(request.getGuardianRelationship());
+        student.setBloodGroup(request.getBloodGroup());
+        student.setAllergies(request.getAllergies());
+        student.setMedicalConditions(request.getMedicalConditions());
+        student.setEmergencyContactName(request.getEmergencyContactName());
+        student.setEmergencyContactPhone(request.getEmergencyContactPhone());
+        student.setPreviousSchool(request.getPreviousSchool());
 
         if (request.getClassSectionId() != null) {
             ClassSection section = classSectionRepository.findById(request.getClassSectionId())
@@ -157,9 +176,29 @@ public class StudentService {
                 .lastName(s.getLastName())
                 .email(s.getEmail())
                 .admissionNumber(s.getAdmissionNumber())
+                .rollNumber(s.getRollNumber())
+                .parentContactNumber(s.getParentContactNumber())
                 .classSectionId(s.getClassSection() != null ? s.getClassSection().getId() : null)
                 .classSectionName(s.getClassSection() != null ? s.getClassSection().getName() : null)
-                .gradeLevelName(s.getClassSection() != null ? s.getClassSection().getGradeLevel().getName() : null)
+                .gradeLevelName(s.getClassSection() != null && s.getClassSection().getGradeLevel() != null
+                        ? s.getClassSection().getGradeLevel().getName() : null)
+                .dateOfBirth(s.getDateOfBirth())
+                .gender(s.getGender())
+                .nationality(s.getNationality())
+                .religion(s.getReligion())
+                .admissionDate(s.getAdmissionDate())
+                .birthCertificateNo(s.getBirthCertificateNo())
+                .address(s.getAddress())
+                .guardianName(s.getGuardianName())
+                .guardianPhone(s.getGuardianPhone())
+                .guardianEmail(s.getGuardianEmail())
+                .guardianRelationship(s.getGuardianRelationship())
+                .bloodGroup(s.getBloodGroup())
+                .allergies(s.getAllergies())
+                .medicalConditions(s.getMedicalConditions())
+                .emergencyContactName(s.getEmergencyContactName())
+                .emergencyContactPhone(s.getEmergencyContactPhone())
+                .previousSchool(s.getPreviousSchool())
                 .build();
     }
 }
