@@ -9,6 +9,7 @@ import com.stanford.schoolbackend.core.security.SecurePasswordGenerator;
 import com.stanford.schoolbackend.core.security.SecurityUtils;
 import com.stanford.schoolbackend.core.user.UserRepository;
 import com.stanford.schoolbackend.core.user.UsernameGeneratorService;
+import com.stanford.schoolbackend.sms.parent.dto.GuardianLinkResult;
 import com.stanford.schoolbackend.sms.parent.dto.ParentRequest;
 import com.stanford.schoolbackend.sms.parent.dto.ParentResponse;
 import com.stanford.schoolbackend.sms.student.Student;
@@ -174,6 +175,93 @@ public class ParentService {
             throw new ResourceNotFoundException("Parent not found with id: " + id);
         }
         return parent;
+    }
+    /**
+     * Find or create a parent for this guardian email and link the student.
+     * Skips if email is blank, or already used as the student's own login.
+     */
+    @Transactional
+    public java.util.Optional<GuardianLinkResult> ensureGuardianLinked(
+            Student student,
+            String guardianEmail,
+            String guardianName,
+            String relationship,
+            String phone) {
+
+        if (guardianEmail == null || guardianEmail.isBlank()) {
+            return java.util.Optional.empty();
+        }
+        String email = guardianEmail.trim();
+        if (student.getEmail() != null && email.equalsIgnoreCase(student.getEmail())) {
+            return java.util.Optional.empty();
+        }
+
+        Long schoolId = SecurityUtils.currentSchoolId();
+        School school = schoolRepository.findById(schoolId)
+                .orElseThrow(() -> new ResourceNotFoundException("School not found"));
+
+        String rel = (relationship != null && !relationship.isBlank())
+                ? relationship.trim()
+                : "GUARDIAN";
+
+        java.util.Optional<com.stanford.schoolbackend.core.user.User> existing = userRepository.findByEmail(email);
+        Parent parent;
+        String tempPassword = null;
+        boolean created = false;
+
+        if (existing.isPresent()) {
+            com.stanford.schoolbackend.core.user.User user = existing.get();
+            if (user.getRole() != UserRole.PARENT) {
+                return java.util.Optional.empty();
+            }
+            parent = parentRepository.findById(user.getId())
+                    .orElseThrow(() -> new ResourceNotFoundException("Parent not found"));
+            if (parent.getSchool() == null || !schoolId.equals(parent.getSchool().getId())) {
+                return java.util.Optional.empty();
+            }
+        } else {
+            String[] names = splitName(guardianName, student);
+            tempPassword = securePasswordGenerator.generate();
+            parent = Parent.builder()
+                    .firstName(names[0])
+                    .lastName(names[1])
+                    .email(email)
+                    .username(usernameGeneratorService.generateUsername(UserRole.PARENT, schoolId))
+                    .password(passwordEncoder.encode(tempPassword))
+                    .role(UserRole.PARENT)
+                    .mustChangePassword(true)
+                    .alternatePhone(phone)
+                    .school(school)
+                    .build();
+            parent = parentRepository.save(parent);
+            created = true;
+        }
+
+        if (!parentStudentLinkRepository.existsByParentIdAndStudentId(parent.getId(), student.getId())) {
+            parentStudentLinkRepository.save(ParentStudentLink.builder()
+                    .parent(parent)
+                    .student(student)
+                    .relationship(rel)
+                    .primary(true)
+                    .build());
+        }
+
+        return java.util.Optional.of(GuardianLinkResult.builder()
+                .parentId(parent.getId())
+                .username(parent.getUsername())
+                .temporaryPassword(tempPassword)
+                .created(created)
+                .build());
+    }
+
+    private String[] splitName(String guardianName, Student student) {
+        if (guardianName == null || guardianName.isBlank()) {
+            return new String[] { student.getFirstName() + "'s", "Parent" };
+        }
+        String trimmed = guardianName.trim();
+        int space = trimmed.indexOf(' ');
+        if (space < 0) return new String[] { trimmed, "Parent" };
+        return new String[] { trimmed.substring(0, space), trimmed.substring(space + 1).trim() };
     }
     private ParentResponse toResponse(Parent parent) {
         List<ParentStudentLink> links = parentStudentLinkRepository.findByParentId(parent.getId());

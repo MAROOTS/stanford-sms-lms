@@ -24,9 +24,12 @@ function downloadBlob(blob, filename) {
 }
 
 function credentialsToCsv(created) {
-    const header = 'firstName,lastName,username,temporaryPassword,className\n';
+    const header = 'firstName,lastName,username,temporaryPassword,className,parentUsername,parentTemporaryPassword\n';
     const rows = created.map((c) =>
-        [c.firstName, c.lastName, c.username, c.temporaryPassword, c.className || ''].join(',')
+        [
+            c.firstName, c.lastName, c.username, c.temporaryPassword, c.className || '',
+            c.parentUsername || '', c.parentTemporaryPassword || '',
+        ].join(',')
     ).join('\n');
     return header + rows;
 }
@@ -294,8 +297,9 @@ export default function StudentImport() {
                                 </div>
                                 <div>
                                     <h4 className="text-amber-900 font-bold text-base mb-1">Save these credentials now</h4>
-                                    <p className="text-amber-800 text-sm mb-4 leading-relaxed">
-                                        For security reasons, the temporary passwords for these students will <strong>never be shown again</strong>. Please download the file below and distribute it securely.
+                                    <p className="text-sm text-amber-600 bg-amber-50 border border-amber-100 rounded-lg px-3 py-2 mt-3">
+                                        Download credentials now — student and parent temporary passwords will not be shown again.
+                                        Blank parent password means that parent already existed and was linked.
                                     </p>
                                     <button
                                         onClick={handleDownloadCredentials}

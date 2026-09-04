@@ -11,6 +11,7 @@ import com.stanford.schoolbackend.core.user.UsernameGeneratorService;
 import com.stanford.schoolbackend.sms.academic.ClassSection;
 import com.stanford.schoolbackend.sms.academic.ClassSectionRepository;
 import com.stanford.schoolbackend.sms.academic.dto.AssignSectionRequest;
+import com.stanford.schoolbackend.sms.parent.ParentService;
 import com.stanford.schoolbackend.sms.student.dto.*;
 import lombok.RequiredArgsConstructor;
 import org.apache.commons.csv.CSVFormat;
@@ -49,6 +50,7 @@ public class StudentImportService {
     private final UsernameGeneratorService usernameGeneratorService;
     private final SecurePasswordGenerator securePasswordGenerator;
     private final StudentService studentService;
+    private ParentService parentService;
 
     public byte[] generateTemplate() {
         String csv = """
@@ -110,12 +112,22 @@ public class StudentImportService {
                     }
                 }
 
+                var guardian = parentService.ensureGuardianLinked(
+                        student,
+                        row.getGuardianEmail(),
+                        row.getGuardianName(),
+                        row.getGuardianRelationship(),
+                        row.getGuardianPhone()
+                ).orElse(null);
+
                 created.add(ImportedCredential.builder()
                         .firstName(row.getFirstName())
                         .lastName(row.getLastName())
                         .username(username)
                         .temporaryPassword(tempPassword)
                         .className(row.getClassName())
+                        .parentUsername(guardian != null ? guardian.getUsername() : null)
+                        .parentTemporaryPassword(guardian != null ? guardian.getTemporaryPassword() : null)
                         .build());
             } catch (Exception ex) {
                 row.setValid(false);

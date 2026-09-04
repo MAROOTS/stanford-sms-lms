@@ -14,6 +14,8 @@ import com.stanford.schoolbackend.core.security.SecurityUtils;
 import com.stanford.schoolbackend.sms.academic.GradeLevel;
 import com.stanford.schoolbackend.sms.academic.GradeLevelRepository;
 import com.stanford.schoolbackend.sms.admissions.dto.*;
+import com.stanford.schoolbackend.sms.parent.ParentService;
+import com.stanford.schoolbackend.sms.parent.dto.GuardianLinkResult;
 import com.stanford.schoolbackend.sms.student.Student;
 import com.stanford.schoolbackend.sms.student.StudentRepository;
 import lombok.RequiredArgsConstructor;
@@ -32,6 +34,7 @@ public class AdmissionService {
     private final NotificationService notificationService;
     private final SchoolRepository schoolRepository;
     private final StudentRepository studentRepository;
+    private final ParentService parentService;
     public StudentApplicationResponse create(CreateApplicationRequest request) {
         GradeLevel gradeLevel = resolveGradeLevel(request.getDesiredGradeLevelId());
         School school = schoolRepository.findById(SecurityUtils.currentSchoolId())
@@ -148,10 +151,21 @@ public class AdmissionService {
         application.setDecidedAt(Instant.now());
         studentApplicationRepository.save(application);
 
+        GuardianLinkResult guardian = parentService.ensureGuardianLinked(
+                student,
+                application.getGuardianEmail(),
+                application.getGuardianName(),
+                null,
+                application.getGuardianPhone()
+        ).orElse(null);
+
         return EnrollApplicationResponse.builder()
                 .studentId(created.getId())
                 .username(request.getUsername())
                 .temporaryPassword(request.getPassword())
+                .parentUsername(guardian != null ? guardian.getUsername() : null)
+                .parentTemporaryPassword(guardian != null ? guardian.getTemporaryPassword() : null)
+                .parentCreated(guardian != null && guardian.isCreated())
                 .build();
     }
 

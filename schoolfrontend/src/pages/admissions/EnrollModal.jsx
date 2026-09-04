@@ -36,6 +36,9 @@ export default function EnrollModal({ application, onClose, onEnrolled }) {
             <TempPasswordModal
                 username={credentials.username}
                 temporaryPassword={credentials.temporaryPassword}
+                parentUsername={credentials.parentUsername}
+                parentTemporaryPassword={credentials.parentTemporaryPassword}
+                parentCreated={credentials.parentCreated}
                 onClose={onEnrolled}
             />
         );

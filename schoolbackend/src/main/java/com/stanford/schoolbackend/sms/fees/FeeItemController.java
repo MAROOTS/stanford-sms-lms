@@ -38,7 +38,7 @@ public class FeeItemController {
     }
 
     @GetMapping
-@PreAuthorize("hasAnyRole('ADMIN','ACCOUNTANT')")
+@PreAuthorize("hasAnyRole('ADMIN','ACCOUNTANT','TEACHER')")
     public ResponseEntity<List<FeeItemResponse>> listAll() {
         return ResponseEntity.ok(feeItemService.listAll());
     }

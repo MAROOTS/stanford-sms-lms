@@ -18,7 +18,6 @@ import { useToast } from '../../context/useToast';
 import TempPasswordModal from "../../components/shared/TempPasswordModal";
 import { useAccountActions } from '../../hooks/useAccountActions';
 
-// Helper to generate consistent, colorful avatars based on name
 const getAvatarStyle = (name) => {
     const colors = [
         'bg-blue-100 text-blue-700', 'bg-emerald-100 text-emerald-700',

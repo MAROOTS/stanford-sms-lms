@@ -9,4 +9,7 @@ public class EnrollApplicationResponse {
     private Long studentId;
     private String username;
     private String temporaryPassword;
+    private String parentUsername;
+    private String parentTemporaryPassword;
+    private boolean parentCreated;
 }

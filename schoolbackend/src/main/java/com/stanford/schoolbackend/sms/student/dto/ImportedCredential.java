@@ -11,4 +11,6 @@ public class ImportedCredential {
     private String username;
     private String temporaryPassword;
     private String className;
+    private String parentUsername;
+    private String parentTemporaryPassword;
 }
