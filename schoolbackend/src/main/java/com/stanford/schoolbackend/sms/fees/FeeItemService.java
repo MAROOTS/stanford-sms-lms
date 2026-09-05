@@ -17,6 +17,7 @@ public class FeeItemService {
 
     private final FeeItemRepository feeItemRepository;
     private final SchoolRepository schoolRepository;
+    private final FeeInvoiceLineItemRepository feeInvoiceLineItemRepository;
     public FeeItemResponse create(FeeItemRequest request) {
         School school = schoolRepository.findById(SecurityUtils.currentSchoolId())
                 .orElseThrow(() -> new ResourceNotFoundException("School not found"));
@@ -36,7 +37,13 @@ public class FeeItemService {
     }
 
     public void delete(Long id) {
-        feeItemRepository.delete(getOrThrow(id));
+        FeeItem item = getOrThrow(id);
+        if (feeInvoiceLineItemRepository.existsByFeeItemId(id)) {
+            throw new IllegalArgumentException(
+                    "Cannot delete \"" + item.getName()
+                            + "\" because it is already used on invoices. Remove it from those invoices first, or leave it and stop using it for new bills.");
+        }
+        feeItemRepository.delete(item);
     }
 
     public List<FeeItemResponse> listAll() {
