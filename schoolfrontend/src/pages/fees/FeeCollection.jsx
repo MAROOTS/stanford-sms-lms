@@ -40,6 +40,7 @@ export default function FeeCollection() {
     const [classSections, setClassSections] = useState([]);
     const [classFilter, setClassFilter] = useState('');
     const [generateOpen, setGenerateOpen] = useState(false);
+    const [statusFilter, setStatusFilter] = useState('all'); // all | unpaid | overdue | paid
 
     // Initial page data
     useEffect(() => {
@@ -126,6 +127,19 @@ export default function FeeCollection() {
 
     const formatKES = (value) => `KES ${Number(value).toLocaleString()}`;
 
+    // Derived filtered invoices list
+    const today = new Date();
+    today.setHours(0, 0, 0, 0);
+
+    const visibleInvoices = invoices.filter((inv) => {
+        if (statusFilter === 'unpaid') return inv.balance > 0;
+        if (statusFilter === 'paid') return inv.balance <= 0;
+        if (statusFilter === 'overdue') {
+            return inv.balance > 0 && inv.dueDate && new Date(inv.dueDate) < today;
+        }
+        return true;
+    });
+
     return (
         <div className="max-w-7xl mx-auto p-4 sm:p-6 lg:p-8 animate-in fade-in duration-500">
             {/* HEADER & CONTROLS */}
@@ -167,6 +181,21 @@ export default function FeeCollection() {
                                     {t.name}
                                 </option>
                             ))}
+                        </select>
+                        <ChevronDown size={16} className="absolute right-3 top-1/2 -translate-y-1/2 text-slate-400 pointer-events-none" />
+                    </div>
+
+                    {/* Status Filter Dropdown */}
+                    <div className="relative">
+                        <select
+                            value={statusFilter}
+                            onChange={(e) => setStatusFilter(e.target.value)}
+                            className="w-full xl:w-40 appearance-none px-4 py-2.5 rounded-xl bg-slate-50 hover:bg-slate-100 border border-slate-200 focus:bg-white focus:outline-none focus:ring-2 focus:ring-navy-900 focus:border-transparent text-sm font-medium text-slate-700 transition-all cursor-pointer"
+                        >
+                            <option value="all">All invoices</option>
+                            <option value="unpaid">Unpaid</option>
+                            <option value="overdue">Overdue</option>
+                            <option value="paid">Paid in full</option>
                         </select>
                         <ChevronDown size={16} className="absolute right-3 top-1/2 -translate-y-1/2 text-slate-400 pointer-events-none" />
                     </div>
@@ -249,6 +278,9 @@ export default function FeeCollection() {
                     <div className="px-6 py-5 border-b border-slate-100 flex items-center gap-2">
                         <Receipt size={18} className="text-slate-400" />
                         <h2 className="text-base font-bold text-slate-900">Term Invoices</h2>
+                        <span className="text-xs font-medium text-slate-400 ml-auto">
+                            {visibleInvoices.length} shown
+                        </span>
                     </div>
 
                     <div className="overflow-x-auto custom-scrollbar">
@@ -275,15 +307,17 @@ export default function FeeCollection() {
                                 </tr>
                             )}
 
-                            {!loading && !error && invoices.length === 0 && (
+                            {!loading && !error && visibleInvoices.length === 0 && (
                                 <tr>
                                     <td colSpan={6} className="px-6 py-12 text-center text-slate-500 font-medium bg-slate-50/50">
-                                        No invoices generated for this term yet.
+                                        {invoices.length === 0
+                                            ? 'No invoices generated for this term yet.'
+                                            : 'No invoices match this filter.'}
                                     </td>
                                 </tr>
                             )}
 
-                            {!loading && !error && invoices.map((inv) => (
+                            {!loading && !error && visibleInvoices.map((inv) => (
                                 <tr key={inv.id} className="group bg-white hover:bg-slate-50/80 transition-colors">
                                     <td className="px-6 py-4 font-semibold text-slate-800">
                                         {inv.studentName}
@@ -319,12 +353,14 @@ export default function FeeCollection() {
                                         )}
                                     </td>
                                     <td className="px-6 py-4 text-right">
-                                        <button
-                                            onClick={() => setPaymentModalInvoice(inv)}
-                                            className="inline-flex items-center gap-1.5 px-3 py-1.5 rounded-lg text-xs font-semibold bg-white border border-slate-200 text-slate-700 hover:bg-teal-50 hover:text-teal-700 hover:border-teal-200 transition-all active:scale-[0.98]"
-                                        >
-                                            <Banknote size={14} /> Record
-                                        </button>
+                                        {inv.balance > 0 && (
+                                            <button
+                                                onClick={() => setPaymentModalInvoice(inv)}
+                                                className="inline-flex items-center gap-1.5 px-3 py-1.5 rounded-lg text-xs font-semibold bg-white border border-slate-200 text-slate-700 hover:bg-teal-50 hover:text-teal-700 hover:border-teal-200 transition-all active:scale-[0.98]"
+                                            >
+                                                <Banknote size={14} /> Record
+                                            </button>
+                                        )}
                                     </td>
                                 </tr>
                             ))}

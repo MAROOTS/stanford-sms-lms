@@ -6,10 +6,15 @@ import com.stanford.schoolbackend.core.notification.NotificationService;
 import com.stanford.schoolbackend.core.security.SecurityUtils;
 import com.stanford.schoolbackend.sms.fees.dto.FeePaymentResponse;
 import com.stanford.schoolbackend.sms.fees.dto.RecordPaymentRequest;
+import com.stanford.schoolbackend.sms.parent.ParentAccessService;
+import com.stanford.schoolbackend.sms.parent.ParentStudentLinkRepository;
+import com.stanford.schoolbackend.sms.student.Student;
 import lombok.RequiredArgsConstructor;
 import org.springframework.security.access.AccessDeniedException;
 import org.springframework.stereotype.Service;
+import org.springframework.transaction.annotation.Transactional;
 
+import java.math.BigDecimal;
 import java.util.List;
 
 @Service
@@ -19,30 +24,62 @@ public class FeePaymentService {
     private final FeePaymentRepository feePaymentRepository;
     private final FeeInvoiceRepository feeInvoiceRepository;
     private final NotificationService notificationService;
+    private final ParentStudentLinkRepository parentStudentLinkRepository;
+    private final ParentAccessService parentAccessService;
+    @Transactional
     public FeePaymentResponse recordPayment(Long invoiceId, RecordPaymentRequest request) {
         FeeInvoice invoice = feeInvoiceRepository.findById(invoiceId)
                 .orElseThrow(() -> new ResourceNotFoundException("Invoice not found"));
         assertCurrentSchool(invoice.getSchool(), "Invoice not found");
-        FeePayment payment = FeePayment.builder()
+
+        BigDecimal billed = invoice.getLineItems().stream()
+                .map(FeeInvoiceLineItem::getAmount)
+                .reduce(BigDecimal.ZERO, BigDecimal::add);
+        BigDecimal paid = feePaymentRepository.findByInvoiceId(invoice.getId()).stream()
+                .map(FeePayment::getAmount)
+                .reduce(BigDecimal.ZERO, BigDecimal::add);
+        BigDecimal balance = billed.subtract(paid);
+
+        if (balance.compareTo(BigDecimal.ZERO) <= 0) {
+            throw new IllegalArgumentException("This invoice is already paid in full");
+        }
+        if (request.getAmount().compareTo(balance) > 0) {
+            throw new IllegalArgumentException(
+                    "Payment cannot exceed the outstanding balance of KES " + balance);
+        }
+
+        FeePayment saved = feePaymentRepository.save(FeePayment.builder()
                 .invoice(invoice)
                 .amount(request.getAmount())
                 .method(request.getMethod())
                 .paymentDate(request.getPaymentDate())
                 .reference(request.getReference())
-                .build();
-        FeePayment saved = feePaymentRepository.save(payment);
-        notificationService.notifyUser(invoice.getStudent(), NotificationType.FEE_PAYMENT,
-                "Payment of KES " + request.getAmount() + " received via " + request.getMethod() + ".",
-                "/fees");
+                .build());
+
+        String msg = "Payment of KES " + request.getAmount() + " received via "
+                + request.getMethod() + " for " + invoice.getTerm().getName() + ".";
+        notificationService.notifyUser(invoice.getStudent(), NotificationType.FEE_PAYMENT, msg, "/my-fees");
+        notifyParents(invoice.getStudent(), NotificationType.FEE_PAYMENT, msg,
+                "/child/" + invoice.getStudent().getId() + "/fees");
+
         return toResponse(saved);
+    }
+
+    private void notifyParents(Student student, NotificationType type, String message, String link) {
+        parentStudentLinkRepository.findByStudentId(student.getId())
+                .forEach(linkRow -> notificationService.notifyUser(linkRow.getParent(), type, message, link));
     }
 
     public List<FeePaymentResponse> listByInvoice(Long invoiceId) {
         FeeInvoice invoice = feeInvoiceRepository.findById(invoiceId)
                 .orElseThrow(() -> new ResourceNotFoundException("Invoice not found"));
         assertCurrentSchool(invoice.getSchool(), "Invoice not found");
-        boolean isAdmin = SecurityUtils.currentUserHasRole("ADMIN");
-        if (!isAdmin && !invoice.getStudent().getUsername().equals(SecurityUtils.currentUsername())) {
+        boolean privileged = SecurityUtils.currentUserHasRole("ADMIN")
+                || SecurityUtils.currentUserHasRole("ACCOUNTANT");
+        boolean ownStudent = invoice.getStudent().getUsername().equals(SecurityUtils.currentUsername());
+        boolean linkedParent = SecurityUtils.currentUserHasRole("PARENT")
+                && parentAccessService.isCurrentUserParentOf(invoice.getStudent().getId());
+        if (!privileged && !ownStudent && !linkedParent) {
             throw new AccessDeniedException("You can only view your own payment history");
         }
 

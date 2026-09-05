@@ -9,7 +9,9 @@ function todayISO() {
 }
 
 export default function PaymentModal({ invoice, onClose, onSaved }) {
-    const [amount, setAmount] = useState('');
+    const [amount, setAmount] = useState(
+        invoice.balance != null ? String(invoice.balance) : ''
+    );
     const [method, setMethod] = useState('');
     const [paymentDate, setPaymentDate] = useState(todayISO());
     const [reference, setReference] = useState('');
@@ -19,6 +21,10 @@ export default function PaymentModal({ invoice, onClose, onSaved }) {
     const handleSubmit = async (e) => {
         e.preventDefault();
         setError(''); setSaving(true);
+        if (Number(amount) > Number(invoice.balance)) {
+            setError(`Payment cannot exceed KES ${Number(invoice.balance).toLocaleString()}`);
+            return;
+        }
         try {
             await axiosClient.post(`/fee-invoices/${invoice.id}/payments`, {
                 amount: Number(amount), method, paymentDate, reference: reference || null,
@@ -43,8 +49,17 @@ export default function PaymentModal({ invoice, onClose, onSaved }) {
                 <form onSubmit={handleSubmit} className="space-y-4">
                     <div>
                         <label className="block text-sm font-medium text-slate-700 mb-1.5">Amount</label>
-                        <input type="number" min="0.01" step="0.01" required value={amount} onChange={(e) => setAmount(e.target.value)}
-                               className="w-full px-3 py-2.5 rounded-lg bg-slate-50 border border-slate-200 text-sm focus:outline-none focus:ring-2 focus:ring-teal-accent" />
+                        <input
+                            type="number"
+                            min="0.01"
+                            step="0.01"
+                            max={invoice.balance}
+                            required
+                            value={amount}
+                            onChange={(e) => setAmount(e.target.value)}
+                            className="w-full px-3 py-2.5 rounded-lg bg-slate-50 border border-slate-200 text-sm focus:outline-none focus:ring-2 focus:ring-teal-accent"
+                        />
+                        <p className="text-xs text-slate-400 mt-1">Maximum KES {Number(invoice.balance).toLocaleString()}</p>
                     </div>
                     <div>
                         <label className="block text-sm font-medium text-slate-700 mb-1.5">Method</label>

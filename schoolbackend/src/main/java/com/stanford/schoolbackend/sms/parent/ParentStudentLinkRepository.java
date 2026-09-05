@@ -8,4 +8,5 @@ public interface ParentStudentLinkRepository extends JpaRepository<ParentStudent
     List<ParentStudentLink> findByParentId(Long parentId);
     Optional<ParentStudentLink> findByParentIdAndStudentId(Long parentId, Long studentId);
     boolean existsByParentIdAndStudentId(Long parentId, Long studentId);
+    List<ParentStudentLink> findByStudentId(Long studentId);
 }

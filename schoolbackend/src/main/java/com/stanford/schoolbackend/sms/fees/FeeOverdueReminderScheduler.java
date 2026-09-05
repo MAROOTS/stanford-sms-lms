@@ -5,6 +5,7 @@ import com.stanford.schoolbackend.core.notification.NotificationService;
 import com.stanford.schoolbackend.core.school.School;
 import com.stanford.schoolbackend.core.school.SchoolRepository;
 import com.stanford.schoolbackend.core.tenant.TenantContext;
+import com.stanford.schoolbackend.sms.parent.ParentStudentLinkRepository;
 import lombok.RequiredArgsConstructor;
 import org.springframework.scheduling.annotation.Scheduled;
 import org.springframework.stereotype.Component;
@@ -25,6 +26,7 @@ public class FeeOverdueReminderScheduler {
     private final NotificationService notificationService;
     private final SchoolRepository schoolRepository;
     private final TenantContext tenantContext;
+    private final ParentStudentLinkRepository parentStudentLinkRepository;
 
     @Scheduled(cron = "0 0 8 * * *") // 8am daily
     public void sendOverdueReminders() {
@@ -52,7 +54,14 @@ public class FeeOverdueReminderScheduler {
             notificationService.notifyUser(invoice.getStudent(), NotificationType.FEE_OVERDUE,
                     "Your fee balance of KES " + balance + " for " + invoice.getTerm().getName() + " is overdue.",
                     "/my-fees");
-
+            String parentMsg = invoice.getStudent().getFirstName() + " " + invoice.getStudent().getLastName()
+                    + " has an overdue fee balance of KES " + balance + " for " + invoice.getTerm().getName() + ".";
+            parentStudentLinkRepository.findByStudentId(invoice.getStudent().getId())
+                    .forEach(link -> notificationService.notifyUser(
+                            link.getParent(),
+                            NotificationType.FEE_OVERDUE,
+                            parentMsg,
+                            "/child/" + invoice.getStudent().getId() + "/fees"));
             invoice.setLastOverdueReminderAt(Instant.now());
             feeInvoiceRepository.save(invoice);
         }
