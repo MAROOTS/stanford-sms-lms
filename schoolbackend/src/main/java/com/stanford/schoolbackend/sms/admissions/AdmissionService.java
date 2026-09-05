@@ -11,6 +11,7 @@ import com.stanford.schoolbackend.core.notification.NotificationService;
 import com.stanford.schoolbackend.core.school.School;
 import com.stanford.schoolbackend.core.school.SchoolRepository;
 import com.stanford.schoolbackend.core.security.SecurityUtils;
+import com.stanford.schoolbackend.core.user.UserRepository;
 import com.stanford.schoolbackend.sms.academic.GradeLevel;
 import com.stanford.schoolbackend.sms.academic.GradeLevelRepository;
 import com.stanford.schoolbackend.sms.admissions.dto.*;
@@ -35,6 +36,7 @@ public class AdmissionService {
     private final SchoolRepository schoolRepository;
     private final StudentRepository studentRepository;
     private final ParentService parentService;
+    private final UserRepository userRepository;
     public StudentApplicationResponse create(CreateApplicationRequest request) {
         GradeLevel gradeLevel = resolveGradeLevel(request.getDesiredGradeLevelId());
         School school = schoolRepository.findById(SecurityUtils.currentSchoolId())
@@ -121,10 +123,22 @@ public class AdmissionService {
             throw new PasswordMismatchException();
         }
 
-        String accountEmail = (application.getStudentEmail() != null && !application.getStudentEmail().isBlank())
-                ? application.getStudentEmail()
-                : application.getGuardianEmail();
+        String accountEmail;
+        String studentEmail = application.getStudentEmail();
+        String guardianEmail = application.getGuardianEmail();
 
+        if (studentEmail != null && !studentEmail.isBlank()
+                && (guardianEmail == null || !studentEmail.equalsIgnoreCase(guardianEmail))) {
+            accountEmail = studentEmail.trim();
+        } else {
+            // kids often have no email — don't steal the guardian's
+            accountEmail = request.getUsername().toLowerCase() + "@students.local";
+        }
+
+        if (userRepository.findByEmail(accountEmail).isPresent()) {
+            accountEmail = request.getUsername().toLowerCase()
+                    + "+" + System.currentTimeMillis() + "@students.local";
+        }
         RegisterRequest registerRequest = new RegisterRequest();
         registerRequest.setFirstName(application.getFirstName());
         registerRequest.setLastName(application.getLastName());

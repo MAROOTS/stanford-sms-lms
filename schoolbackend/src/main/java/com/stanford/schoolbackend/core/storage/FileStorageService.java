@@ -73,6 +73,16 @@ public class FileStorageService {
         return getPresignedUrl(objectKey, 1); // preserves existing 1-hour default for submissions
     }
 
-
+    public void delete(String objectKey) {
+        if (objectKey == null || objectKey.isBlank()) return;
+        try {
+            minioClient.removeObject(RemoveObjectArgs.builder()
+                    .bucket(bucket)
+                    .object(objectKey)
+                    .build());
+        } catch (Exception e) {
+            // old file can stay; don't fail the new upload
+        }
+    }
 
 }

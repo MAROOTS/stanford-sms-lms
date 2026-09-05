@@ -1,5 +1,5 @@
 import { useEffect, useState, useCallback } from 'react';
-import { Plus, Calendar, Eye, Pencil, Trash2 } from 'lucide-react';
+import { Plus, Calendar, Eye, Pencil, Trash2, Clock, CheckCircle2 } from 'lucide-react';
 import axiosClient from '../../api/axiosClient';
 import TermModal from './TermModal';
 import ConfirmDialog from '../../components/shared/ConfirmDialog';
@@ -27,7 +27,7 @@ export default function Terms() {
         finally { setLoading(false); }
     }, []);
 
-    useEffect(() => {queueMicrotask(() => load()); }, [load]);
+    useEffect(() => { queueMicrotask(() => load()); }, [load]);
 
     const handleDelete = async () => {
         if (!deleteTarget) return;
@@ -44,72 +44,115 @@ export default function Terms() {
     };
 
     return (
-        <div>
-            <div className="flex items-center justify-between mb-6">
+        <div className="max-w-7xl mx-auto p-4 sm:p-6 lg:p-8 animate-in fade-in duration-500">
+            {/* HEADER & CONTROLS */}
+            <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4 mb-8">
                 <div>
-                    <h1 className="text-2xl font-bold text-slate-900">Terms</h1>
-                    <p className="text-sm text-slate-500 mt-1">Academic terms for the school calendar.</p>
+                    <h1 className="text-3xl font-bold tracking-tight text-slate-900">Terms</h1>
+                    <p className="text-sm text-slate-500 mt-1.5">Manage academic terms and schedule milestones for the school calendar.</p>
                 </div>
-                <button onClick={() => { setEditing(null); setViewing(null); setModalOpen(true); }}
-                        className="flex items-center gap-1.5 bg-navy-900 hover:bg-navy-800 text-white text-sm font-medium px-4 py-2.5 rounded-lg transition-colors">
-                    <Plus size={16} /> Add term
+                <button
+                    onClick={() => { setEditing(null); setViewing(null); setModalOpen(true); }}
+                    className="flex items-center justify-center gap-2 bg-navy-900 hover:bg-navy-800 text-white shadow-sm text-sm font-semibold px-5 py-2.5 rounded-xl transition-all active:scale-[0.98]"
+                >
+                    <Plus size={18} /> Add Term
                 </button>
             </div>
 
+            {/* LOADING STATE */}
             {loading && <TableSkeleton columns={4} rows={4} />}
 
+            {/* ERROR STATE */}
             {error && !loading && (
-                <div className="bg-red-50 border border-red-100 rounded-xl p-6 text-center">
-                    <p className="text-red-600 text-sm mb-3">{error}</p>
-                    <button onClick={load} className="text-sm font-medium text-red-700 hover:text-red-800 underline">Try again</button>
+                <div className="bg-rose-50 border border-rose-200 rounded-2xl p-6 text-center shadow-sm">
+                    <p className="text-rose-700 text-sm font-medium mb-3">{error}</p>
+                    <button onClick={load} className="text-sm font-semibold text-rose-800 hover:text-rose-900 underline">Try again</button>
                 </div>
             )}
 
+            {/* EMPTY STATE */}
             {!loading && !error && terms.length === 0 && (
-                <EmptyState
-                    icon={Calendar}
-                    title="No terms yet"
-                    description="Create the first academic term to organize exams and schedules."
-                    action={
-                        <button onClick={() => { setEditing(null); setModalOpen(true); }}
-                                className="flex items-center gap-1.5 bg-navy-900 hover:bg-navy-800 text-white text-sm font-medium px-4 py-2.5 rounded-lg transition-colors">
-                            <Plus size={16} /> Add term
-                        </button>
-                    }
-                />
+                <div className="bg-white rounded-2xl border border-slate-200 shadow-sm p-12">
+                    <EmptyState
+                        icon={Calendar}
+                        title="No terms yet"
+                        description="Create the first academic term to organize exams, billing cycles, and schedules."
+                        action={
+                            <button
+                                onClick={() => { setEditing(null); setViewing(null); setModalOpen(true); }}
+                                className="flex items-center gap-2 bg-navy-900 hover:bg-navy-800 text-white text-sm font-semibold px-4 py-2.5 rounded-xl transition-all shadow-sm"
+                            >
+                                <Plus size={16} /> Add Term
+                            </button>
+                        }
+                    />
+                </div>
             )}
 
+            {/* DATA TABLE */}
             {!loading && !error && terms.length > 0 && (
-                <div className="bg-white rounded-xl border border-slate-200 overflow-hidden">
-                    <div className="overflow-x-auto">
-                        <table className="w-full text-sm">
-                            <thead>
-                            <tr className="border-b border-slate-100 text-left text-[11px] font-semibold tracking-wider text-slate-400">
-                                <th className="px-6 py-3">TERM</th>
-                                <th className="px-6 py-3">DATES</th>
-                                <th className="px-6 py-3">STATUS</th>
-                                <th className="px-6 py-3 text-right">ACTIONS</th>
+                <div className="bg-white rounded-2xl border border-slate-200 shadow-sm overflow-hidden">
+                    <div className="overflow-x-auto custom-scrollbar">
+                        <table className="w-full text-sm text-left">
+                            <thead className="bg-slate-50 border-b border-slate-200">
+                            <tr className="text-[11px] font-bold tracking-wider text-slate-500 uppercase">
+                                <th className="px-6 py-4">Term</th>
+                                <th className="px-6 py-4">Dates</th>
+                                <th className="px-6 py-4">Status</th>
+                                <th className="px-6 py-4 text-right">Actions</th>
                             </tr>
                             </thead>
-                            <tbody>
+                            <tbody className="divide-y divide-slate-100">
                             {terms.map((t) => (
-                                <tr key={t.id} className="border-b border-slate-50 last:border-0 hover:bg-slate-50/50 transition-colors">
-                                    <td className="px-6 py-4 font-medium text-slate-800">{t.name}</td>
-                                    <td className="px-6 py-4 text-slate-600">{t.startDate || '—'} {t.endDate ? `– ${t.endDate}` : ''}</td>
+                                <tr key={t.id} className="group bg-white hover:bg-slate-50/80 transition-colors">
+                                    <td className="px-6 py-4 font-semibold text-slate-900">
+                                        <div className="flex items-center gap-2.5">
+                                            <div className="w-8 h-8 rounded-lg bg-slate-100 border border-slate-200 flex items-center justify-center text-slate-600">
+                                                <Calendar size={16} />
+                                            </div>
+                                            {t.name}
+                                        </div>
+                                    </td>
+                                    <td className="px-6 py-4 text-slate-600 font-medium">
+                                        {t.startDate ? (
+                                            <div className="flex items-center gap-1.5 text-xs text-slate-600 bg-slate-50 border border-slate-200 px-2.5 py-1 rounded-lg w-fit">
+                                                <Clock size={12} className="text-slate-400" />
+                                                {t.startDate} {t.endDate ? `– ${t.endDate}` : ''}
+                                            </div>
+                                        ) : (
+                                            <span className="text-slate-400">—</span>
+                                        )}
+                                    </td>
                                     <td className="px-6 py-4">
-                                        {t.isCurrent
-                                            ? <span className="inline-block bg-teal-accent/15 text-teal-700 text-xs font-medium px-2.5 py-1 rounded-full">Current</span>
-                                            : <span className="text-slate-400 text-xs">—</span>}
+                                        {t.isCurrent ? (
+                                            <span className="inline-flex items-center gap-1 bg-emerald-50 border border-emerald-100 text-emerald-700 text-xs font-bold px-2.5 py-1 rounded-full">
+                                                <CheckCircle2 size={12} /> Current
+                                            </span>
+                                        ) : (
+                                            <span className="text-slate-400 text-xs font-normal">—</span>
+                                        )}
                                     </td>
                                     <td className="px-6 py-4 text-right whitespace-nowrap">
-                                        <div className="flex items-center justify-end gap-1">
-                                            <button onClick={() => { setViewing(t); setEditing(null); setModalOpen(true); }} title="View" className="p-2 rounded-lg text-slate-400 hover:text-slate-600 hover:bg-surface-100 transition-colors">
+                                        <div className="flex items-center justify-end gap-1.5 opacity-80 group-hover:opacity-100 transition-opacity">
+                                            <button
+                                                onClick={() => { setViewing(t); setEditing(null); setModalOpen(true); }}
+                                                title="View Details"
+                                                className="p-2 rounded-xl text-slate-400 hover:text-navy-900 hover:bg-slate-100 transition-colors"
+                                            >
                                                 <Eye size={16} />
                                             </button>
-                                            <button onClick={() => { setEditing(t); setViewing(null); setModalOpen(true); }} title="Edit" className="p-2 rounded-lg text-slate-400 hover:text-slate-600 hover:bg-surface-100 transition-colors">
+                                            <button
+                                                onClick={() => { setEditing(t); setViewing(null); setModalOpen(true); }}
+                                                title="Edit Term"
+                                                className="p-2 rounded-xl text-slate-400 hover:text-blue-600 hover:bg-blue-50 transition-colors"
+                                            >
                                                 <Pencil size={16} />
                                             </button>
-                                            <button onClick={() => setDeleteTarget(t)} title="Delete" className="p-2 rounded-lg text-red-400 hover:text-red-600 hover:bg-red-50 transition-colors">
+                                            <button
+                                                onClick={() => setDeleteTarget(t)}
+                                                title="Delete Term"
+                                                className="p-2 rounded-xl text-slate-400 hover:text-rose-600 hover:bg-rose-50 transition-colors"
+                                            >
                                                 <Trash2 size={16} />
                                             </button>
                                         </div>
@@ -122,8 +165,17 @@ export default function Terms() {
                 </div>
             )}
 
-            {modalOpen && <TermModal initialData={editing || viewing} readOnly={!!viewing} onClose={() => setModalOpen(false)} onSaved={() => { setModalOpen(false); load(); toast.success('Term saved successfully.'); }} />}
+            {/* MODAL */}
+            {modalOpen && (
+                <TermModal
+                    initialData={editing || viewing}
+                    readOnly={!!viewing}
+                    onClose={() => setModalOpen(false)}
+                    onSaved={() => { setModalOpen(false); load(); toast.success('Term saved successfully.'); }}
+                />
+            )}
 
+            {/* CONFIRMATION DIALOG */}
             <ConfirmDialog
                 open={!!deleteTarget}
                 title="Delete term"

@@ -16,6 +16,7 @@ import InvoiceModal from './InvoiceModal';
 import PaymentModal from './PaymentModal';
 import NoticeCard from '../../components/shared/NoticeCard';
 import { readApiError } from '../../utils/readApiError';
+import GenerateInvoicesModal from "./GenerateInvoicesModal";
 
 const CHART_COLORS = [
     '#14b8a6', // Teal 500
@@ -38,6 +39,7 @@ export default function FeeCollection() {
     const [paymentModalInvoice, setPaymentModalInvoice] = useState(null);
     const [classSections, setClassSections] = useState([]);
     const [classFilter, setClassFilter] = useState('');
+    const [generateOpen, setGenerateOpen] = useState(false);
 
     // Initial page data
     useEffect(() => {
@@ -183,6 +185,10 @@ export default function FeeCollection() {
                     >
                         <Plus size={18} />
                         Create Invoice
+                    </button>
+                    <button onClick={() => setGenerateOpen(true)}
+                            className="flex items-center gap-2 bg-navy-900 text-white text-sm font-semibold px-4 py-2.5 rounded-xl">
+                        Generate invoices
                     </button>
                 </div>
             </div>
@@ -404,6 +410,20 @@ export default function FeeCollection() {
                     onClose={() => setPaymentModalInvoice(null)}
                     onSaved={() => {
                         setPaymentModalInvoice(null);
+                        loadTermData();
+                    }}
+                />
+            )}
+
+            {generateOpen && (
+                <GenerateInvoicesModal
+                    termId={termId}
+                    classFilter={classFilter}
+                    classSections={classSections}
+                    feeItems={feeItems}
+                    onClose={() => setGenerateOpen(false)}
+                    onGenerated={() => {
+                        setGenerateOpen(false);
                         loadTermData();
                     }}
                 />

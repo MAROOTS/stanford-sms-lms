@@ -3,6 +3,7 @@ package com.stanford.schoolbackend.sms.student;
 import com.stanford.schoolbackend.core.exception.EmailAlreadyExistsException;
 import com.stanford.schoolbackend.core.exception.ResourceNotFoundException;
 import com.stanford.schoolbackend.core.security.SecurityUtils;
+import com.stanford.schoolbackend.core.storage.FileStorageService;
 import com.stanford.schoolbackend.core.user.UserRepository;
 import com.stanford.schoolbackend.sms.academic.ClassSection;
 import com.stanford.schoolbackend.sms.academic.ClassSectionRepository;
@@ -15,8 +16,10 @@ import com.stanford.schoolbackend.sms.teacher.TeacherRepository;
 import lombok.RequiredArgsConstructor;
 import org.springframework.security.access.AccessDeniedException;
 import org.springframework.stereotype.Service;
+import org.springframework.web.multipart.MultipartFile;
 
 import java.util.List;
+import java.util.Set;
 
 @Service
 @RequiredArgsConstructor
@@ -27,7 +30,12 @@ public class StudentService {
     private final UserRepository userRepository;
     private final TeacherRepository teacherRepository;
     private final ParentAccessService parentAccessService;
+    private final FileStorageService fileStorageService;
 
+    private static final Set<String> PHOTO_TYPES = Set.of(
+            "image/jpeg", "image/png", "image/webp"
+    );
+    private static final long MAX_PHOTO_BYTES = 2 * 1024 * 1024;
     public void assignSection(Long studentId, AssignSectionRequest request) {
         Student student = getOwnedOrThrow(studentId);
 
@@ -159,6 +167,34 @@ public class StudentService {
         studentRepository.delete(student);
     }
 
+    public StudentResponse updatePhoto(Long studentId, MultipartFile file) {
+        Student student = getOwnedOrThrow(studentId);
+        if (file == null || file.isEmpty()) {
+            throw new IllegalArgumentException("Please choose a photo");
+        }
+        if (file.getSize() > MAX_PHOTO_BYTES) {
+            throw new IllegalArgumentException("Photo must be 2MB or smaller");
+        }
+        String type = file.getContentType();
+        if (type == null || !PHOTO_TYPES.contains(type)) {
+            throw new IllegalArgumentException("Use a JPEG, PNG, or WebP image");
+        }
+
+        Long schoolId = SecurityUtils.currentSchoolId();
+        String oldKey = student.getPhotoObjectKey();
+        String newKey = fileStorageService.store(file, "photos/students/" + schoolId);
+        student.setPhotoObjectKey(newKey);
+        Student saved = studentRepository.save(student);
+        fileStorageService.delete(oldKey);
+        return toResponse(saved);
+    }
+
+    public StudentResponse deletePhoto(Long studentId) {
+        Student student = getOwnedOrThrow(studentId);
+        fileStorageService.delete(student.getPhotoObjectKey());
+        student.setPhotoObjectKey(null);
+        return toResponse(studentRepository.save(student));
+    }
     private Student getOwnedOrThrow(Long studentId) {
         Student student = studentRepository.findById(studentId)
                 .orElseThrow(() -> new ResourceNotFoundException("Student not found"));
@@ -172,6 +208,9 @@ public class StudentService {
     private StudentResponse toResponse(Student s) {
         return StudentResponse.builder()
                 .id(s.getId())
+                .photoUrl(s.getPhotoObjectKey() != null
+                        ? fileStorageService.getPresignedUrl(s.getPhotoObjectKey(), 24)
+                        : null)
                 .firstName(s.getFirstName())
                 .lastName(s.getLastName())
                 .email(s.getEmail())

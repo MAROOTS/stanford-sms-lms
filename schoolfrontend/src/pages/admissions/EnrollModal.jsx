@@ -58,6 +58,9 @@ export default function EnrollModal({ application, onClose, onEnrolled }) {
                         <label className="block text-sm font-medium text-slate-700 mb-1.5">Username <span className="text-slate-400 font-normal">(editable)</span></label>
                         <input required value={username} onChange={(e) => setUsername(e.target.value)}
                                className="w-full px-3 py-2.5 rounded-lg bg-slate-50 border border-slate-200 text-sm font-mono focus:outline-none focus:ring-2 focus:ring-teal-accent" />
+                        <p className="text-xs text-slate-400 mt-1">
+                            The student signs in with this username. The guardian email is used for the parent login, not the student.
+                        </p>
                     </div>
                     <div className="grid grid-cols-2 gap-3">
                         <div>

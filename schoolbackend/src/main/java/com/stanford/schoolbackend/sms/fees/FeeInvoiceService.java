@@ -6,16 +6,14 @@ import com.stanford.schoolbackend.core.school.SchoolRepository;
 import com.stanford.schoolbackend.core.security.SecurityUtils;
 import com.stanford.schoolbackend.sms.exams.Term;
 import com.stanford.schoolbackend.sms.exams.TermRepository;
-import com.stanford.schoolbackend.sms.fees.dto.CreateInvoiceRequest;
-import com.stanford.schoolbackend.sms.fees.dto.FeeInvoiceResponse;
-import com.stanford.schoolbackend.sms.fees.dto.FeeTermSummaryResponse;
-import com.stanford.schoolbackend.sms.fees.dto.MonthToDateCollectionResponse;
+import com.stanford.schoolbackend.sms.fees.dto.*;
 import com.stanford.schoolbackend.sms.parent.ParentAccessService;
 import com.stanford.schoolbackend.sms.student.Student;
 import com.stanford.schoolbackend.sms.student.StudentRepository;
 import lombok.RequiredArgsConstructor;
 import org.springframework.security.access.AccessDeniedException;
 import org.springframework.stereotype.Service;
+import org.springframework.transaction.annotation.Transactional;
 
 import java.math.BigDecimal;
 import java.math.RoundingMode;
@@ -195,6 +193,70 @@ public class FeeInvoiceService {
                 })
                 .collect(Collectors.toCollection(ArrayList::new));
     }
+
+    @Transactional
+    public GenerateInvoicesResponse generate(GenerateInvoicesRequest request) {
+        Long schoolId = SecurityUtils.currentSchoolId();
+        Term term = termRepository.findById(request.getTermId())
+                .orElseThrow(() -> new ResourceNotFoundException("Term not found"));
+        if (term.getSchool() == null || !schoolId.equals(term.getSchool().getId())) {
+            throw new ResourceNotFoundException("Term not found");
+        }
+        School school = schoolRepository.findById(schoolId)
+                .orElseThrow(() -> new ResourceNotFoundException("School not found"));
+
+        List<FeeItem> items = feeItemRepository.findAllById(request.getFeeItemIds()).stream()
+                .filter(fi -> fi.getSchool() != null && schoolId.equals(fi.getSchool().getId()))
+                .toList();
+        if (items.isEmpty()) {
+            throw new IllegalArgumentException("No valid fee items selected");
+        }
+
+        List<Student> students = (request.getClassSectionId() != null)
+                ? studentRepository.findByClassSectionId(request.getClassSectionId())
+                : studentRepository.findBySchoolId(schoolId);
+
+        int created = 0, skippedExisting = 0, skippedNoAmount = 0;
+
+        for (Student student : students) {
+            if (feeInvoiceRepository.findByStudentIdAndTermId(student.getId(), term.getId()).isPresent()) {
+                skippedExisting++;
+                continue;
+            }
+            List<FeeInvoiceLineItem> lines = new ArrayList<>();
+            FeeInvoice invoice = FeeInvoice.builder()
+                    .student(student)
+                    .term(term)
+                    .dueDate(request.getDueDate())
+                    .school(school)
+                    .build();
+
+            for (FeeItem item : items) {
+                if (item.getDefaultAmount() == null
+                        || item.getDefaultAmount().compareTo(BigDecimal.ZERO) <= 0) {
+                    skippedNoAmount++;
+                    continue;
+                }
+                lines.add(FeeInvoiceLineItem.builder()
+                        .invoice(invoice)
+                        .feeItem(item)
+                        .amount(item.getDefaultAmount())
+                        .build());
+            }
+            if (lines.isEmpty()) continue;
+
+            invoice.setLineItems(lines);
+            feeInvoiceRepository.save(invoice);
+            created++;
+        }
+
+        return GenerateInvoicesResponse.builder()
+                .created(created)
+                .skippedExisting(skippedExisting)
+                .skippedNoAmount(skippedNoAmount)
+                .build();
+    }
+
 
     private FeeInvoice getOrThrow(Long invoiceId) {
         FeeInvoice invoice = feeInvoiceRepository.findById(invoiceId)

@@ -187,9 +187,20 @@ export default function Students() {
                                 >
                                     <td className="px-6 py-4">
                                         <div className="flex items-center gap-3">
-                                            <div className={`w-9 h-9 rounded-full flex items-center justify-center text-xs font-bold shadow-sm border border-black/5 ${getAvatarStyle(s.firstName)}`}>
-                                                {s.firstName?.[0]}{s.lastName?.[0]}
-                                            </div>
+                                            {s.photoUrl ? (
+                                                <img
+                                                    src={s.photoUrl}
+                                                    alt=""
+                                                    className="w-9 h-9 rounded-full object-cover shadow-sm border border-black/5"
+                                                />
+                                            ) : (
+                                                <div
+                                                    className={`w-9 h-9 rounded-full flex items-center justify-center text-xs font-bold shadow-sm border border-black/5 ${getAvatarStyle(s.firstName)}`}
+                                                >
+                                                    {s.firstName?.[0]}
+                                                    {s.lastName?.[0]}
+                                                </div>
+                                            )}
                                             <div className="flex flex-col">
                                                     <span className="font-semibold text-slate-900">
                                                         {s.firstName} {s.lastName}

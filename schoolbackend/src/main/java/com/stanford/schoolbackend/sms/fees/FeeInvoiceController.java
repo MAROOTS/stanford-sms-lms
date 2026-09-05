@@ -59,4 +59,11 @@ public class FeeInvoiceController {
     public ResponseEntity<MonthToDateCollectionResponse> getMonthToDateCollection() {
         return ResponseEntity.ok(feeInvoiceService.getMonthToDateCollection());
     }
+
+    @PostMapping("/generate")
+    @PreAuthorize("hasAnyRole('ADMIN','ACCOUNTANT')")
+    public ResponseEntity<GenerateInvoicesResponse> generate(
+            @Valid @RequestBody GenerateInvoicesRequest request) {
+        return ResponseEntity.status(HttpStatus.CREATED).body(feeInvoiceService.generate(request));
+    }
 }

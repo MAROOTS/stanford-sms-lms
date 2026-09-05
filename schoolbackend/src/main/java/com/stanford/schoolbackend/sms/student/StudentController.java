@@ -8,6 +8,7 @@ import lombok.RequiredArgsConstructor;
 import org.springframework.http.ResponseEntity;
 import org.springframework.security.access.prepost.PreAuthorize;
 import org.springframework.web.bind.annotation.*;
+import org.springframework.web.multipart.MultipartFile;
 
 import java.util.List;
 
@@ -40,6 +41,20 @@ public class StudentController {
     @PreAuthorize("hasRole('ADMIN')")
     public ResponseEntity<StudentResponse> update(@PathVariable Long studentId, @Valid @RequestBody StudentUpdateRequest request) {
         return ResponseEntity.ok(studentService.update(studentId, request));
+    }
+
+    @PostMapping(value = "/{studentId}/photo", consumes = "multipart/form-data")
+    @PreAuthorize("hasRole('ADMIN')")
+    public ResponseEntity<StudentResponse> updatePhoto(
+            @PathVariable Long studentId,
+            @RequestParam MultipartFile file) {
+        return ResponseEntity.ok(studentService.updatePhoto(studentId, file));
+    }
+
+    @DeleteMapping("/{studentId}/photo")
+    @PreAuthorize("hasRole('ADMIN')")
+    public ResponseEntity<StudentResponse> deletePhoto(@PathVariable Long studentId) {
+        return ResponseEntity.ok(studentService.deletePhoto(studentId));
     }
 
     @DeleteMapping("/{studentId}")
