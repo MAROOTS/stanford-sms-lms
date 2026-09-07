@@ -28,7 +28,7 @@ public class AnnouncementService {
     private final CourseRepository courseRepository;
     private final TeacherRepository teacherRepository;
     private final NotificationService  notificationService;
-    private SchoolRepository schoolRepository;
+    private final SchoolRepository schoolRepository;
     public AnnouncementResponse create(AnnouncementRequest request) {
         Teacher teacher = teacherRepository.findByUsername(SecurityUtils.currentUsername()).orElse(null);
         School school = schoolRepository.findById(SecurityUtils.currentSchoolId())

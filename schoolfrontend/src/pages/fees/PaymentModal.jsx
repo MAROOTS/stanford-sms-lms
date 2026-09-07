@@ -1,6 +1,7 @@
 import { useState } from 'react';
 import { X } from 'lucide-react';
 import axiosClient from '../../api/axiosClient';
+import { downloadPaymentReceipt } from '../../utils/downloadReceipt';
 
 const METHOD_SUGGESTIONS = ['M-Pesa', 'Bank Transfer', 'Cash', 'Cheque'];
 
@@ -25,14 +26,23 @@ export default function PaymentModal({ invoice, onClose, onSaved }) {
             setError(`Payment cannot exceed KES ${Number(invoice.balance).toLocaleString()}`);
             return;
         }
-        try {
-            await axiosClient.post(`/fee-invoices/${invoice.id}/payments`, {
-                amount: Number(amount), method, paymentDate, reference: reference || null,
-            });
-            onSaved();
-        } catch (err) {
-            setError(err.response?.data?.message || 'Something went wrong');
-        } finally { setSaving(false); }
+        const { data } = await axiosClient.post(`/fee-invoices/${invoice.id}/payments`, {
+            amount: Number(amount), method, paymentDate, reference: reference || null,
+        });
+        if (data?.id) {
+            try {
+                await downloadPaymentReceipt(
+                    invoice.id,
+                    data.id,
+                    `${invoice.invoiceNumber || 'receipt'}.pdf`
+                );
+            } catch {
+                setError('Payment saved, but the receipt could not be downloaded. Use Receipt on the invoice row.');
+                setSaving(false);
+                return;
+            }
+        }
+        onSaved();
     };
 
     return (

@@ -20,27 +20,47 @@ export default function Settings() {
     const [activeTab, setActiveTab] = useState('profile');
 
     return (
-        <div>
-            <div className="mb-6">
-                <h1 className="text-2xl font-bold text-slate-900">Settings</h1>
-                <p className="text-sm text-slate-500 mt-1">Manage your account and preferences.</p>
+        <div className="max-w-7xl mx-auto p-4 sm:p-6 lg:p-8 animate-in fade-in duration-500">
+            {/* HEADER */}
+            <div className="mb-8">
+                <h1 className="text-3xl font-bold tracking-tight text-slate-900">Settings</h1>
+                <p className="text-sm text-slate-500 mt-1.5">
+                    Manage your personal account settings, security sessions, and school profile.
+                </p>
             </div>
 
-            <div className="flex gap-1 border-b border-slate-200 mb-6">
-                {tabs.map((t) => (
-                    <button key={t.key} onClick={() => setActiveTab(t.key)}
-                            className={`flex items-center gap-1.5 px-4 py-2.5 text-sm font-medium border-b-2 transition-colors ${
-                                activeTab === t.key ? 'border-teal-accent text-teal-700' : 'border-transparent text-slate-500 hover:text-slate-700'
-                            }`}>
-                        <t.icon size={15} /> {t.label}
-                    </button>
-                ))}
+            {/* TAB NAVIGATION */}
+            <div className="border-b border-slate-200 mb-8 overflow-x-auto custom-scrollbar">
+                <nav className="flex gap-2 -mb-px min-w-max" aria-label="Settings Tabs">
+                    {tabs.map((t) => {
+                        const Icon = t.icon;
+                        const isActive = activeTab === t.key;
+                        return (
+                            <button
+                                key={t.key}
+                                type="button"
+                                onClick={() => setActiveTab(t.key)}
+                                className={`flex items-center gap-2 px-4 py-3 text-sm font-semibold transition-all border-b-2 cursor-pointer ${
+                                    isActive
+                                        ? 'border-navy-900 text-navy-900'
+                                        : 'border-transparent text-slate-500 hover:text-slate-800 hover:border-slate-300'
+                                }`}
+                            >
+                                <Icon size={17} className={isActive ? 'text-navy-900' : 'text-slate-400'} />
+                                {t.label}
+                            </button>
+                        );
+                    })}
+                </nav>
             </div>
 
-            {activeTab === 'profile' && <ProfileTab />}
-            {activeTab === 'sessions' && <SessionsTab />}
-            {activeTab === 'notifications' && <NotificationsTab />}
-            {activeTab === 'school' && isAdmin && <SchoolProfileTab />}
+            {/* TAB CONTENT */}
+            <div className="mt-6">
+                {activeTab === 'profile' && <ProfileTab />}
+                {activeTab === 'sessions' && <SessionsTab />}
+                {activeTab === 'notifications' && <NotificationsTab />}
+                {activeTab === 'school' && isAdmin && <SchoolProfileTab />}
+            </div>
         </div>
     );
 }

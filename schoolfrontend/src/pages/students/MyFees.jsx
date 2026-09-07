@@ -2,6 +2,7 @@ import { useEffect, useState, useCallback } from 'react';
 import { ChevronDown, ChevronUp } from 'lucide-react';
 import axiosClient from '../../api/axiosClient';
 import { useAuth } from '../../context/useAuth';
+import { downloadPaymentReceipt } from '../../utils/downloadReceipt';
 
 function InvoiceCard({ invoice }) {
     const [expanded, setExpanded] = useState(false);
@@ -51,9 +52,18 @@ function InvoiceCard({ invoice }) {
                     {payments && payments.length > 0 && (
                         <div className="space-y-1">
                             {payments.map((p) => (
-                                <div key={p.id} className="flex justify-between text-sm">
+                                <div key={p.id} className="flex justify-between items-center text-sm py-1">
                                     <span className="text-slate-600">{p.paymentDate} · {p.method}</span>
-                                    <span className="text-slate-800">KES {p.amount.toLocaleString()}</span>
+                                    <div className="flex items-center gap-3">
+                                        <span className="text-slate-800 font-medium">KES {p.amount.toLocaleString()}</span>
+                                        <button
+                                            type="button"
+                                            className="text-xs font-medium text-navy-900 hover:underline"
+                                            onClick={() => downloadPaymentReceipt(invoice.id, p.id, `${invoice.invoiceNumber || 'receipt'}-receipt.pdf`)}
+                                        >
+                                            Receipt
+                                        </button>
+                                    </div>
                                 </div>
                             ))}
                         </div>

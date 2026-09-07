@@ -20,6 +20,7 @@ import PaymentModal from './PaymentModal';
 import NoticeCard from '../../components/shared/NoticeCard';
 import { readApiError } from '../../utils/readApiError';
 import GenerateInvoicesModal from "./GenerateInvoicesModal";
+import {downloadPaymentReceipt} from "../../utils/downloadReceipt";
 
 const CHART_COLORS = [
     '#14b8a6', // Teal 500
@@ -136,6 +137,17 @@ export default function FeeCollection() {
         }
         return true;
     });
+
+    const handleLatestReceipt = async (inv) => {
+        try {
+            const { data } = await axiosClient.get(`/fee-invoices/${inv.id}/payments`);
+            if (!data.length) return;
+            const last = data[data.length - 1];
+            await downloadPaymentReceipt(inv.id, last.id, `${inv.invoiceNumber || 'receipt'}.pdf`);
+        } catch (err) {
+            setError(err.message || err.response?.data?.message || 'Could not download receipt');
+        }
+    };
 
     return (
         <div className="max-w-7xl mx-auto p-4 sm:p-6 lg:p-8 animate-in fade-in duration-500">
@@ -376,6 +388,16 @@ export default function FeeCollection() {
                                                 className="inline-flex items-center gap-1.5 px-3 py-1.5 rounded-lg text-xs font-semibold bg-white border border-slate-200 text-slate-700 hover:bg-teal-50 hover:text-teal-700 hover:border-teal-200 transition-all active:scale-[0.98] shadow-2xs"
                                             >
                                                 <Banknote size={14} /> Record
+                                            </button>
+                                        )}
+
+                                        {inv.totalPaid > 0 && (
+                                            <button
+                                                type="button"
+                                                onClick={() => handleLatestReceipt(inv)}
+                                                className="inline-flex items-center gap-1.5 px-3 py-1.5 rounded-lg text-xs font-semibold bg-white border border-slate-200 text-slate-700 hover:bg-slate-50 mr-2"
+                                            >
+                                                Receipt
                                             </button>
                                         )}
                                     </td>
