@@ -19,7 +19,7 @@ public class LibraryFineService {
     private final FeeItemRepository feeItemRepository;
     private final FeeInvoiceRepository feeInvoiceRepository;
     private final TermRepository termRepository;
-
+    private final InvoiceNumberService invoiceNumberService;
     void applyFine(User borrower, Book book, BigDecimal amount, long daysLate) {
         if (!(borrower instanceof Student student)) return;
 
@@ -42,6 +42,7 @@ public class LibraryFineService {
                                 .school(student.getSchool())
                                 .student(student)
                                 .term(currentTerm)
+                                .invoiceNumber(invoiceNumberService.next(schoolId))
                                 .build()));
 
         FeeInvoiceLineItem lineItem = FeeInvoiceLineItem.builder()

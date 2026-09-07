@@ -8,7 +8,10 @@ import {
     CheckCircle2,
     ChevronDown,
     Receipt,
-    Banknote
+    Banknote,
+    Coins,
+    PieChart as PieIcon,
+    Sparkles
 } from 'lucide-react';
 import { PieChart, Pie, Tooltip, ResponsiveContainer, Cell } from 'recharts';
 import axiosClient from '../../api/axiosClient';
@@ -54,16 +57,12 @@ export default function FeeCollection() {
                 setStudents(studentsRes.data);
                 setFeeItems(feeItemsRes.data);
 
-                const current = termsRes.data.find(
-                    (t) => t.isCurrent
-                );
+                const current = termsRes.data.find((t) => t.isCurrent);
 
                 if (current) {
                     setTermId(current.id.toString());
                 } else if (termsRes.data.length > 0) {
-                    setTermId(
-                        termsRes.data[0].id.toString()
-                    );
+                    setTermId(termsRes.data[0].id.toString());
                 }
             })
             .catch((err) =>
@@ -96,9 +95,7 @@ export default function FeeCollection() {
         setError('');
 
         try {
-            const params = classFilter
-                ? { classSectionId: classFilter }
-                : {};
+            const params = classFilter ? { classSectionId: classFilter } : {};
 
             const [invoicesRes, summaryRes] = await Promise.all([
                 axiosClient.get(`/fee-invoices/term/${termId}`, { params }),
@@ -154,11 +151,12 @@ export default function FeeCollection() {
                 </div>
 
                 <div className="flex flex-wrap items-center gap-3">
+                    {/* Class Filter Dropdown */}
                     <div className="relative">
                         <select
                             value={classFilter}
                             onChange={(e) => setClassFilter(e.target.value)}
-                            className="w-full xl:w-48 appearance-none px-4 py-2.5 rounded-xl bg-slate-50 hover:bg-slate-100 border border-slate-200 focus:bg-white focus:outline-none focus:ring-2 focus:ring-navy-900 focus:border-transparent text-sm font-medium text-slate-700 transition-all cursor-pointer"
+                            className="w-full xl:w-48 appearance-none px-4 py-2.5 rounded-xl bg-slate-50 hover:bg-slate-100 border border-slate-200 focus:bg-white focus:outline-none focus:ring-2 focus:ring-navy-900/20 text-sm font-medium text-slate-700 transition-all cursor-pointer pr-10"
                         >
                             <option value="">All classes</option>
                             {classSections.map((c) => (
@@ -170,11 +168,12 @@ export default function FeeCollection() {
                         <ChevronDown size={16} className="absolute right-3 top-1/2 -translate-y-1/2 text-slate-400 pointer-events-none" />
                     </div>
 
+                    {/* Term Selector Dropdown */}
                     <div className="relative">
                         <select
                             value={termId}
                             onChange={(e) => setTermId(e.target.value)}
-                            className="w-full xl:w-40 appearance-none px-4 py-2.5 rounded-xl bg-slate-50 hover:bg-slate-100 border border-slate-200 focus:bg-white focus:outline-none focus:ring-2 focus:ring-navy-900 focus:border-transparent text-sm font-medium text-slate-700 transition-all cursor-pointer"
+                            className="w-full xl:w-40 appearance-none px-4 py-2.5 rounded-xl bg-slate-50 hover:bg-slate-100 border border-slate-200 focus:bg-white focus:outline-none focus:ring-2 focus:ring-navy-900/20 text-sm font-medium text-slate-700 transition-all cursor-pointer pr-10"
                         >
                             {terms.map((t) => (
                                 <option key={t.id} value={t.id}>
@@ -190,7 +189,7 @@ export default function FeeCollection() {
                         <select
                             value={statusFilter}
                             onChange={(e) => setStatusFilter(e.target.value)}
-                            className="w-full xl:w-40 appearance-none px-4 py-2.5 rounded-xl bg-slate-50 hover:bg-slate-100 border border-slate-200 focus:bg-white focus:outline-none focus:ring-2 focus:ring-navy-900 focus:border-transparent text-sm font-medium text-slate-700 transition-all cursor-pointer"
+                            className="w-full xl:w-40 appearance-none px-4 py-2.5 rounded-xl bg-slate-50 hover:bg-slate-100 border border-slate-200 focus:bg-white focus:outline-none focus:ring-2 focus:ring-navy-900/20 text-sm font-medium text-slate-700 transition-all cursor-pointer pr-10"
                         >
                             <option value="all">All invoices</option>
                             <option value="unpaid">Unpaid</option>
@@ -200,6 +199,7 @@ export default function FeeCollection() {
                         <ChevronDown size={16} className="absolute right-3 top-1/2 -translate-y-1/2 text-slate-400 pointer-events-none" />
                     </div>
 
+                    {/* Navigation Links */}
                     <Link
                         to="/fee-items"
                         className="flex items-center gap-2 bg-white border border-slate-200 text-slate-700 hover:bg-slate-50 hover:text-navy-900 text-sm font-semibold px-4 py-2.5 rounded-xl transition-all active:scale-[0.98] shadow-sm"
@@ -207,17 +207,28 @@ export default function FeeCollection() {
                         <Settings size={16} className="text-slate-400" />
                         Fee Items
                     </Link>
+                    <Link
+                        to="/fee-structures"
+                        className="flex items-center gap-2 bg-white border border-slate-200 text-slate-700 hover:bg-slate-50 hover:text-navy-900 text-sm font-semibold px-4 py-2.5 rounded-xl transition-all active:scale-[0.98] shadow-sm"
+                    >
+                        <Coins size={16} className="text-slate-400" />
+                        Fee Structures
+                    </Link>
 
+                    {/* Action Buttons */}
+                    <button
+                        onClick={() => setGenerateOpen(true)}
+                        className="flex items-center gap-2 bg-white border border-slate-200 text-slate-700 hover:bg-slate-50 hover:text-navy-900 text-sm font-semibold px-4 py-2.5 rounded-xl transition-all active:scale-[0.98] shadow-sm"
+                    >
+                        <Sparkles size={16} className="text-slate-400" />
+                        Generate Invoices
+                    </button>
                     <button
                         onClick={() => setInvoiceModalOpen(true)}
                         className="flex items-center gap-2 bg-navy-900 hover:bg-navy-800 text-white shadow-sm text-sm font-semibold px-5 py-2.5 rounded-xl transition-all active:scale-[0.98]"
                     >
                         <Plus size={18} />
                         Create Invoice
-                    </button>
-                    <button onClick={() => setGenerateOpen(true)}
-                            className="flex items-center gap-2 bg-navy-900 text-white text-sm font-semibold px-4 py-2.5 rounded-xl">
-                        Generate invoices
                     </button>
                 </div>
             </div>
@@ -244,7 +255,7 @@ export default function FeeCollection() {
                             <Wallet size={24} className="text-blue-600" />
                         </div>
                         <div>
-                            <p className="text-sm font-bold text-slate-400 uppercase tracking-wider mb-1">Total Billed</p>
+                            <p className="text-xs font-bold text-slate-400 uppercase tracking-wider mb-1">Total Billed</p>
                             <p className="text-2xl font-bold text-slate-900">{formatKES(summary.totalBilled)}</p>
                         </div>
                     </div>
@@ -254,7 +265,7 @@ export default function FeeCollection() {
                             <CheckCircle2 size={24} className="text-emerald-600" />
                         </div>
                         <div>
-                            <p className="text-sm font-bold text-slate-400 uppercase tracking-wider mb-1">Total Collected</p>
+                            <p className="text-xs font-bold text-slate-400 uppercase tracking-wider mb-1">Total Collected</p>
                             <p className="text-2xl font-bold text-slate-900">{formatKES(summary.totalCollected)}</p>
                         </div>
                     </div>
@@ -264,7 +275,7 @@ export default function FeeCollection() {
                             <TrendingDown size={24} className="text-rose-600" />
                         </div>
                         <div>
-                            <p className="text-sm font-bold text-slate-400 uppercase tracking-wider mb-1">Outstanding</p>
+                            <p className="text-xs font-bold text-slate-400 uppercase tracking-wider mb-1">Outstanding</p>
                             <p className="text-2xl font-bold text-slate-900">{formatKES(summary.outstandingBalance)}</p>
                         </div>
                     </div>
@@ -275,11 +286,13 @@ export default function FeeCollection() {
             <div className="grid grid-cols-1 lg:grid-cols-3 gap-8">
                 {/* INVOICES TABLE */}
                 <div className="lg:col-span-2 bg-white rounded-2xl border border-slate-200 shadow-sm overflow-hidden flex flex-col">
-                    <div className="px-6 py-5 border-b border-slate-100 flex items-center gap-2">
-                        <Receipt size={18} className="text-slate-400" />
-                        <h2 className="text-base font-bold text-slate-900">Term Invoices</h2>
-                        <span className="text-xs font-medium text-slate-400 ml-auto">
-                            {visibleInvoices.length} shown
+                    <div className="px-6 py-5 border-b border-slate-100 flex items-center justify-between">
+                        <div className="flex items-center gap-2">
+                            <Receipt size={18} className="text-slate-400" />
+                            <h2 className="text-base font-bold text-slate-900">Term Invoices</h2>
+                        </div>
+                        <span className="text-xs font-semibold px-2.5 py-1 bg-slate-100 text-slate-600 rounded-full">
+                            {visibleInvoices.length} {visibleInvoices.length === 1 ? 'invoice' : 'invoices'}
                         </span>
                     </div>
 
@@ -287,6 +300,7 @@ export default function FeeCollection() {
                         <table className="w-full text-sm text-left">
                             <thead className="bg-slate-50 border-b border-slate-200">
                             <tr className="text-[11px] font-bold tracking-wider text-slate-500 uppercase">
+                                <th className="px-6 py-4">Invoice</th>
                                 <th className="px-6 py-4">Student</th>
                                 <th className="px-6 py-4">Billed</th>
                                 <th className="px-6 py-4">Paid</th>
@@ -298,7 +312,7 @@ export default function FeeCollection() {
                             <tbody className="divide-y divide-slate-100">
                             {loading && (
                                 <tr>
-                                    <td colSpan={6} className="px-6 py-12 text-center">
+                                    <td colSpan={7} className="px-6 py-12 text-center">
                                         <div className="flex flex-col items-center justify-center text-slate-400">
                                             <div className="w-6 h-6 border-2 border-slate-200 border-t-navy-900 rounded-full animate-spin mb-3"></div>
                                             <p className="text-sm font-medium">Loading invoices...</p>
@@ -309,7 +323,7 @@ export default function FeeCollection() {
 
                             {!loading && !error && visibleInvoices.length === 0 && (
                                 <tr>
-                                    <td colSpan={6} className="px-6 py-12 text-center text-slate-500 font-medium bg-slate-50/50">
+                                    <td colSpan={7} className="px-6 py-12 text-center text-slate-400 font-medium bg-slate-50/50">
                                         {invoices.length === 0
                                             ? 'No invoices generated for this term yet.'
                                             : 'No invoices match this filter.'}
@@ -319,19 +333,22 @@ export default function FeeCollection() {
 
                             {!loading && !error && visibleInvoices.map((inv) => (
                                 <tr key={inv.id} className="group bg-white hover:bg-slate-50/80 transition-colors">
-                                    <td className="px-6 py-4 font-semibold text-slate-800">
+                                    <td className="px-6 py-4 font-mono text-xs font-semibold text-slate-600">
+                                        {inv.invoiceNumber || '—'}
+                                    </td>
+                                    <td className="px-6 py-4 font-semibold text-slate-900">
                                         {inv.studentName}
                                     </td>
-                                    <td className="px-6 py-4 text-slate-600 font-medium">
+                                    <td className="px-6 py-4 text-slate-700 font-medium">
                                         {formatKES(inv.totalBilled)}
                                     </td>
-                                    <td className="px-6 py-4 text-slate-600 font-medium">
+                                    <td className="px-6 py-4 text-slate-700 font-medium">
                                         {formatKES(inv.totalPaid)}
                                     </td>
                                     <td className="px-6 py-4">
                                         {inv.dueDate ? (
                                             <span className={`text-xs font-semibold px-2.5 py-1 rounded-lg border ${
-                                                new Date(inv.dueDate) < new Date() && inv.balance > 0
+                                                new Date(inv.dueDate) < today && inv.balance > 0
                                                     ? 'bg-rose-50 border-rose-100 text-rose-700'
                                                     : 'bg-slate-50 border-slate-200 text-slate-600'
                                             }`}>
@@ -356,7 +373,7 @@ export default function FeeCollection() {
                                         {inv.balance > 0 && (
                                             <button
                                                 onClick={() => setPaymentModalInvoice(inv)}
-                                                className="inline-flex items-center gap-1.5 px-3 py-1.5 rounded-lg text-xs font-semibold bg-white border border-slate-200 text-slate-700 hover:bg-teal-50 hover:text-teal-700 hover:border-teal-200 transition-all active:scale-[0.98]"
+                                                className="inline-flex items-center gap-1.5 px-3 py-1.5 rounded-lg text-xs font-semibold bg-white border border-slate-200 text-slate-700 hover:bg-teal-50 hover:text-teal-700 hover:border-teal-200 transition-all active:scale-[0.98] shadow-2xs"
                                             >
                                                 <Banknote size={14} /> Record
                                             </button>
@@ -374,7 +391,7 @@ export default function FeeCollection() {
                     <h2 className="text-base font-bold text-slate-900 mb-1">Collection by Method</h2>
                     <p className="text-sm text-slate-500 mb-6">Distribution of this term's payments</p>
 
-                    {summary && summary.collectionByMethod.length > 0 ? (
+                    {summary && summary.collectionByMethod && summary.collectionByMethod.length > 0 ? (
                         <>
                             <div className="mb-6 relative">
                                 <ResponsiveContainer width="100%" height={220}>
@@ -405,7 +422,7 @@ export default function FeeCollection() {
                                     <div key={m.method} className="flex items-center justify-between text-sm">
                                         <div className="flex items-center gap-3">
                                             <span
-                                                className="w-3 h-3 rounded-full shadow-sm"
+                                                className="w-3 h-3 rounded-full shadow-xs"
                                                 style={{ backgroundColor: CHART_COLORS[index % CHART_COLORS.length] }}
                                             />
                                             <span className="font-medium text-slate-700">{m.method}</span>
@@ -419,7 +436,7 @@ export default function FeeCollection() {
                         </>
                     ) : (
                         <div className="flex flex-col items-center justify-center py-12 text-slate-400 bg-slate-50 rounded-xl border border-dashed border-slate-200 mt-4">
-                            <PieChart size={32} className="mb-3 opacity-50" />
+                            <PieIcon size={32} className="mb-3 opacity-50" />
                             <p className="text-sm font-medium">No payments recorded yet.</p>
                         </div>
                     )}

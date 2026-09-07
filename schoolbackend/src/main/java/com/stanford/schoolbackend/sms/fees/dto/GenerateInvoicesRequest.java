@@ -13,7 +13,7 @@ public class GenerateInvoicesRequest {
     private Long termId;
     /** null = all students in the school */
     private Long classSectionId;
-    @NotEmpty
+
     private List<Long> feeItemIds;
     private LocalDate dueDate;
 }

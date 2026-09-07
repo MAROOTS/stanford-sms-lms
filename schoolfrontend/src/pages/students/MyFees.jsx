@@ -20,6 +20,9 @@ function InvoiceCard({ invoice }) {
             <button onClick={toggle} className="w-full flex items-center justify-between px-6 py-4">
                 <div className="text-left">
                     <p className="font-medium text-slate-800">{invoice.termName}</p>
+                    {invoice.invoiceNumber && (
+                        <p className="text-xs font-mono text-slate-400 mt-0.5">{invoice.invoiceNumber}</p>
+                    )}
                     <p className="text-xs text-slate-500 mt-0.5">Billed KES {invoice.totalBilled.toLocaleString()} · Paid KES {invoice.totalPaid.toLocaleString()}</p>
                 </div>
                 <div className="flex items-center gap-3">

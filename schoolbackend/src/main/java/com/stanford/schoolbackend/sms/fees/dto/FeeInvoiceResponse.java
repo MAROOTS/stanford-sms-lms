@@ -22,6 +22,7 @@ public class FeeInvoiceResponse {
     private BigDecimal balance;
     private Instant createdAt;
     private LocalDate dueDate;
+    private String invoiceNumber;
 
     @Data
     @Builder

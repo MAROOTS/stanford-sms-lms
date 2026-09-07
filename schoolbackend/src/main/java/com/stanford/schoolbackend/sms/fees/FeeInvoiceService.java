@@ -33,6 +33,8 @@ public class FeeInvoiceService {
     private final TermRepository termRepository;
     private final ParentAccessService parentAccessService;
     private final SchoolRepository schoolRepository;
+    private final InvoiceNumberService invoiceNumberService;
+    private final FeeStructureLineRepository feeStructureLineRepository;
     public FeeInvoiceResponse create(CreateInvoiceRequest request) {
         if (feeInvoiceRepository.findByStudentIdAndTermId(request.getStudentId(), request.getTermId()).isPresent()) {
             throw new IllegalArgumentException("An invoice already exists for this student and term — use update instead");
@@ -61,6 +63,7 @@ public class FeeInvoiceService {
                 .term(term)
                 .dueDate(request.getDueDate())
                 .school(school)
+                .invoiceNumber(invoiceNumberService.next(school.getId()))
                 .build();
         invoice.setLineItems(buildLineItems(invoice, request.getLineItems()));
 
@@ -197,53 +200,115 @@ public class FeeInvoiceService {
     @Transactional
     public GenerateInvoicesResponse generate(GenerateInvoicesRequest request) {
         Long schoolId = SecurityUtils.currentSchoolId();
+
         Term term = termRepository.findById(request.getTermId())
                 .orElseThrow(() -> new ResourceNotFoundException("Term not found"));
+
         if (term.getSchool() == null || !schoolId.equals(term.getSchool().getId())) {
             throw new ResourceNotFoundException("Term not found");
         }
+
         School school = schoolRepository.findById(schoolId)
                 .orElseThrow(() -> new ResourceNotFoundException("School not found"));
 
-        List<FeeItem> items = feeItemRepository.findAllById(request.getFeeItemIds()).stream()
-                .filter(fi -> fi.getSchool() != null && schoolId.equals(fi.getSchool().getId()))
-                .toList();
-        if (items.isEmpty()) {
-            throw new IllegalArgumentException("No valid fee items selected");
-        }
+//        List<FeeItem> items = feeItemRepository.findAllById(request.getFeeItemIds()).stream()
+//                .filter(fi -> fi.getSchool() != null && schoolId.equals(fi.getSchool().getId()))
+//                .toList();
+//
+//        if (items.isEmpty()) {
+//            throw new IllegalArgumentException("No valid fee items selected");
+//        }
 
         List<Student> students = (request.getClassSectionId() != null)
                 ? studentRepository.findByClassSectionId(request.getClassSectionId())
                 : studentRepository.findBySchoolId(schoolId);
 
-        int created = 0, skippedExisting = 0, skippedNoAmount = 0;
+        int created = 0;
+        int skippedExisting = 0;
+//        int skippedNoAmount = 0;
+        int skippedNoClass = 0;
+        int skippedNoStructure = 0;
+
+        Map<Long, List<FeeStructureLine>> byGrade =
+                feeStructureLineRepository.findBySchoolId(schoolId)
+                        .stream()
+                        .collect(Collectors.groupingBy(
+                                l -> l.getGradeLevel().getId()
+                        ));
 
         for (Student student : students) {
-            if (feeInvoiceRepository.findByStudentIdAndTermId(student.getId(), term.getId()).isPresent()) {
+
+            // Prevent duplicate invoices
+            if (feeInvoiceRepository.findByStudentIdAndTermId(
+                    student.getId(), term.getId()).isPresent()) {
                 skippedExisting++;
                 continue;
             }
+
+            // Student must belong to a class with a grade level
+            if (student.getClassSection() == null
+                    || student.getClassSection().getGradeLevel() == null) {
+                skippedNoClass++;
+                continue;
+            }
+
+            Long gradeId = student.getClassSection()
+                    .getGradeLevel()
+                    .getId();
+
+            List<FeeStructureLine> gradeLines = new ArrayList<>(
+                    byGrade.getOrDefault(gradeId, List.of())
+            );
+
+            // Restrict generation to selected fee items when supplied
+            if (request.getFeeItemIds() != null
+                    && !request.getFeeItemIds().isEmpty()) {
+
+                Set<Long> wanted = new HashSet<>(request.getFeeItemIds());
+
+                gradeLines = gradeLines.stream()
+                        .filter(line -> line.getFeeItem() != null
+                                && wanted.contains(line.getFeeItem().getId()))
+                        .toList();
+            }
+
+            // No structure for this student's grade
+            if (gradeLines.isEmpty()) {
+                skippedNoStructure++;
+                continue;
+            }
+
             List<FeeInvoiceLineItem> lines = new ArrayList<>();
+
             FeeInvoice invoice = FeeInvoice.builder()
                     .student(student)
                     .term(term)
                     .dueDate(request.getDueDate())
                     .school(school)
+                    .invoiceNumber(invoiceNumberService.next(school.getId()))
                     .build();
 
-            for (FeeItem item : items) {
-                if (item.getDefaultAmount() == null
-                        || item.getDefaultAmount().compareTo(BigDecimal.ZERO) <= 0) {
-                    skippedNoAmount++;
+            for (FeeStructureLine gl : gradeLines) {
+
+                if (gl.getAmount() == null
+                        || gl.getAmount().compareTo(BigDecimal.ZERO) <= 0) {
                     continue;
                 }
-                lines.add(FeeInvoiceLineItem.builder()
-                        .invoice(invoice)
-                        .feeItem(item)
-                        .amount(item.getDefaultAmount())
-                        .build());
+
+                lines.add(
+                        FeeInvoiceLineItem.builder()
+                                .invoice(invoice)
+                                .feeItem(gl.getFeeItem())
+                                .amount(gl.getAmount())
+                                .build()
+                );
             }
-            if (lines.isEmpty()) continue;
+
+            // Structure existed, but contained no billable amounts
+            if (lines.isEmpty()) {
+                skippedNoStructure++;
+                continue;
+            }
 
             invoice.setLineItems(lines);
             feeInvoiceRepository.save(invoice);
@@ -253,10 +318,11 @@ public class FeeInvoiceService {
         return GenerateInvoicesResponse.builder()
                 .created(created)
                 .skippedExisting(skippedExisting)
-                .skippedNoAmount(skippedNoAmount)
+//                .skippedNoAmount(skippedNoAmount)
+                .skippedNoClass(skippedNoClass)
+                .skippedNoStructure(skippedNoStructure)
                 .build();
     }
-
 
     private FeeInvoice getOrThrow(Long invoiceId) {
         FeeInvoice invoice = feeInvoiceRepository.findById(invoiceId)
@@ -295,6 +361,7 @@ public class FeeInvoiceService {
                 .balance(totalBilled.subtract(totalPaid))
                 .dueDate(invoice.getDueDate())
                 .createdAt(invoice.getCreatedAt())
+                .invoiceNumber(invoice.getInvoiceNumber())
                 .build();
     }
 }

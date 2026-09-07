@@ -9,4 +9,6 @@ public class GenerateInvoicesResponse {
     private int created;
     private int skippedExisting;
     private int skippedNoAmount;
+    private int skippedNoClass;
+    private int skippedNoStructure;
 }

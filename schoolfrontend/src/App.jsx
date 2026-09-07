@@ -48,6 +48,7 @@ import Settings from './pages/settings/Settings';
 import PlatformAdminDashboard from './pages/platform/PlatformAdminDashboard';
 import TeachingAssignments from "./pages/classes/TeachingAssignments";
 import StudentImport from './pages/students/StudentImport';
+import FeeStructures from './pages/fees/FeeStructures';
 export default function App() {
   return (
     <ThemeProvider>
@@ -100,6 +101,7 @@ export default function App() {
                 <Route path="/settings" element={<Settings />} />
                 <Route path="/platform/schools" element={<PlatformAdminDashboard />} />
                 <Route path="/students/import" element={<StudentImport />} />
+                <Route path="/fee-structures" element={<FeeStructures />} />
 
                 {/* Parent Portal */}
                 <Route path="/parents" element={<Parents />} />

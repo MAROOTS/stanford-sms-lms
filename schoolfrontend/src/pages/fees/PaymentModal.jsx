@@ -43,9 +43,9 @@ export default function PaymentModal({ invoice, onClose, onSaved }) {
                     <button onClick={onClose} className="text-slate-400 hover:text-slate-600"><X size={20} /></button>
                 </div>
                 <p className="text-sm text-slate-500 mb-5">
-                    {invoice.studentName} · Balance: KES {invoice.balance.toLocaleString()}
+                    {invoice.invoiceNumber && <span className="font-mono mr-2">{invoice.invoiceNumber}</span>}
+                    {invoice.studentName} · Balance: KES {Number(invoice.balance).toLocaleString()}
                 </p>
-
                 <form onSubmit={handleSubmit} className="space-y-4">
                     <div>
                         <label className="block text-sm font-medium text-slate-700 mb-1.5">Amount</label>

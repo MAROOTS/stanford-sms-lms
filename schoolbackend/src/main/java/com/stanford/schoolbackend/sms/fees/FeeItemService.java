@@ -8,6 +8,7 @@ import com.stanford.schoolbackend.sms.fees.dto.FeeItemRequest;
 import com.stanford.schoolbackend.sms.fees.dto.FeeItemResponse;
 import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Service;
+import org.springframework.transaction.annotation.Transactional;
 
 import java.util.List;
 
@@ -18,6 +19,7 @@ public class FeeItemService {
     private final FeeItemRepository feeItemRepository;
     private final SchoolRepository schoolRepository;
     private final FeeInvoiceLineItemRepository feeInvoiceLineItemRepository;
+    private final FeeStructureLineRepository feeStructureLineRepository;
     public FeeItemResponse create(FeeItemRequest request) {
         School school = schoolRepository.findById(SecurityUtils.currentSchoolId())
                 .orElseThrow(() -> new ResourceNotFoundException("School not found"));
@@ -36,6 +38,7 @@ public class FeeItemService {
         return toResponse(feeItemRepository.save(item));
     }
 
+    @Transactional
     public void delete(Long id) {
         FeeItem item = getOrThrow(id);
         if (feeInvoiceLineItemRepository.existsByFeeItemId(id)) {
@@ -43,6 +46,7 @@ public class FeeItemService {
                     "Cannot delete \"" + item.getName()
                             + "\" because it is already used on invoices. Remove it from those invoices first, or leave it and stop using it for new bills.");
         }
+        feeStructureLineRepository.deleteByFeeItemId(id);
         feeItemRepository.delete(item);
     }
 

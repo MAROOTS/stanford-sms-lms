@@ -72,6 +72,7 @@ export default function ChildFees() {
                     <table className="w-full text-sm">
                         <thead>
                         <tr className="border-b border-slate-100 text-left text-[11px] font-semibold tracking-wider text-slate-400">
+                            <th className="px-6 py-3">INVOICE</th>
                             <th className="px-6 py-3">TERM</th>
                             <th className="px-6 py-3 text-right">TOTAL</th>
                             <th className="px-6 py-3 text-right">BALANCE</th>
@@ -81,6 +82,7 @@ export default function ChildFees() {
                         <tbody>
                         {invoices.map(inv => (
                             <tr key={inv.id} className="border-b border-slate-50 last:border-0">
+                                <td className="px-6 py-4 font-mono text-xs">{inv.invoiceNumber || '—'}</td>
                                 <td className="px-6 py-4 text-slate-700 font-medium">{inv.termName || `Term ${inv.termId}`}</td>
                                 <td className="px-6 py-4 text-right">KES {inv.totalAmount?.toLocaleString()}</td>
                                 <td className="px-6 py-4 text-right font-medium text-red-600">KES {inv.balance?.toLocaleString()}</td>

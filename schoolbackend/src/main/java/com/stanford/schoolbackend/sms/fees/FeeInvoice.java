@@ -46,4 +46,7 @@ public class FeeInvoice {
     @ManyToOne(fetch = FetchType.LAZY)
     @JoinColumn(name = "school_id", nullable = false)
     private School school;
+
+    @Column(name = "invoice_number", nullable = false)
+    private String invoiceNumber;
 }
