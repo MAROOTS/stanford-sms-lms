@@ -1,5 +1,5 @@
 import { useEffect, useState, useCallback } from 'react';
-import { Plus, UserCog, KeyRound, Unlock, Sparkles, RotateCcw } from 'lucide-react';
+import { Plus, UserCog, KeyRound, Unlock, RotateCcw } from 'lucide-react';
 import axiosClient from '../../api/axiosClient';
 import StaffModal from './StaffModal';
 import TempPasswordModal from '../../components/shared/TempPasswordModal';

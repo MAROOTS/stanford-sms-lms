@@ -1,5 +1,5 @@
 import { useEffect, useState, useCallback } from 'react';
-import { Plus, X, Megaphone, Trash2, Loader2, Sparkles, BellOff, Users } from 'lucide-react';
+import { Plus, X, Megaphone, Trash2, Loader2, BellOff } from 'lucide-react';
 import axiosClient from '../../api/axiosClient';
 import EmptyState from '../../components/shared/EmptyState';
 

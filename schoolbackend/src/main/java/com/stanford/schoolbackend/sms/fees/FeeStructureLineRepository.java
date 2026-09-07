@@ -9,5 +9,5 @@ public interface FeeStructureLineRepository extends JpaRepository<FeeStructureLi
     List<FeeStructureLine> findBySchoolIdAndGradeLevelId(Long schoolId, Long gradeLevelId);
     void deleteBySchoolIdAndGradeLevelId(Long schoolId, Long gradeLevelId);
     void deleteByFeeItemId(Long feeItemId);
-    boolean existsByFeeItemId(Long feeItemId);
+    //boolean existsByFeeItemId(Long feeItemId);
 }

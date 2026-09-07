@@ -1,5 +1,5 @@
 import { useEffect, useState, useCallback } from 'react';
-import { Plus, Users, Pencil, Trash2, KeyRound, Unlock, RotateCcw, Sparkles } from 'lucide-react';
+import { Plus, Users, Pencil, Trash2, KeyRound, Unlock, RotateCcw } from 'lucide-react';
 import axiosClient from '../../api/axiosClient';
 import ParentModal from './ParentModal';
 import ConfirmDialog from '../../components/shared/ConfirmDialog';
@@ -26,7 +26,7 @@ export default function Parents() {
             setParents(data || []);
         } catch {
             setError('Could not load parent accounts. Please try again.');
-        } flex: {
+        } {
             setLoading(false);
         }
     }, []);
