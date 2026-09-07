@@ -138,24 +138,24 @@ export default function StudentModal({ initialData, classSections, readOnly, onC
 
                 <form onSubmit={handleSubmit} className="space-y-6">
 
-                    {/* PHOTO */}
-                    <div className="flex items-center gap-4">
+                    {/* PHOTO (CENTERED & LARGER) */}
+                    <div className="flex flex-col items-center justify-center text-center gap-3 py-2">
                         {photoUrl ? (
                             <img
                                 src={photoUrl}
-                                alt=""
-                                className="w-16 h-16 rounded-full object-cover border border-slate-200"
+                                alt={`${firstName} ${lastName}`}
+                                className="w-24 h-24 rounded-full object-cover border-2 border-slate-200 shadow-xs"
                             />
                         ) : (
-                            <div className="w-16 h-16 rounded-full bg-slate-200 flex items-center justify-center text-sm font-semibold text-slate-600">
+                            <div className="w-24 h-24 rounded-full bg-slate-200 border-2 border-slate-200 flex items-center justify-center text-xl font-bold text-slate-600 shadow-xs">
                                 {firstName?.[0]}
                                 {lastName?.[0]}
                             </div>
                         )}
 
                         {!readOnly && (
-                            <div className="flex flex-col gap-1">
-                                <label className="text-sm font-medium text-navy-900 cursor-pointer">
+                            <div className="flex flex-col items-center gap-1">
+                                <label className="text-sm font-semibold text-navy-900 hover:underline cursor-pointer">
                                     {uploadingPhoto
                                         ? 'Uploading...'
                                         : photoUrl
@@ -176,9 +176,9 @@ export default function StudentModal({ initialData, classSections, readOnly, onC
                                         type="button"
                                         onClick={handleRemovePhoto}
                                         disabled={uploadingPhoto}
-                                        className="text-xs text-slate-500 hover:text-red-600 text-left disabled:opacity-60"
+                                        className="text-xs text-slate-500 hover:text-red-600 disabled:opacity-60 transition-colors"
                                     >
-                                        Remove
+                                        Remove photo
                                     </button>
                                 )}
 
