@@ -2,7 +2,6 @@ import { useEffect, useState, useCallback } from 'react';
 import {
     ChevronDown,
     ChevronUp,
-    Sparkles,
     CreditCard,
     Receipt,
     Download,

@@ -1,13 +1,11 @@
 import { useEffect, useState, useCallback } from 'react';
 import {
-    Sparkles,
     Award,
     Trophy,
     BarChart3,
     TrendingUp,
     GraduationCap,
-    BookOpen,
-    CheckCircle2
+    BookOpen
 } from 'lucide-react';
 import axiosClient from '../../api/axiosClient';
 import { useAuth } from '../../context/useAuth';
