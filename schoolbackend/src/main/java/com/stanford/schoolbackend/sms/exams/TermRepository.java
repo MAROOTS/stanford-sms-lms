@@ -6,7 +6,7 @@ import java.util.List;
 import java.util.Optional;
 
 public interface TermRepository extends JpaRepository<Term, Long> {
-    Optional<Term> findByIsCurrentTrue();
+   // Optional<Term> findByIsCurrentTrue();
     List<Term> findBySchoolId(Long schoolId);
     Optional<Term> findByIsCurrentTrueAndSchoolId(Long schoolId);
 }

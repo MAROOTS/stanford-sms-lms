@@ -34,6 +34,7 @@ public class PlatformAdminSeeder implements CommandLineRunner {
 
     @Override
     public void run(String... args) {
+      //  System.out.println("HASH: " + passwordEncoder.encode("TempReset123"));
         if (userRepository.existsByRole(UserRole.PLATFORM_ADMIN)) return;
 
         boolean generated = platformAdminPassword == null || platformAdminPassword.isBlank();

@@ -30,8 +30,9 @@ export default function StudentHome() {
             axiosClient.get(`/fee-invoices/student/${user.userId}`),
         ])
             .then(([profileRes, termsRes, attendanceRes, invoicesRes]) => {
+
                 setProfile(profileRes.data);
-                setTerm(termsRes.data.find((t) => t.isCurrent) || null);
+                setTerm(termsRes.data.find((t) => t.current) || null);
 
                 const records = attendanceRes.data;
                 if (records && records.length > 0) {

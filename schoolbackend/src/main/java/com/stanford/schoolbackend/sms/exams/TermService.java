@@ -72,11 +72,11 @@ public class TermService {
 
     private Term getOrThrow(Long id) {
         Term term = termRepository.findById(id)
-                .orElseThrow(() -> new ResourceNotFoundException("Grade level not found"));
+                .orElseThrow(() -> new ResourceNotFoundException("Term not found"));
         Long schoolId = SecurityUtils.currentSchoolId();
         if (schoolId == null || term.getSchool() == null
                 || !schoolId.equals(term.getSchool().getId())) {
-            throw new ResourceNotFoundException("Grade level not found");
+            throw new ResourceNotFoundException("Term not found");
         }
         return term;
     }

@@ -1,8 +1,8 @@
 import { BrowserRouter, Routes, Route, Navigate } from "react-router-dom";
-import { AuthProvider } from "./context/AuthContext";
-import { ToastProvider } from "./context/ToastContext";
-import { ThemeProvider } from "./context/ThemeContext";
-import { SidebarProvider } from "./context/SidebarContext";
+import { AuthProvider } from "./context/AuthContext.jsx";
+import { ToastProvider } from "./context/ToastContext.jsx";
+import { ThemeProvider } from "./context/ThemeContext.jsx";
+import { SidebarProvider } from "./context/SidebarContext.jsx";
 import ProtectedRoute from "./routes/ProtectedRoute";
 import DashboardLayout from "./components/layout/DashboardLayout";
 import { SchoolProfileProvider } from './context/SchoolProfileContext';

@@ -1,6 +1,6 @@
 import { useState } from "react";
 import axiosClient from "../api/axiosClient";
-import AuthContext from "./authContext";
+import AuthContext from "./authContext.js";
 
 function getStoredUser() {
   try {
