@@ -51,7 +51,9 @@ public class BookLoanService {
         if (borrower.getRole() != UserRole.STUDENT && borrower.getRole() != UserRole.TEACHER) {
             throw new IllegalArgumentException("Only students and teachers can borrow books");
         }
-
+        if (bookLoanRepository.existsByBorrowerIdAndBookCopy_Book_IdAndReturnedDateIsNull(borrower.getId(), book.getId())) {
+            throw new IllegalArgumentException("This borrower already has a copy of this book checked out");
+        }
         BookCopy copy = bookCopyRepository.findFirstByBookIdAndStatus(book.getId(), CopyStatus.AVAILABLE)
                 .orElseThrow(() -> new IllegalArgumentException("No available copies for this book"));
 
