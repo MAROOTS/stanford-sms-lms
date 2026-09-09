@@ -330,7 +330,7 @@ public class FeeInvoiceService {
     @Transactional
     public FeeInvoiceResponse applyWaiver(Long invoiceId, ApplyWaiverRequest request) {
         FeeInvoice invoice = getOrThrow(invoiceId);
-        Long schoolId = SecurityUtils.currentSchoolId();
+        invoice.getLineItems().size(); // load collection in this transaction
 
         BigDecimal billed = invoice.getLineItems().stream()
                 .map(FeeInvoiceLineItem::getAmount)
@@ -340,15 +340,22 @@ public class FeeInvoiceService {
                 .reduce(BigDecimal.ZERO, BigDecimal::add);
         BigDecimal balance = billed.subtract(paid);
 
+        if (request.getAmount() == null || request.getAmount().compareTo(BigDecimal.ZERO) <= 0) {
+            throw new IllegalArgumentException("Waiver amount must be positive");
+        }
         if (balance.compareTo(BigDecimal.ZERO) <= 0) {
-            throw new IllegalArgumentException("This invoice has no outstanding balance to waive");
+            throw new IllegalArgumentException(
+                    "This invoice has no outstanding balance to waive (billed "
+                            + billed + ", paid " + paid + ")");
         }
         if (request.getAmount().compareTo(balance) > 0) {
             throw new IllegalArgumentException(
                     "Waiver cannot exceed the outstanding balance of KES " + balance);
         }
 
-        String itemName = WAIVER_ITEM_PREFIX + request.getReason().trim();
+        Long schoolId = SecurityUtils.currentSchoolId();
+        String itemName = "Waiver - " + request.getReason().trim(); // ASCII hyphen, not em-dash
+
         FeeItem waiverItem = feeItemRepository.findByNameIgnoreCaseAndSchoolId(itemName, schoolId)
                 .orElseGet(() -> feeItemRepository.save(FeeItem.builder()
                         .school(invoice.getSchool())
