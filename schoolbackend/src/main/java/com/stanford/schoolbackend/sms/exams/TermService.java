@@ -6,6 +6,7 @@ import com.stanford.schoolbackend.core.school.SchoolRepository;
 import com.stanford.schoolbackend.core.security.SecurityUtils;
 import com.stanford.schoolbackend.sms.exams.dto.TermRequest;
 import com.stanford.schoolbackend.sms.exams.dto.TermResponse;
+import com.stanford.schoolbackend.sms.fees.FeeInvoiceRepository;
 import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
@@ -18,10 +19,11 @@ public class TermService {
 
     private final TermRepository termRepository;
     private final SchoolRepository schoolRepository;
-
+    private final FeeInvoiceRepository feeInvoiceRepository;
+    private final ExamRepository examRepository;
     @Transactional
     public TermResponse create(TermRequest request) {
-        if (request.isCurrent()) {
+        if (Boolean.TRUE.equals(request.getIsCurrent())) {
             unsetExistingCurrent();
         }
         School school = schoolRepository.findById(SecurityUtils.currentSchoolId())
@@ -31,7 +33,7 @@ public class TermService {
                 .name(request.getName())
                 .startDate(request.getStartDate())
                 .endDate(request.getEndDate())
-                .isCurrent(request.isCurrent())
+                .isCurrent(Boolean.TRUE.equals(request.getIsCurrent()))
                 .build();
 
         return toResponse(termRepository.save(term));
@@ -41,20 +43,30 @@ public class TermService {
     public TermResponse update(Long id, TermRequest request) {
         Term term = getOrThrow(id);
 
-        if (request.isCurrent() && !term.isCurrent()) {
+        if (Boolean.TRUE.equals(request.getIsCurrent())) {
             unsetExistingCurrent();
         }
 
         term.setName(request.getName());
         term.setStartDate(request.getStartDate());
         term.setEndDate(request.getEndDate());
-        term.setCurrent(request.isCurrent());
-
+        term.setCurrent(Boolean.TRUE.equals(request.getIsCurrent()));
         return toResponse(termRepository.save(term));
     }
 
     public void delete(Long id) {
-        termRepository.delete(getOrThrow(id));
+        Term term = getOrThrow(id);
+        if (feeInvoiceRepository.existsByTermId(id)) {
+            throw new IllegalArgumentException(
+                    "Cannot delete \"" + term.getName()
+                            + "\" because invoices exist for this term.");
+        }
+        if (examRepository.existsByTermId(id)) {
+            throw new IllegalArgumentException(
+                    "Cannot delete \"" + term.getName()
+                            + "\" because exams exist for this term.");
+        }
+        termRepository.delete(term);
     }
 
     public List<TermResponse> listAll() {

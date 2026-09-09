@@ -35,6 +35,8 @@ public class FeeInvoiceService {
     private final SchoolRepository schoolRepository;
     private final InvoiceNumberService invoiceNumberService;
     private final FeeStructureLineRepository feeStructureLineRepository;
+
+    public static final String WAIVER_ITEM_PREFIX = "Waiver — ";
     public FeeInvoiceResponse create(CreateInvoiceRequest request) {
         if (feeInvoiceRepository.findByStudentIdAndTermId(request.getStudentId(), request.getTermId()).isPresent()) {
             throw new IllegalArgumentException("An invoice already exists for this student and term — use update instead");
@@ -322,6 +324,44 @@ public class FeeInvoiceService {
                 .skippedNoClass(skippedNoClass)
                 .skippedNoStructure(skippedNoStructure)
                 .build();
+    }
+
+
+    @Transactional
+    public FeeInvoiceResponse applyWaiver(Long invoiceId, ApplyWaiverRequest request) {
+        FeeInvoice invoice = getOrThrow(invoiceId);
+        Long schoolId = SecurityUtils.currentSchoolId();
+
+        BigDecimal billed = invoice.getLineItems().stream()
+                .map(FeeInvoiceLineItem::getAmount)
+                .reduce(BigDecimal.ZERO, BigDecimal::add);
+        BigDecimal paid = feePaymentRepository.findByInvoiceId(invoice.getId()).stream()
+                .map(FeePayment::getAmount)
+                .reduce(BigDecimal.ZERO, BigDecimal::add);
+        BigDecimal balance = billed.subtract(paid);
+
+        if (balance.compareTo(BigDecimal.ZERO) <= 0) {
+            throw new IllegalArgumentException("This invoice has no outstanding balance to waive");
+        }
+        if (request.getAmount().compareTo(balance) > 0) {
+            throw new IllegalArgumentException(
+                    "Waiver cannot exceed the outstanding balance of KES " + balance);
+        }
+
+        String itemName = WAIVER_ITEM_PREFIX + request.getReason().trim();
+        FeeItem waiverItem = feeItemRepository.findByNameIgnoreCaseAndSchoolId(itemName, schoolId)
+                .orElseGet(() -> feeItemRepository.save(FeeItem.builder()
+                        .school(invoice.getSchool())
+                        .name(itemName)
+                        .build()));
+
+        invoice.getLineItems().add(FeeInvoiceLineItem.builder()
+                .invoice(invoice)
+                .feeItem(waiverItem)
+                .amount(request.getAmount().negate())
+                .build());
+
+        return toResponse(feeInvoiceRepository.save(invoice));
     }
 
     private FeeInvoice getOrThrow(Long invoiceId) {

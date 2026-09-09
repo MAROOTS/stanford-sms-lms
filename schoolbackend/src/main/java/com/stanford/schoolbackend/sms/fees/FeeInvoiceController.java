@@ -66,4 +66,12 @@ public class FeeInvoiceController {
             @Valid @RequestBody GenerateInvoicesRequest request) {
         return ResponseEntity.status(HttpStatus.CREATED).body(feeInvoiceService.generate(request));
     }
+
+    @PostMapping("/{invoiceId}/waivers")
+    @PreAuthorize("hasAnyRole('ADMIN','ACCOUNTANT')")
+    public ResponseEntity<FeeInvoiceResponse> applyWaiver(
+            @PathVariable Long invoiceId,
+            @Valid @RequestBody ApplyWaiverRequest request) {
+        return ResponseEntity.ok(feeInvoiceService.applyWaiver(invoiceId, request));
+    }
 }

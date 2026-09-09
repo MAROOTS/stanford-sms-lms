@@ -12,6 +12,7 @@ import {
 } from 'lucide-react';
 import axiosClient from '../../api/axiosClient';
 import { useAuth } from '../../context/useAuth';
+import { isCurrentTerm } from '../../utils/termUtils';
 
 export default function StudentHome() {
     const { user } = useAuth();
@@ -23,6 +24,7 @@ export default function StudentHome() {
 
     useEffect(() => {
         if (!user?.userId) return;
+
         Promise.all([
             axiosClient.get(`/students/${user.userId}`),
             axiosClient.get('/terms'),
@@ -30,20 +32,30 @@ export default function StudentHome() {
             axiosClient.get(`/fee-invoices/student/${user.userId}`),
         ])
             .then(([profileRes, termsRes, attendanceRes, invoicesRes]) => {
-
                 setProfile(profileRes.data);
-                setTerm(termsRes.data.find((t) => t.current) || null);
+
+                // Supports both the new "isCurrent" API property
+                // and the older "current" property.
+                setTerm(termsRes.data.find(isCurrentTerm) || null);
 
                 const records = attendanceRes.data;
+
                 if (records && records.length > 0) {
                     const presentOrLate = records.filter(
                         (r) => r.status === 'PRESENT' || r.status === 'LATE'
                     ).length;
-                    setAttendancePercent(Math.round((presentOrLate / records.length) * 100));
+
+                    setAttendancePercent(
+                        Math.round((presentOrLate / records.length) * 100)
+                    );
                 }
 
                 if (invoicesRes.data) {
-                    const totalBalance = invoicesRes.data.reduce((sum, inv) => sum + inv.balance, 0);
+                    const totalBalance = invoicesRes.data.reduce(
+                        (sum, inv) => sum + inv.balance,
+                        0
+                    );
+
                     setFeeBalance(totalBalance);
                 }
             })
@@ -55,8 +67,13 @@ export default function StudentHome() {
         return (
             <div className="max-w-7xl mx-auto p-4 sm:p-6 lg:p-8 flex items-center justify-center min-h-[60vh]">
                 <div className="flex flex-col items-center justify-center text-slate-400">
-                    <Loader2 size={32} className="animate-spin text-navy-900 mb-3" />
-                    <p className="text-sm font-medium text-slate-500">Loading student portal...</p>
+                    <Loader2
+                        size={32}
+                        className="animate-spin text-navy-900 mb-3"
+                    />
+                    <p className="text-sm font-medium text-slate-500">
+                        Loading student portal...
+                    </p>
                 </div>
             </div>
         );
@@ -72,16 +89,22 @@ export default function StudentHome() {
         },
         {
             label: 'Attendance Rate',
-            value: attendancePercent !== null ? `${attendancePercent}%` : '—',
+            value: attendancePercent !== null
+                ? `${attendancePercent}%`
+                : '—',
             icon: ClipboardCheck,
             color: 'text-teal-700 bg-teal-50 border-teal-100',
             link: '/my-attendance'
         },
         {
             label: 'Fee Balance',
-            value: feeBalance !== null ? `KES ${feeBalance.toLocaleString()}` : '—',
+            value: feeBalance !== null
+                ? `KES ${feeBalance.toLocaleString()}`
+                : '—',
             icon: Wallet,
-            color: feeBalance > 0 ? 'text-rose-700 bg-rose-50 border-rose-100' : 'text-emerald-700 bg-emerald-50 border-emerald-100',
+            color: feeBalance > 0
+                ? 'text-rose-700 bg-rose-50 border-rose-100'
+                : 'text-emerald-700 bg-emerald-50 border-emerald-100',
             link: '/my-fees'
         },
     ];
@@ -118,11 +141,15 @@ export default function StudentHome() {
                     <Sparkles size={13} />
                     Student Dashboard
                 </div>
+
                 <h1 className="text-3xl font-bold tracking-tight text-slate-900">
                     Welcome back, {user?.firstName || 'Student'}!
                 </h1>
+
                 <p className="text-sm text-slate-500 mt-1">
-                    {profile?.gradeLevelName ? `${profile.gradeLevelName} • ` : ''}
+                    {profile?.gradeLevelName
+                        ? `${profile.gradeLevelName} • `
+                        : ''}
                     {term ? term.name : 'No active term'}
                 </p>
             </div>
@@ -133,19 +160,25 @@ export default function StudentHome() {
                     const CardContent = (
                         <div className="bg-white rounded-2xl border border-slate-200 p-6 shadow-sm hover:shadow-md transition-all h-full flex flex-col justify-between group">
                             <div className="flex items-center justify-between mb-4">
-                                <div className={`w-12 h-12 rounded-xl border flex items-center justify-center shrink-0 ${c.color}`}>
+                                <div
+                                    className={`w-12 h-12 rounded-xl border flex items-center justify-center shrink-0 ${c.color}`}
+                                >
                                     <c.icon size={22} />
                                 </div>
+
                                 {c.link && (
                                     <span className="text-xs font-semibold text-slate-400 group-hover:text-navy-900 flex items-center gap-1 transition-colors">
-                                        View <ArrowRight size={14} />
+                                        View
+                                        <ArrowRight size={14} />
                                     </span>
                                 )}
                             </div>
+
                             <div>
                                 <p className="text-2xl sm:text-3xl font-bold tracking-tight text-slate-900">
                                     {c.value}
                                 </p>
+
                                 <p className="text-xs font-bold uppercase tracking-wider text-slate-400 mt-1">
                                     {c.label}
                                 </p>
@@ -154,7 +187,11 @@ export default function StudentHome() {
                     );
 
                     return c.link ? (
-                        <Link key={c.label} to={c.link} className="block h-full">
+                        <Link
+                            key={c.label}
+                            to={c.link}
+                            className="block h-full"
+                        >
                             {CardContent}
                         </Link>
                     ) : (
@@ -167,7 +204,10 @@ export default function StudentHome() {
 
             {/* NAVIGATION MODULES */}
             <div>
-                <h2 className="text-lg font-bold text-slate-900 mb-4">Quick Navigation</h2>
+                <h2 className="text-lg font-bold text-slate-900 mb-4">
+                    Quick Navigation
+                </h2>
+
                 <div className="grid grid-cols-1 sm:grid-cols-3 gap-5">
                     {quickActions.map((action) => (
                         <Link
@@ -177,17 +217,22 @@ export default function StudentHome() {
                         >
                             <div>
                                 <div className="flex items-center justify-between mb-4">
-                                    <div className={`w-10 h-10 rounded-xl border flex items-center justify-center ${action.iconColor}`}>
+                                    <div
+                                        className={`w-10 h-10 rounded-xl border flex items-center justify-center ${action.iconColor}`}
+                                    >
                                         <action.icon size={20} />
                                     </div>
+
                                     <ArrowRight
                                         size={18}
                                         className="text-slate-300 group-hover:text-navy-900 group-hover:translate-x-1 transition-all"
                                     />
                                 </div>
+
                                 <h3 className="font-bold text-slate-900 text-base group-hover:text-navy-900 transition-colors">
                                     {action.title}
                                 </h3>
+
                                 <p className="text-xs text-slate-500 mt-1.5 leading-relaxed">
                                     {action.description}
                                 </p>

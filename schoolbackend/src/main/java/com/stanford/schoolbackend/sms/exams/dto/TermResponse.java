@@ -1,5 +1,6 @@
 package com.stanford.schoolbackend.sms.exams.dto;
 
+import com.fasterxml.jackson.annotation.JsonProperty;
 import lombok.Builder;
 import lombok.Data;
 
@@ -12,5 +13,7 @@ public class TermResponse {
     private String name;
     private LocalDate startDate;
     private LocalDate endDate;
-    private boolean isCurrent;
+
+    @JsonProperty("isCurrent")
+    private Boolean isCurrent;
 }

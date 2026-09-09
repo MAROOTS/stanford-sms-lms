@@ -6,4 +6,5 @@ import java.util.List;
 
 public interface ExamRepository extends JpaRepository<Exam, Long> {
     List<Exam> findBySchoolId(Long schoolId);
+    boolean existsByTermId(Long termId);
 }

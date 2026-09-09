@@ -10,6 +10,8 @@ import jakarta.annotation.PostConstruct;
 import io.minio.Http;
 import java.util.UUID;
 import java.util.concurrent.TimeUnit;
+import io.minio.GetObjectArgs;
+import java.util.Base64;
 
 @Service
 @RequiredArgsConstructor
@@ -82,6 +84,23 @@ public class FileStorageService {
                     .build());
         } catch (Exception e) {
             // old file can stay; don't fail the new upload
+        }
+    }
+
+    public String toDataUri(String objectKey) {
+        if (objectKey == null || objectKey.isBlank()) return null;
+        try (var in = minioClient.getObject(GetObjectArgs.builder()
+                .bucket(bucket)
+                .object(objectKey)
+                .build())) {
+            byte[] bytes = in.readAllBytes();
+            String lower = objectKey.toLowerCase();
+            String mime = "image/png";
+            if (lower.endsWith(".jpg") || lower.endsWith(".jpeg")) mime = "image/jpeg";
+            else if (lower.endsWith(".webp")) mime = "image/webp";
+            return "data:" + mime + ";base64," + Base64.getEncoder().encodeToString(bytes);
+        } catch (Exception e) {
+            return null;
         }
     }
 
