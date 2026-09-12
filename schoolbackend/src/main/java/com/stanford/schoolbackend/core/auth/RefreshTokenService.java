@@ -8,7 +8,10 @@ import org.springframework.beans.factory.annotation.Value;
 import org.springframework.security.access.AccessDeniedException;
 import org.springframework.stereotype.Service;
 
+import java.nio.charset.StandardCharsets;
+import java.security.MessageDigest;
 import java.time.Instant;
+import java.util.HexFormat;
 import java.util.List;
 import java.util.UUID;
 
@@ -24,25 +27,35 @@ public class RefreshTokenService {
     @Value("${app.jwt.refresh-expiration-session-ms}")
     private long sessionExpirationMs;
 
-    public RefreshToken issue(User user, boolean remember,String ipAddress, String userAgent) {
+    public String issue(User user, boolean remember, String ipAddress, String userAgent) {
         long validityMs = remember ? rememberExpirationMs : sessionExpirationMs;
+        String raw = UUID.randomUUID().toString();
         RefreshToken token = RefreshToken.builder()
                 .user(user)
-                .token(UUID.randomUUID().toString())
+                .token(hash(raw))
                 .expiresAt(Instant.now().plusMillis(validityMs))
                 .remember(remember)
                 .ipAddress(ipAddress)
                 .userAgent(userAgent)
                 .build();
-        return refreshTokenRepository.save(token);
+        refreshTokenRepository.save(token);
+        return raw;
     }
-
+    private String hash(String rawToken) {
+        try {
+            byte[] digest = MessageDigest.getInstance("SHA-256")
+                    .digest(rawToken.getBytes(StandardCharsets.UTF_8));
+            return HexFormat.of().formatHex(digest);
+        } catch (Exception e) {
+            throw new IllegalStateException("Could not hash refresh token", e);
+        }
+    }
     /**
      * Validates a refresh token and immediately revokes it (rotation) —
      * every refresh produces a brand-new token, single-use.
      */
     public RefreshToken validateAndConsume(String tokenValue) {
-        RefreshToken token = refreshTokenRepository.findByToken(tokenValue)
+        RefreshToken token = refreshTokenRepository.findByToken(hash(tokenValue))
                 .orElseThrow(() -> new IllegalArgumentException("Invalid refresh token"));
 
         if (token.isRevoked() || token.getExpiresAt().isBefore(Instant.now())) {
@@ -55,7 +68,7 @@ public class RefreshTokenService {
     }
 
     public void revoke(String tokenValue) {
-        refreshTokenRepository.findByToken(tokenValue).ifPresent(t -> {
+        refreshTokenRepository.findByToken(hash(tokenValue)).ifPresent(t -> {
             t.setRevoked(true);
             refreshTokenRepository.save(t);
         });
@@ -89,7 +102,7 @@ public class RefreshTokenService {
                 .device(parseUserAgent(t.getUserAgent()))
                 .createdAt(t.getCreatedAt())
                 .expiresAt(t.getExpiresAt())
-                .current(t.getToken().equals(currentTokenValue))
+                .current(currentTokenValue != null && t.getToken().equals(hash(currentTokenValue)))
                 .build();
     }
 

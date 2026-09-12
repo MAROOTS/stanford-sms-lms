@@ -6,6 +6,7 @@ import {
     Wallet,
     BookOpen,
     GraduationCap,
+    Calendar,
     ArrowRight,
     Loader2,
     Sparkles
@@ -42,11 +43,15 @@ export default function StudentHome() {
 
                 if (records && records.length > 0) {
                     const presentOrLate = records.filter(
-                        (r) => r.status === 'PRESENT' || r.status === 'LATE'
+                        (r) =>
+                            r.status === 'PRESENT' ||
+                            r.status === 'LATE'
                     ).length;
 
                     setAttendancePercent(
-                        Math.round((presentOrLate / records.length) * 100)
+                        Math.round(
+                            (presentOrLate / records.length) * 100
+                        )
                     );
                 }
 
@@ -89,22 +94,25 @@ export default function StudentHome() {
         },
         {
             label: 'Attendance Rate',
-            value: attendancePercent !== null
-                ? `${attendancePercent}%`
-                : '—',
+            value:
+                attendancePercent !== null
+                    ? `${attendancePercent}%`
+                    : '—',
             icon: ClipboardCheck,
             color: 'text-teal-700 bg-teal-50 border-teal-100',
             link: '/my-attendance'
         },
         {
             label: 'Fee Balance',
-            value: feeBalance !== null
-                ? `KES ${feeBalance.toLocaleString()}`
-                : '—',
+            value:
+                feeBalance !== null
+                    ? `KES ${feeBalance.toLocaleString()}`
+                    : '—',
             icon: Wallet,
-            color: feeBalance > 0
-                ? 'text-rose-700 bg-rose-50 border-rose-100'
-                : 'text-emerald-700 bg-emerald-50 border-emerald-100',
+            color:
+                feeBalance > 0
+                    ? 'text-rose-700 bg-rose-50 border-rose-100'
+                    : 'text-emerald-700 bg-emerald-50 border-emerald-100',
             link: '/my-fees'
         },
     ];
@@ -112,24 +120,39 @@ export default function StudentHome() {
     const quickActions = [
         {
             title: 'My Results',
-            description: 'View exam scores, subject grades, and class rankings',
+            description:
+                'View exam scores, subject grades, and class rankings',
             icon: TrendingUp,
             link: '/my-results',
-            iconColor: 'text-teal-600 bg-teal-50 border-teal-100',
+            iconColor:
+                'text-teal-600 bg-teal-50 border-teal-100',
         },
         {
             title: 'Report Cards',
-            description: 'View and download official term performance reports',
+            description:
+                'View and download official term performance reports',
             icon: GraduationCap,
             link: '/my-report-cards',
-            iconColor: 'text-blue-600 bg-blue-50 border-blue-100',
+            iconColor:
+                'text-blue-600 bg-blue-50 border-blue-100',
         },
         {
             title: 'Library',
-            description: 'Browse book catalog and check borrowed items',
+            description:
+                'Browse book catalog and check borrowed items',
             icon: BookOpen,
             link: '/my-library',
-            iconColor: 'text-indigo-600 bg-indigo-50 border-indigo-100',
+            iconColor:
+                'text-indigo-600 bg-indigo-50 border-indigo-100',
+        },
+        {
+            title: 'My Timetable',
+            description:
+                "View this week's lessons and class schedule",
+            icon: Calendar,
+            link: '/my-timetable',
+            iconColor:
+                'text-teal-600 bg-teal-50 border-teal-100',
         },
     ];
 
@@ -195,7 +218,10 @@ export default function StudentHome() {
                             {CardContent}
                         </Link>
                     ) : (
-                        <div key={c.label} className="h-full">
+                        <div
+                            key={c.label}
+                            className="h-full"
+                        >
                             {CardContent}
                         </div>
                     );
@@ -208,7 +234,7 @@ export default function StudentHome() {
                     Quick Navigation
                 </h2>
 
-                <div className="grid grid-cols-1 sm:grid-cols-3 gap-5">
+                <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-5">
                     {quickActions.map((action) => (
                         <Link
                             key={action.title}

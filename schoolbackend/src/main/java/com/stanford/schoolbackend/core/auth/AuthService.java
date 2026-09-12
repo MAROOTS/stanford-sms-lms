@@ -122,9 +122,10 @@ public class AuthService {
         authEventLogService.log(AuthEventType.LOGIN_SUCCESS, request.getUsername(), user, httpRequest);
 
         String token = jwtService.generateToken(user.getUsername());
-        RefreshToken refreshToken = refreshTokenService.issue(user, request.isRemember(),
+        String refreshToken = refreshTokenService.issue(
+                user, request.isRemember(),
                 resolveIp(httpRequest), httpRequest.getHeader("User-Agent"));
-        return buildAuthResponse(user, token, refreshToken.getToken());
+        return buildAuthResponse(user, token, refreshToken);
 
     }
     public AuthResponse refresh(RefreshTokenRequest request, HttpServletRequest httpRequest) {
@@ -132,10 +133,11 @@ public class AuthService {
         User user = oldToken.getUser();
 
         String newAccessToken = jwtService.generateToken(user.getUsername());
-        RefreshToken newRefreshToken = refreshTokenService.issue(user, oldToken.isRemember(),
+        String newRefreshToken = refreshTokenService.issue(
+                user, oldToken.isRemember(),
                 resolveIp(httpRequest), httpRequest.getHeader("User-Agent"));
 
-        return buildAuthResponse(user, newAccessToken, newRefreshToken.getToken());
+        return buildAuthResponse(user, newAccessToken, newRefreshToken);
     }
 
     public void logout(RefreshTokenRequest request) {

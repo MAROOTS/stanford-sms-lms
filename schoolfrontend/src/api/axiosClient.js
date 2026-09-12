@@ -1,7 +1,11 @@
 import axios from 'axios';
 
+
+const apiRoot = (import.meta.env.VITE_API_URL || '').replace(/\/$/, '');
+export const apiBase = `${apiRoot}/api`;
+
 const axiosClient = axios.create({
-    baseURL: 'http://localhost:8080/api',
+    baseURL: apiBase,
 });
 
 function getStorage() {
@@ -68,7 +72,7 @@ axiosClient.interceptors.response.use(
 
             try {
                 // plain axios here, not axiosClient — avoids re-triggering this same interceptor
-                const { data } = await axios.post('http://localhost:8080/api/auth/refresh', { refreshToken });
+                const { data } = await axios.post(`${apiBase}/auth/refresh`, { refreshToken });
                 storage.setItem('accessToken', data.accessToken);
                 storage.setItem('refreshToken', data.refreshToken);
                 processQueue(null, data.accessToken);

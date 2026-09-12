@@ -5,6 +5,7 @@ import com.stanford.schoolbackend.core.security.LoginRateLimitFilter;
 import com.stanford.schoolbackend.core.security.PublicContactRateLimitFilter;
 import com.stanford.schoolbackend.core.tenant.TenantContextFilter;
 import lombok.RequiredArgsConstructor;
+import org.springframework.beans.factory.annotation.Value;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
 import org.springframework.http.HttpMethod;
@@ -36,20 +37,15 @@ public class SecurityConfig {
     private final JwtAuthenticationFilter jwtAuthFilter;
     private final UserDetailsService userDetailsService;
     private final TenantContextFilter tenantContextFilter;
+    @Value("${app.cors.origin-patterns:http://localhost:5173,http://*.localhost:5173}")
+    private String corsOriginPatterns;
     @Bean
     public CorsConfigurationSource corsConfigurationSource() {
         CorsConfiguration config = new CorsConfiguration();
-        config.setAllowedOrigins(List.of("http://localhost:5173"));
+        config.setAllowedOriginPatterns(List.of(corsOriginPatterns.split(",")));
         config.setAllowedMethods(List.of("GET", "POST", "PUT", "PATCH", "DELETE", "OPTIONS"));
         config.setAllowedHeaders(List.of("Authorization", "Content-Type"));
-        config.setAllowedOriginPatterns(List.of(
-                "http://*.localhost:5173",
-                "http://localhost:5173",
-                "https://*.yourapp.com"   // placeholder — replace this with my  real domain
-        ));
         config.setAllowCredentials(true);
-
-
         UrlBasedCorsConfigurationSource source = new UrlBasedCorsConfigurationSource();
         source.registerCorsConfiguration("/**", config);
         return source;

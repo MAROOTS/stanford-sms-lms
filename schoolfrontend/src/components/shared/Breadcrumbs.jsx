@@ -15,6 +15,8 @@ const ROUTE_LABELS = {
   attendance: 'Attendance',
   fees: 'Fee Collection',
   'fee-items': 'Fee Items',
+  timetable: 'Timetable',
+  'my-timetable': 'My timetable'
 };
 
 export default function Breadcrumbs() {

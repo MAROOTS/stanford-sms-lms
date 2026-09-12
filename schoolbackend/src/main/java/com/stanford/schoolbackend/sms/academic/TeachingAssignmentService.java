@@ -23,6 +23,7 @@ public class TeachingAssignmentService {
     private final SubjectRepository subjectRepository;
     private final ClassSectionRepository classSectionRepository;
     private final SchoolRepository schoolRepository;
+    private final TimetableSlotRepository timetableSlotRepository;
 
     public TeachingAssignmentResponse create(TeachingAssignmentRequest request) {
         Long schoolId = SecurityUtils.currentSchoolId();
@@ -48,6 +49,10 @@ public class TeachingAssignmentService {
         Long schoolId = SecurityUtils.currentSchoolId();
         if (assignment.getSchool() == null || !schoolId.equals(assignment.getSchool().getId())) {
             throw new ResourceNotFoundException("Teaching assignment not found");
+        }
+        if (timetableSlotRepository.existsByTeachingAssignmentId(id)) {
+            throw new IllegalArgumentException(
+                    "This assignment is on the timetable. Clear those slots first.");
         }
         teachingAssignmentRepository.delete(assignment);
     }

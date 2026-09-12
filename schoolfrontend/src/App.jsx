@@ -49,6 +49,8 @@ import PlatformAdminDashboard from './pages/platform/PlatformAdminDashboard';
 import TeachingAssignments from "./pages/classes/TeachingAssignments";
 import StudentImport from './pages/students/StudentImport';
 import FeeStructures from './pages/fees/FeeStructures';
+import Timetable from './pages/timetable/Timetable';
+import MyTimetable from './pages/timetable/MyTimetable';
 export default function App() {
   return (
     <ThemeProvider>
@@ -102,6 +104,8 @@ export default function App() {
                 <Route path="/platform/schools" element={<PlatformAdminDashboard />} />
                 <Route path="/students/import" element={<StudentImport />} />
                 <Route path="/fee-structures" element={<FeeStructures />} />
+                <Route path="/timetable" element={<Timetable />} />
+                <Route path="/my-timetable" element={<MyTimetable />} />
 
                 {/* Parent Portal */}
                 <Route path="/parents" element={<Parents />} />
@@ -114,6 +118,8 @@ export default function App() {
 
               <Route path="/" element={<Navigate to="/dashboard" replace />} />
               <Route path="*" element={<NotFound />} />
+
+
             </Routes>
           </BrowserRouter>
         </SidebarProvider>
