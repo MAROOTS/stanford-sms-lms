@@ -44,16 +44,16 @@ export default function Terms() {
     };
 
     return (
-        <div className="max-w-7xl mx-auto p-4 sm:p-6 lg:p-8 animate-in fade-in duration-500">
+        <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-6 sm:py-8 animate-in fade-in duration-500">
             {/* HEADER & CONTROLS */}
-            <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4 mb-8">
+            <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4 mb-6 sm:mb-8">
                 <div>
-                    <h1 className="text-3xl font-bold tracking-tight text-slate-900">Terms</h1>
-                    <p className="text-sm text-slate-500 mt-1.5">Manage academic terms and schedule milestones for the school calendar.</p>
+                    <h1 className="text-2xl sm:text-3xl font-bold tracking-tight text-slate-900">Terms</h1>
+                    <p className="text-sm text-slate-500 mt-1">Manage academic terms and schedule milestones for the school calendar.</p>
                 </div>
                 <button
                     onClick={() => { setEditing(null); setViewing(null); setModalOpen(true); }}
-                    className="flex items-center justify-center gap-2 bg-navy-900 hover:bg-navy-800 text-white shadow-sm text-sm font-semibold px-5 py-2.5 rounded-xl transition-all active:scale-[0.98]"
+                    className="w-full sm:w-auto justify-center flex items-center gap-2 bg-navy-900 hover:bg-navy-800 text-white shadow-sm text-sm font-semibold px-5 py-2.5 rounded-xl transition-all active:scale-[0.98]"
                 >
                     <Plus size={18} /> Add Term
                 </button>
@@ -72,7 +72,7 @@ export default function Terms() {
 
             {/* EMPTY STATE */}
             {!loading && !error && terms.length === 0 && (
-                <div className="bg-white rounded-2xl border border-slate-200 shadow-sm p-12">
+                <div className="bg-white rounded-2xl border border-slate-200 shadow-sm p-8 sm:p-12">
                     <EmptyState
                         icon={Calendar}
                         title="No terms yet"
@@ -89,80 +89,137 @@ export default function Terms() {
                 </div>
             )}
 
-            {/* DATA TABLE */}
+            {/* DATA AREA */}
             {!loading && !error && terms.length > 0 && (
-                <div className="bg-white rounded-2xl border border-slate-200 shadow-sm overflow-hidden">
-                    <div className="overflow-x-auto custom-scrollbar">
-                        <table className="w-full text-sm text-left">
-                            <thead className="bg-slate-50 border-b border-slate-200">
-                            <tr className="text-[11px] font-bold tracking-wider text-slate-500 uppercase">
-                                <th className="px-6 py-4">Term</th>
-                                <th className="px-6 py-4">Dates</th>
-                                <th className="px-6 py-4">Status</th>
-                                <th className="px-6 py-4 text-right">Actions</th>
-                            </tr>
-                            </thead>
-                            <tbody className="divide-y divide-slate-100">
-                            {terms.map((t) => (
-                                <tr key={t.id} className="group bg-white hover:bg-slate-50/80 transition-colors">
-                                    <td className="px-6 py-4 font-semibold text-slate-900">
-                                        <div className="flex items-center gap-2.5">
-                                            <div className="w-8 h-8 rounded-lg bg-slate-100 border border-slate-200 flex items-center justify-center text-slate-600">
-                                                <Calendar size={16} />
-                                            </div>
-                                            {t.name}
+                <>
+                    {/* MOBILE CARD VIEW (< md screens) */}
+                    <div className="grid grid-cols-1 gap-4 md:hidden">
+                        {terms.map((t) => (
+                            <div key={t.id} className="bg-white p-4 rounded-2xl border border-slate-200 shadow-sm flex flex-col gap-3">
+                                <div className="flex items-start justify-between gap-3">
+                                    <div className="flex items-center gap-3">
+                                        <div className="w-10 h-10 rounded-xl bg-slate-100 border border-slate-200 flex items-center justify-center text-slate-600 shrink-0">
+                                            <Calendar size={18} />
                                         </div>
-                                    </td>
-                                    <td className="px-6 py-4 text-slate-600 font-medium">
-                                        {t.startDate ? (
-                                            <div className="flex items-center gap-1.5 text-xs text-slate-600 bg-slate-50 border border-slate-200 px-2.5 py-1 rounded-lg w-fit">
-                                                <Clock size={12} className="text-slate-400" />
-                                                {t.startDate} {t.endDate ? `– ${t.endDate}` : ''}
-                                            </div>
-                                        ) : (
-                                            <span className="text-slate-400">—</span>
-                                        )}
-                                    </td>
-                                    <td className="px-6 py-4">
-                                        {t.isCurrent ? (
-                                            <span className="inline-flex items-center gap-1 bg-emerald-50 border border-emerald-100 text-emerald-700 text-xs font-bold px-2.5 py-1 rounded-full">
-                                                <CheckCircle2 size={12} /> Current
-                                            </span>
-                                        ) : (
-                                            <span className="text-slate-400 text-xs font-normal">—</span>
-                                        )}
-                                    </td>
-                                    <td className="px-6 py-4 text-right whitespace-nowrap">
-                                        <div className="flex items-center justify-end gap-1.5 opacity-80 group-hover:opacity-100 transition-opacity">
-                                            <button
-                                                onClick={() => { setViewing(t); setEditing(null); setModalOpen(true); }}
-                                                title="View Details"
-                                                className="p-2 rounded-xl text-slate-400 hover:text-navy-900 hover:bg-slate-100 transition-colors"
-                                            >
-                                                <Eye size={16} />
-                                            </button>
-                                            <button
-                                                onClick={() => { setEditing(t); setViewing(null); setModalOpen(true); }}
-                                                title="Edit Term"
-                                                className="p-2 rounded-xl text-slate-400 hover:text-blue-600 hover:bg-blue-50 transition-colors"
-                                            >
-                                                <Pencil size={16} />
-                                            </button>
-                                            <button
-                                                onClick={() => setDeleteTarget(t)}
-                                                title="Delete Term"
-                                                className="p-2 rounded-xl text-slate-400 hover:text-rose-600 hover:bg-rose-50 transition-colors"
-                                            >
-                                                <Trash2 size={16} />
-                                            </button>
+                                        <div>
+                                            <h3 className="font-semibold text-slate-900 text-base">{t.name}</h3>
+                                            {t.isCurrent && (
+                                                <span className="inline-flex items-center gap-1 bg-emerald-50 border border-emerald-100 text-emerald-700 text-[11px] font-bold px-2 py-0.5 rounded-full mt-0.5">
+                                                    <CheckCircle2 size={11} /> Current
+                                                </span>
+                                            )}
                                         </div>
-                                    </td>
-                                </tr>
-                            ))}
-                            </tbody>
-                        </table>
+                                    </div>
+                                </div>
+
+                                {t.startDate && (
+                                    <div className="flex items-center gap-1.5 text-xs text-slate-600 bg-slate-50 border border-slate-100 px-3 py-2 rounded-xl">
+                                        <Clock size={14} className="text-slate-400 shrink-0" />
+                                        <span className="font-medium">{t.startDate} {t.endDate ? `– ${t.endDate}` : ''}</span>
+                                    </div>
+                                )}
+
+                                <div className="pt-2 border-t border-slate-100 flex items-center justify-end gap-1.5">
+                                    <button
+                                        onClick={() => { setViewing(t); setEditing(null); setModalOpen(true); }}
+                                        title="View Details"
+                                        className="flex-1 flex items-center justify-center gap-1.5 py-2 px-3 rounded-lg text-xs font-medium text-slate-700 bg-slate-100 hover:bg-slate-200 transition-colors"
+                                    >
+                                        <Eye size={16} /> View
+                                    </button>
+                                    <button
+                                        onClick={() => { setEditing(t); setViewing(null); setModalOpen(true); }}
+                                        title="Edit Term"
+                                        className="p-2 rounded-lg text-slate-500 hover:text-blue-600 hover:bg-blue-50 bg-slate-50 border border-slate-200/60 transition-colors"
+                                    >
+                                        <Pencil size={16} />
+                                    </button>
+                                    <button
+                                        onClick={() => setDeleteTarget(t)}
+                                        title="Delete Term"
+                                        className="p-2 rounded-lg text-slate-500 hover:text-rose-600 hover:bg-rose-50 bg-slate-50 border border-slate-200/60 transition-colors"
+                                    >
+                                        <Trash2 size={16} />
+                                    </button>
+                                </div>
+                            </div>
+                        ))}
                     </div>
-                </div>
+
+                    {/* DESKTOP TABLE VIEW (≥ md screens) */}
+                    <div className="hidden md:block bg-white rounded-2xl border border-slate-200 shadow-sm overflow-hidden">
+                        <div className="overflow-x-auto custom-scrollbar">
+                            <table className="w-full text-sm text-left">
+                                <thead className="bg-slate-50 border-b border-slate-200">
+                                <tr className="text-[11px] font-bold tracking-wider text-slate-500 uppercase">
+                                    <th className="px-6 py-4">Term</th>
+                                    <th className="px-6 py-4">Dates</th>
+                                    <th className="px-6 py-4">Status</th>
+                                    <th className="px-6 py-4 text-right">Actions</th>
+                                </tr>
+                                </thead>
+                                <tbody className="divide-y divide-slate-100">
+                                {terms.map((t) => (
+                                    <tr key={t.id} className="group bg-white hover:bg-slate-50/80 transition-colors">
+                                        <td className="px-6 py-4 font-semibold text-slate-900">
+                                            <div className="flex items-center gap-2.5">
+                                                <div className="w-8 h-8 rounded-lg bg-slate-100 border border-slate-200 flex items-center justify-center text-slate-600">
+                                                    <Calendar size={16} />
+                                                </div>
+                                                {t.name}
+                                            </div>
+                                        </td>
+                                        <td className="px-6 py-4 text-slate-600 font-medium">
+                                            {t.startDate ? (
+                                                <div className="flex items-center gap-1.5 text-xs text-slate-600 bg-slate-50 border border-slate-200 px-2.5 py-1 rounded-lg w-fit">
+                                                    <Clock size={12} className="text-slate-400" />
+                                                    {t.startDate} {t.endDate ? `– ${t.endDate}` : ''}
+                                                </div>
+                                            ) : (
+                                                <span className="text-slate-400">—</span>
+                                            )}
+                                        </td>
+                                        <td className="px-6 py-4">
+                                            {t.isCurrent ? (
+                                                <span className="inline-flex items-center gap-1 bg-emerald-50 border border-emerald-100 text-emerald-700 text-xs font-bold px-2.5 py-1 rounded-full">
+                                                        <CheckCircle2 size={12} /> Current
+                                                    </span>
+                                            ) : (
+                                                <span className="text-slate-400 text-xs font-normal">—</span>
+                                            )}
+                                        </td>
+                                        <td className="px-6 py-4 text-right whitespace-nowrap">
+                                            <div className="flex items-center justify-end gap-1.5 opacity-80 group-hover:opacity-100 transition-opacity">
+                                                <button
+                                                    onClick={() => { setViewing(t); setEditing(null); setModalOpen(true); }}
+                                                    title="View Details"
+                                                    className="p-2 rounded-xl text-slate-400 hover:text-navy-900 hover:bg-slate-100 transition-colors"
+                                                >
+                                                    <Eye size={16} />
+                                                </button>
+                                                <button
+                                                    onClick={() => { setEditing(t); setViewing(null); setModalOpen(true); }}
+                                                    title="Edit Term"
+                                                    className="p-2 rounded-xl text-slate-400 hover:text-blue-600 hover:bg-blue-50 transition-colors"
+                                                >
+                                                    <Pencil size={16} />
+                                                </button>
+                                                <button
+                                                    onClick={() => setDeleteTarget(t)}
+                                                    title="Delete Term"
+                                                    className="p-2 rounded-xl text-slate-400 hover:text-rose-600 hover:bg-rose-50 transition-colors"
+                                                >
+                                                    <Trash2 size={16} />
+                                                </button>
+                                            </div>
+                                        </td>
+                                    </tr>
+                                ))}
+                                </tbody>
+                            </table>
+                        </div>
+                    </div>
+                </>
             )}
 
             {/* MODAL */}

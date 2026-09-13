@@ -1,7 +1,11 @@
 import { useEffect, useState, useCallback } from 'react';
-import { Plus, X, ArrowLeft, Coins, Pencil, Trash2, Loader2 } from 'lucide-react';
+import { Plus, X, ArrowLeft, Coins, Pencil, Trash2, Loader2, RotateCcw } from 'lucide-react';
 import { Link } from 'react-router-dom';
 import axiosClient from '../../api/axiosClient';
+import ConfirmDialog from '../../components/shared/ConfirmDialog';
+import EmptyState from '../../components/shared/EmptyState';
+import { TableSkeleton } from '../../components/shared/LoadingSkeleton';
+import { useToast } from '../../context/useToast';
 
 function FeeItemModal({ initialData, onClose, onSaved }) {
     const isEdit = Boolean(initialData);
@@ -12,29 +16,46 @@ function FeeItemModal({ initialData, onClose, onSaved }) {
 
     const handleSubmit = async (e) => {
         e.preventDefault();
-        setError(''); setSaving(true);
+        setError('');
+        setSaving(true);
         try {
-            const payload = { name, defaultAmount: defaultAmount ? Number(defaultAmount) : null };
-            if (isEdit) await axiosClient.put(`/fee-items/${initialData.id}`, payload);
-            else await axiosClient.post('/fee-items', payload);
-            onSaved();
+            const payload = {
+                name: name.trim(),
+                defaultAmount: defaultAmount !== '' ? Number(defaultAmount) : null,
+            };
+            if (isEdit) {
+                await axiosClient.put(`/fee-items/${initialData.id}`, payload);
+            } else {
+                await axiosClient.post('/fee-items', payload);
+            }
+            onSaved(isEdit ? 'Fee item updated successfully.' : 'Fee item created successfully.');
         } catch (err) {
-            setError(err.response?.data?.message || 'Something went wrong');
-        } finally { setSaving(false); }
+            setError(err.response?.data?.message || 'Something went wrong. Please try again.');
+        } finally {
+            setSaving(false);
+        }
     };
 
     return (
         <div className="fixed inset-0 bg-slate-900/40 backdrop-blur-xs flex items-center justify-center z-50 px-4 animate-in fade-in duration-200">
             <div className="bg-white rounded-2xl w-full max-w-md p-6 shadow-xl border border-slate-200">
                 <div className="flex items-center justify-between mb-5">
-                    <h2 className="text-xl font-bold text-slate-900">{isEdit ? 'Edit fee item' : 'Add fee item'}</h2>
-                    <button onClick={onClose} className="p-2 rounded-xl text-slate-400 hover:text-slate-600 hover:bg-slate-100 transition-colors">
+                    <h2 className="text-xl font-bold text-slate-900">
+                        {isEdit ? 'Edit fee item' : 'Add fee item'}
+                    </h2>
+                    <button
+                        type="button"
+                        onClick={onClose}
+                        className="p-2 rounded-xl text-slate-400 hover:text-slate-600 hover:bg-slate-100 transition-colors cursor-pointer"
+                    >
                         <X size={20} />
                     </button>
                 </div>
                 <form onSubmit={handleSubmit} className="space-y-4">
                     <div>
-                        <label className="block text-xs font-bold tracking-wider text-slate-400 uppercase mb-1.5">Name</label>
+                        <label className="block text-xs font-bold tracking-wider text-slate-400 uppercase mb-1.5">
+                            Name
+                        </label>
                         <input
                             required
                             value={name}
@@ -66,14 +87,14 @@ function FeeItemModal({ initialData, onClose, onSaved }) {
                         <button
                             type="button"
                             onClick={onClose}
-                            className="flex-1 py-2.5 rounded-xl border border-slate-200 text-sm font-semibold text-slate-600 hover:bg-slate-50 transition-colors"
+                            className="flex-1 py-2.5 rounded-xl border border-slate-200 text-sm font-semibold text-slate-600 hover:bg-slate-50 transition-colors cursor-pointer"
                         >
                             Cancel
                         </button>
                         <button
                             type="submit"
                             disabled={saving}
-                            className="flex-1 flex items-center justify-center gap-2 py-2.5 rounded-xl bg-navy-900 hover:bg-navy-800 text-white text-sm font-semibold transition-all disabled:opacity-60 shadow-sm"
+                            className="flex-1 flex items-center justify-center gap-2 py-2.5 rounded-xl bg-navy-900 hover:bg-navy-800 text-white text-sm font-semibold transition-all disabled:opacity-60 shadow-sm active:scale-[0.98] cursor-pointer"
                         >
                             {saving && <Loader2 size={16} className="animate-spin" />}
                             {saving ? 'Saving...' : isEdit ? 'Save Changes' : 'Add Item'}
@@ -91,136 +112,225 @@ export default function FeeItems() {
     const [error, setError] = useState('');
     const [modalOpen, setModalOpen] = useState(false);
     const [editing, setEditing] = useState(null);
+    const [deleteTarget, setDeleteTarget] = useState(null);
+
+    const toast = useToast();
 
     const load = useCallback(async () => {
-        setLoading(true); setError('');
+        setLoading(true);
+        setError('');
         try {
             const { data } = await axiosClient.get('/fee-items');
-            setItems(data);
-        } catch { setError('Could not load fee items'); }
-        finally { setLoading(false); }
+            setItems(data || []);
+        } catch {
+            setError('Could not load fee items. Please try again.');
+        } finally {
+            setLoading(false);
+        }
     }, []);
 
-    useEffect(() => { queueMicrotask(() => load()); }, [load]);
+    useEffect(() => {
+        let isMounted = true;
+        load().catch(() => {
+            if (isMounted) setError('Could not load fee items. Please try again.');
+        });
+        return () => {
+            isMounted = false;
+        };
+    }, [load]);
 
-    const handleDelete = async (id) => {
-        if (!window.confirm('Delete this fee item?')) return;
+    const handleDelete = async () => {
+        if (!deleteTarget) return;
+        const id = deleteTarget.id;
+        const name = deleteTarget.name;
+        setDeleteTarget(null);
         try {
             await axiosClient.delete(`/fee-items/${id}`);
             setItems((prev) => prev.filter((i) => i.id !== id));
+            toast.success(`"${name}" has been deleted successfully.`);
         } catch (err) {
-            alert(err.response?.data?.message || 'Could not delete this item.');
+            toast.error(err.response?.data?.message || 'Could not delete this item.');
         }
+    };
+
+    const openAddModal = () => {
+        setEditing(null);
+        setModalOpen(true);
+    };
+
+    const openEditModal = (item) => {
+        setEditing(item);
+        setModalOpen(true);
+    };
+
+    const handleSaved = (message) => {
+        setModalOpen(false);
+        load();
+        if (message) toast.success(message);
     };
 
     return (
         <div className="max-w-7xl mx-auto p-4 sm:p-6 lg:p-8 animate-in fade-in duration-500">
             {/* NAVIGATION LINKS */}
             <div className="flex items-center justify-between mb-6">
-                <Link to="/fees" className="inline-flex items-center gap-1.5 text-sm font-medium text-slate-500 hover:text-slate-800 transition-colors">
+                <Link
+                    to="/fees"
+                    className="inline-flex items-center gap-1.5 text-sm font-medium text-slate-500 hover:text-slate-800 transition-colors"
+                >
                     <ArrowLeft size={16} /> Back to Fee Collection
                 </Link>
-                <Link to="/fee-structures" className="text-sm font-semibold text-navy-900 hover:underline">
+                <Link
+                    to="/fee-structures"
+                    className="text-sm font-semibold text-navy-900 hover:underline"
+                >
                     Fee structures →
                 </Link>
             </div>
 
             {/* HEADER & CONTROLS */}
-            <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4 mb-8">
+            <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4 mb-6 sm:mb-8">
                 <div>
-                    <h1 className="text-3xl font-bold tracking-tight text-slate-900">Fee Items</h1>
-                    <p className="text-sm text-slate-500 mt-1.5">Manage fee components and optional default amounts for billing invoices.</p>
+                    <div className="flex items-center gap-3">
+                        <h1 className="text-2xl sm:text-3xl font-bold tracking-tight text-slate-900">
+                            Fee Items
+                        </h1>
+                        {!loading && items.length > 0 && (
+                            <span className="bg-slate-100 border border-slate-200 text-slate-700 text-xs font-semibold px-2.5 py-0.5 rounded-full">
+                                {items.length}
+                            </span>
+                        )}
+                    </div>
+                    <p className="text-sm text-slate-500 mt-1">
+                        Manage fee components and optional default amounts for billing invoices.
+                    </p>
                 </div>
+
                 <button
-                    onClick={() => { setEditing(null); setModalOpen(true); }}
-                    className="flex items-center justify-center gap-2 bg-navy-900 hover:bg-navy-800 text-white shadow-sm text-sm font-semibold px-5 py-2.5 rounded-xl transition-all active:scale-[0.98]"
+                    type="button"
+                    onClick={openAddModal}
+                    className="w-full sm:w-auto flex items-center justify-center gap-2 bg-navy-900 hover:bg-navy-800 text-white shadow-sm text-sm font-semibold px-5 py-2.5 rounded-xl transition-all active:scale-[0.98] cursor-pointer"
                 >
                     <Plus size={18} /> Add Item
                 </button>
             </div>
 
-            {/* DATA TABLE CONTAINER */}
-            <div className="bg-white rounded-2xl border border-slate-200 shadow-sm overflow-hidden">
-                <div className="overflow-x-auto custom-scrollbar">
-                    <table className="w-full text-sm text-left">
-                        <thead className="bg-slate-50 border-b border-slate-200">
-                        <tr className="text-[11px] font-bold tracking-wider text-slate-500 uppercase">
-                            <th className="px-6 py-4">Name</th>
-                            <th className="px-6 py-4">Default Amount</th>
-                            <th className="px-6 py-4 text-right">Actions</th>
-                        </tr>
-                        </thead>
-                        <tbody className="divide-y divide-slate-100">
-                        {loading && (
-                            <tr>
-                                <td colSpan={3} className="px-6 py-12 text-center text-slate-400 font-medium">
-                                    <div className="flex items-center justify-center gap-2">
-                                        <Loader2 size={18} className="animate-spin text-slate-400" />
-                                        Loading fee items...
-                                    </div>
-                                </td>
-                            </tr>
-                        )}
-                        {error && !loading && (
-                            <tr>
-                                <td colSpan={3} className="px-6 py-12 text-center text-rose-600 font-medium bg-rose-50/50">
-                                    {error}
-                                </td>
-                            </tr>
-                        )}
-                        {!loading && !error && items.length === 0 && (
-                            <tr>
-                                <td colSpan={3} className="px-6 py-12 text-center text-slate-400 font-medium">
-                                    No fee items yet. Create your first fee component above.
-                                </td>
-                            </tr>
-                        )}
-                        {!loading && !error && items.map((i) => (
-                            <tr key={i.id} className="group bg-white hover:bg-slate-50/80 transition-colors">
-                                <td className="px-6 py-4 font-semibold text-slate-900">
-                                    <div className="flex items-center gap-2.5">
-                                        <div className="w-8 h-8 rounded-lg bg-slate-100 border border-slate-200 flex items-center justify-center text-slate-600">
-                                            <Coins size={16} />
-                                        </div>
-                                        {i.name}
-                                    </div>
-                                </td>
-                                <td className="px-6 py-4 text-slate-700 font-medium">
-                                    {i.defaultAmount ? `KES ${i.defaultAmount.toLocaleString()}` : <span className="text-slate-400 font-normal">—</span>}
-                                </td>
-                                <td className="px-6 py-4 text-right whitespace-nowrap">
-                                    <div className="flex items-center justify-end gap-1.5 opacity-80 group-hover:opacity-100 transition-opacity">
-                                        <button
-                                            onClick={() => { setEditing(i); setModalOpen(true); }}
-                                            title="Edit Item"
-                                            className="p-2 rounded-xl text-slate-400 hover:text-blue-600 hover:bg-blue-50 transition-colors"
-                                        >
-                                            <Pencil size={16} />
-                                        </button>
-                                        <button
-                                            onClick={() => handleDelete(i.id)}
-                                            title="Delete Item"
-                                            className="p-2 rounded-xl text-slate-400 hover:text-rose-600 hover:bg-rose-50 transition-colors"
-                                        >
-                                            <Trash2 size={16} />
-                                        </button>
-                                    </div>
-                                </td>
-                            </tr>
-                        ))}
-                        </tbody>
-                    </table>
+            {/* LOADING STATE */}
+            {loading && <TableSkeleton columns={3} rows={4} />}
+
+            {/* ERROR STATE */}
+            {error && !loading && (
+                <div className="bg-rose-50 border border-rose-200 rounded-2xl p-6 text-center shadow-sm mb-6">
+                    <p className="text-rose-700 text-sm font-medium mb-3">{error}</p>
+                    <button
+                        type="button"
+                        onClick={load}
+                        className="inline-flex items-center gap-1.5 text-xs font-semibold text-rose-800 hover:text-rose-900 underline underline-offset-4 cursor-pointer"
+                    >
+                        <RotateCcw size={14} /> Try again
+                    </button>
                 </div>
-            </div>
+            )}
+
+            {/* EMPTY STATE */}
+            {!loading && !error && items.length === 0 && (
+                <div className="bg-white rounded-2xl border border-slate-200 shadow-sm p-8 sm:p-12">
+                    <EmptyState
+                        icon={Coins}
+                        title="No fee items yet"
+                        description="Create your first fee component (e.g., Tuition, Activity Fee, Transport) to get started."
+                        action={
+                            <button
+                                type="button"
+                                onClick={openAddModal}
+                                className="flex items-center gap-2 bg-navy-900 hover:bg-navy-800 text-white text-sm font-semibold px-4 py-2.5 rounded-xl transition-all shadow-sm active:scale-[0.98] cursor-pointer"
+                            >
+                                <Plus size={16} /> Add Item
+                            </button>
+                        }
+                    />
+                </div>
+            )}
+
+            {/* DATA TABLE */}
+            {!loading && !error && items.length > 0 && (
+                <div className="bg-white rounded-2xl border border-slate-200 shadow-sm overflow-hidden mb-6">
+                    <div className="overflow-x-auto custom-scrollbar">
+                        <table className="w-full text-sm text-left">
+                            <thead className="bg-slate-50 border-b border-slate-200">
+                            <tr className="text-[11px] font-bold tracking-wider text-slate-500 uppercase">
+                                <th className="px-6 py-4">Name</th>
+                                <th className="px-6 py-4">Default Amount</th>
+                                <th className="px-6 py-4 text-right">Actions</th>
+                            </tr>
+                            </thead>
+                            <tbody className="divide-y divide-slate-100">
+                            {items.map((i) => (
+                                <tr
+                                    key={i.id}
+                                    className="hover:bg-slate-50/80 transition-colors"
+                                >
+                                    <td className="px-6 py-4 font-semibold text-slate-900 whitespace-nowrap">
+                                        <div className="flex items-center gap-3">
+                                            <div className="w-8 h-8 rounded-lg bg-slate-100 border border-slate-200 flex items-center justify-center text-slate-600 shrink-0">
+                                                <Coins size={16} />
+                                            </div>
+                                            {i.name}
+                                        </div>
+                                    </td>
+                                    <td className="px-6 py-4 text-slate-700 font-medium whitespace-nowrap">
+                                        {i.defaultAmount != null ? (
+                                            `KES ${Number(i.defaultAmount).toLocaleString()}`
+                                        ) : (
+                                            <span className="text-slate-400 font-normal">—</span>
+                                        )}
+                                    </td>
+                                    <td className="px-6 py-4 text-right whitespace-nowrap">
+                                        <div className="flex items-center justify-end gap-1">
+                                            <button
+                                                type="button"
+                                                onClick={() => openEditModal(i)}
+                                                title="Edit Item"
+                                                className="p-2 rounded-xl text-slate-500 hover:text-blue-600 hover:bg-blue-50 transition-colors cursor-pointer"
+                                            >
+                                                <Pencil size={16} />
+                                            </button>
+                                            <button
+                                                type="button"
+                                                onClick={() => setDeleteTarget(i)}
+                                                title="Delete Item"
+                                                className="p-2 rounded-xl text-slate-500 hover:text-rose-600 hover:bg-rose-50 transition-colors cursor-pointer"
+                                            >
+                                                <Trash2 size={16} />
+                                            </button>
+                                        </div>
+                                    </td>
+                                </tr>
+                            ))}
+                            </tbody>
+                        </table>
+                    </div>
+                </div>
+            )}
 
             {/* MODAL */}
             {modalOpen && (
                 <FeeItemModal
                     initialData={editing}
                     onClose={() => setModalOpen(false)}
-                    onSaved={() => { setModalOpen(false); load(); }}
+                    onSaved={handleSaved}
                 />
             )}
+
+            {/* CONFIRMATION DIALOG */}
+            <ConfirmDialog
+                open={!!deleteTarget}
+                title="Delete fee item"
+                message={`Are you sure you want to delete "${deleteTarget?.name}"? Any existing invoices using this fee item will be preserved.`}
+                confirmLabel="Delete"
+                variant="danger"
+                onConfirm={handleDelete}
+                onCancel={() => setDeleteTarget(null)}
+            />
         </div>
     );
 }

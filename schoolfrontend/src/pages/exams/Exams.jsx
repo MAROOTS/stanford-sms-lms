@@ -1,209 +1,394 @@
-import { useEffect, useState, useCallback } from 'react';
-import { Plus, ClipboardList, Eye, Pencil, Trash2, Calendar, FileText } from 'lucide-react';
+import { useState, useEffect, useCallback } from 'react';
+import {
+    Plus,
+    Search,
+    Calendar,
+    Edit3,
+    Trash2,
+    Eye,
+    BookOpen,
+    Users,
+    RefreshCw,
+    AlertCircle,
+    FileText,
+    Filter
+} from 'lucide-react';
 import axiosClient from '../../api/axiosClient';
 import ExamModal from './ExamModal';
-import ConfirmDialog from '../../components/shared/ConfirmDialog';
-import EmptyState from '../../components/shared/EmptyState';
-import { TableSkeleton } from '../../components/shared/LoadingSkeleton';
-import { useToast } from '../../context/useToast';
 
 export default function Exams() {
+    // Data States
     const [exams, setExams] = useState([]);
     const [terms, setTerms] = useState([]);
     const [classSections, setClassSections] = useState([]);
     const [subjects, setSubjects] = useState([]);
+
+    // UI & Loading States
     const [loading, setLoading] = useState(true);
     const [error, setError] = useState('');
-    const [modalOpen, setModalOpen] = useState(false);
-    const [editing, setEditing] = useState(null);
-    const [viewing, setViewing] = useState(null);
-    const [deleteTarget, setDeleteTarget] = useState(null);
+    const [searchTerm, setSearchTerm] = useState('');
+    const [selectedTermFilter, setSelectedTermFilter] = useState('');
 
-    const toast = useToast();
+    // Modal Control State
+    const [modalConfig, setModalConfig] = useState({
+        isOpen: false,
+        mode: 'create', // 'create' | 'edit' | 'view'
+        initialData: null,
+    });
 
-    const load = useCallback(async () => {
-        setLoading(true); setError('');
+    // Delete Confirmation Modal State
+    const [deleteModal, setDeleteModal] = useState({
+        isOpen: false,
+        examId: null,
+        examName: '',
+        isDeleting: false,
+    });
+
+    // Fetch All Required Page Data
+    const fetchData = useCallback(async () => {
+        setLoading(true);
+        setError('');
         try {
-            const [examsRes, termsRes, sectionsRes, subjectsRes] = await Promise.all([
+            const [examsRes, termsRes, classesRes, subjectsRes] = await Promise.allSettled([
                 axiosClient.get('/exams'),
                 axiosClient.get('/terms'),
                 axiosClient.get('/class-sections'),
                 axiosClient.get('/subjects'),
             ]);
-            setExams(examsRes.data);
-            setTerms(termsRes.data);
-            setClassSections(sectionsRes.data);
-            setSubjects(subjectsRes.data);
-        } catch { setError('Could not load exams'); }
-        finally { setLoading(false); }
+
+            if (examsRes.status === 'fulfilled') {
+                setExams(Array.isArray(examsRes.value.data) ? examsRes.value.data : []);
+            } else {
+                throw new Error(examsRes.reason?.response?.data?.message || 'Failed to load exams.');
+            }
+
+            if (termsRes.status === 'fulfilled') {
+                setTerms(Array.isArray(termsRes.value.data) ? termsRes.value.data : []);
+            }
+
+            if (classesRes.status === 'fulfilled') {
+                setClassSections(Array.isArray(classesRes.value.data) ? classesRes.value.data : []);
+            }
+
+            if (subjectsRes.status === 'fulfilled') {
+                setSubjects(Array.isArray(subjectsRes.value.data) ? subjectsRes.value.data : []);
+            }
+        } catch (err) {
+            setError(err.message || 'An error occurred while loading page data.');
+        } finally {
+            setLoading(false);
+        }
     }, []);
 
-    useEffect(() => { queueMicrotask(() => load()); }, [load]);
+    useEffect(() => {
+        fetchData();
+    }, [fetchData]);
 
-    const handleDelete = async () => {
-        if (!deleteTarget) return;
-        const id = deleteTarget.id;
-        const name = deleteTarget.name;
-        setDeleteTarget(null);
+    // Handlers for Opening Modal
+    const handleOpenCreate = () => {
+        setModalConfig({
+            isOpen: true,
+            mode: 'create',
+            initialData: null,
+        });
+    };
+
+    const handleOpenEdit = (exam) => {
+        setModalConfig({
+            isOpen: true,
+            mode: 'edit',
+            initialData: exam,
+        });
+    };
+
+    const handleOpenView = (exam) => {
+        setModalConfig({
+            isOpen: true,
+            mode: 'view',
+            initialData: exam,
+        });
+    };
+
+    const handleCloseModal = () => {
+        setModalConfig({
+            isOpen: false,
+            mode: 'create',
+            initialData: null,
+        });
+    };
+
+    const handleExamSaved = () => {
+        handleCloseModal();
+        fetchData();
+    };
+
+    // Delete Handlers
+    const handleConfirmDelete = (exam) => {
+        setDeleteModal({
+            isOpen: true,
+            examId: exam.id,
+            examName: exam.name,
+            isDeleting: false,
+        });
+    };
+
+    const executeDelete = async () => {
+        if (!deleteModal.examId) return;
+
+        setDeleteModal((prev) => ({ ...prev, isDeleting: true }));
         try {
-            await axiosClient.delete(`/exams/${id}`);
-            setExams((prev) => prev.filter((e) => e.id !== id));
-            toast.success(`${name} has been deleted. Any marks will remain.`);
+            await axiosClient.delete(`/exams/${deleteModal.examId}`);
+            setDeleteModal({ isOpen: false, examId: null, examName: '', isDeleting: false });
+            fetchData();
         } catch (err) {
-            toast.error(err.response?.data?.message || 'Could not delete this exam.');
+            alert(err.response?.data?.message || 'Failed to delete the exam record.');
+            setDeleteModal((prev) => ({ ...prev, isDeleting: false }));
         }
     };
 
+    // Filter Logic
+    const filteredExams = exams.filter((exam) => {
+        const matchesSearch =
+            (exam.name || '').toLowerCase().includes(searchTerm.toLowerCase()) ||
+            (exam.examType || '').toLowerCase().includes(searchTerm.toLowerCase());
+
+        const matchesTerm = selectedTermFilter
+            ? String(exam.termId || exam.term?.id) === String(selectedTermFilter)
+            : true;
+
+        return matchesSearch && matchesTerm;
+    });
+
     return (
-        <div className="max-w-7xl mx-auto p-4 sm:p-6 lg:p-8 animate-in fade-in duration-500">
-            {/* HEADER & CONTROLS */}
-            <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4 mb-8">
+        <div className="p-6 max-w-7xl mx-auto space-y-6">
+
+            {/* PAGE HEADER */}
+            <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4">
                 <div>
-                    <h1 className="text-3xl font-bold tracking-tight text-slate-900">Examinations</h1>
-                    <p className="text-sm text-slate-500 mt-1.5">Manage scheduled exams per term, tracking assigned classes and subjects.</p>
+                    <h1 className="text-2xl font-bold text-slate-900 tracking-tight">Examinations</h1>
+                    <p className="text-sm text-slate-500 mt-1">
+                        Manage academic exams, assign target classes, and map relevant curriculum subjects.
+                    </p>
                 </div>
-                <button
-                    onClick={() => { setEditing(null); setViewing(null); setModalOpen(true); }}
-                    className="flex items-center justify-center gap-2 bg-navy-900 hover:bg-navy-800 text-white shadow-sm text-sm font-semibold px-5 py-2.5 rounded-xl transition-all active:scale-[0.98]"
-                >
-                    <Plus size={18} /> Add Exam
-                </button>
+                <div className="flex items-center gap-3">
+                    <button
+                        onClick={fetchData}
+                        disabled={loading}
+                        className="p-2.5 rounded-xl border border-slate-200 bg-white text-slate-600 hover:text-navy-900 hover:border-slate-300 transition-colors shadow-xs"
+                        title="Refresh list"
+                    >
+                        <RefreshCw size={18} className={loading ? 'animate-spin' : ''} />
+                    </button>
+                    <button
+                        onClick={handleOpenCreate}
+                        className="flex items-center gap-2 px-4 py-2.5 rounded-xl text-sm font-semibold text-white bg-navy-900 hover:bg-navy-800 shadow-sm transition-all"
+                    >
+                        <Plus size={18} />
+                        Schedule Exam
+                    </button>
+                </div>
             </div>
 
-            {/* LOADING STATE */}
-            {loading && <TableSkeleton columns={6} rows={4} />}
+            {/* CONTROLS & FILTER BAR */}
+            <div className="flex flex-col sm:flex-row items-center justify-between gap-3 p-4 bg-white border border-slate-200 rounded-2xl shadow-xs">
 
-            {/* ERROR STATE */}
-            {error && !loading && (
-                <div className="bg-rose-50 border border-rose-200 rounded-2xl p-6 text-center shadow-sm">
-                    <p className="text-rose-700 text-sm font-medium mb-3">{error}</p>
-                    <button onClick={load} className="text-sm font-semibold text-rose-800 hover:text-rose-900 underline">Try again</button>
-                </div>
-            )}
-
-            {/* EMPTY STATE */}
-            {!loading && !error && exams.length === 0 && (
-                <div className="bg-white rounded-2xl border border-slate-200 shadow-sm p-12">
-                    <EmptyState
-                        icon={ClipboardList}
-                        title="No exams yet"
-                        description="Schedule your first exam by selecting a term, target classes, and covered subjects."
-                        action={
-                            <button
-                                onClick={() => { setEditing(null); setViewing(null); setModalOpen(true); }}
-                                className="flex items-center gap-2 bg-navy-900 hover:bg-navy-800 text-white text-sm font-semibold px-4 py-2.5 rounded-xl transition-all shadow-sm"
-                            >
-                                <Plus size={16} /> Add Exam
-                            </button>
-                        }
+                {/* Search Field */}
+                <div className="relative w-full sm:w-80">
+                    <Search size={16} className="absolute left-3.5 top-1/2 -translate-y-1/2 text-slate-400" />
+                    <input
+                        type="text"
+                        value={searchTerm}
+                        onChange={(e) => setSearchTerm(e.target.value)}
+                        placeholder="Search exams by name or type..."
+                        className="w-full pl-10 pr-3.5 py-2 text-sm rounded-xl border border-slate-200 focus:outline-none focus:ring-2 focus:ring-navy-900/10 focus:border-navy-900 bg-slate-50/50"
                     />
                 </div>
-            )}
 
-            {/* DATA TABLE */}
-            {!loading && !error && exams.length > 0 && (
-                <div className="bg-white rounded-2xl border border-slate-200 shadow-sm overflow-hidden">
-                    <div className="overflow-x-auto custom-scrollbar">
-                        <table className="w-full text-sm text-left">
-                            <thead className="bg-slate-50 border-b border-slate-200">
-                            <tr className="text-[11px] font-bold tracking-wider text-slate-500 uppercase">
-                                <th className="px-6 py-4">Exam</th>
-                                <th className="px-6 py-4">Type</th>
-                                <th className="px-6 py-4">Term</th>
-                                <th className="px-6 py-4">Classes</th>
-                                <th className="px-6 py-4">Subjects</th>
-                                <th className="px-6 py-4 text-right">Actions</th>
-                            </tr>
-                            </thead>
-                            <tbody className="divide-y divide-slate-100">
-                            {exams.map((e) => (
-                                <tr key={e.id} className="group bg-white hover:bg-slate-50/80 transition-colors">
-                                    <td className="px-6 py-4 font-semibold text-slate-900">
-                                        <div className="flex items-center gap-2.5">
-                                            <div className="w-8 h-8 rounded-lg bg-slate-100 border border-slate-200 flex items-center justify-center text-slate-600">
-                                                <ClipboardList size={16} />
-                                            </div>
-                                            {e.name}
-                                        </div>
-                                    </td>
-                                    <td className="px-6 py-4">
-                                        <span className="inline-flex items-center gap-1 bg-slate-100 border border-slate-200 text-slate-700 text-xs font-semibold px-2.5 py-1 rounded-lg">
-                                            <FileText size={12} className="text-slate-400" />
-                                            {e.examType}
-                                        </span>
-                                    </td>
-                                    <td className="px-6 py-4 text-slate-600 font-medium">
-                                        <div className="flex items-center gap-1.5 w-fit">
-                                            <Calendar size={14} className="text-slate-400" />
-                                            {e.termName}
-                                        </div>
-                                    </td>
-                                    <td className="px-6 py-4">
-                                        <span className="inline-flex items-center bg-blue-50 border border-blue-100 text-blue-700 text-xs font-bold px-2.5 py-1 rounded-full">
-                                            {e.classSections.length} {e.classSections.length === 1 ? 'class' : 'classes'}
-                                        </span>
-                                    </td>
-                                    <td className="px-6 py-4">
-                                        <span className="inline-flex items-center bg-emerald-50 border border-emerald-100 text-emerald-700 text-xs font-bold px-2.5 py-1 rounded-full">
-                                            {e.subjects.length} {e.subjects.length === 1 ? 'subject' : 'subjects'}
-                                        </span>
-                                    </td>
-                                    <td className="px-6 py-4 text-right whitespace-nowrap">
-                                        <div className="flex items-center justify-end gap-1.5 opacity-80 group-hover:opacity-100 transition-opacity">
-                                            <button
-                                                onClick={() => { setViewing(e); setEditing(null); setModalOpen(true); }}
-                                                title="View Details"
-                                                className="p-2 rounded-xl text-slate-400 hover:text-navy-900 hover:bg-slate-100 transition-colors"
-                                            >
-                                                <Eye size={16} />
-                                            </button>
-                                            <button
-                                                onClick={() => { setEditing(e); setViewing(null); setModalOpen(true); }}
-                                                title="Edit Exam"
-                                                className="p-2 rounded-xl text-slate-400 hover:text-blue-600 hover:bg-blue-50 transition-colors"
-                                            >
-                                                <Pencil size={16} />
-                                            </button>
-                                            <button
-                                                onClick={() => setDeleteTarget(e)}
-                                                title="Delete Exam"
-                                                className="p-2 rounded-xl text-slate-400 hover:text-rose-600 hover:bg-rose-50 transition-colors"
-                                            >
-                                                <Trash2 size={16} />
-                                            </button>
-                                        </div>
-                                    </td>
-                                </tr>
-                            ))}
-                            </tbody>
-                        </table>
-                    </div>
+                {/* Term Filter */}
+                <div className="flex items-center gap-2 w-full sm:w-auto">
+                    <Filter size={16} className="text-slate-400 shrink-0" />
+                    <select
+                        value={selectedTermFilter}
+                        onChange={(e) => setSelectedTermFilter(e.target.value)}
+                        className="w-full sm:w-48 py-2 px-3 text-sm rounded-xl border border-slate-200 bg-slate-50/50 focus:outline-none focus:ring-2 focus:ring-navy-900/10 focus:border-navy-900"
+                    >
+                        <option value="">All Terms</option>
+                        {terms.map((term) => (
+                            <option key={term.id} value={term.id}>
+                                {term.name}
+                            </option>
+                        ))}
+                    </select>
+                </div>
+            </div>
+
+            {/* ERROR DISPLAY */}
+            {error && (
+                <div className="flex items-center gap-3 p-4 rounded-xl bg-rose-50 border border-rose-200 text-rose-700 text-sm font-medium">
+                    <AlertCircle size={20} className="shrink-0" />
+                    <p className="flex-1">{error}</p>
+                    <button
+                        onClick={fetchData}
+                        className="underline hover:no-underline font-semibold"
+                    >
+                        Retry
+                    </button>
                 </div>
             )}
 
-            {/* MODAL */}
-            {modalOpen && (
+            {/* EXAMS GRID / LIST */}
+            {loading ? (
+                <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
+                    {[1, 2, 3, 4, 5, 6].map((i) => (
+                        <div
+                            key={i}
+                            className="h-48 rounded-2xl bg-slate-100 border border-slate-200 animate-pulse"
+                        />
+                    ))}
+                </div>
+            ) : filteredExams.length > 0 ? (
+                <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
+                    {filteredExams.map((exam) => {
+                        const classesCount = exam.classSections?.length || exam.classSectionIds?.length || 0;
+                        const subjectsCount = exam.subjects?.length || exam.subjectIds?.length || 0;
+                        const termName = exam.term?.name || terms.find((t) => t.id === exam.termId)?.name || 'No Term';
+
+                        return (
+                            <div
+                                key={exam.id}
+                                className="flex flex-col justify-between p-5 bg-white border border-slate-200 rounded-2xl shadow-xs hover:border-slate-300 transition-all group"
+                            >
+                                <div>
+                                    {/* Exam Badges */}
+                                    <div className="flex items-center justify-between gap-2 mb-3">
+                                        <span className="inline-flex items-center gap-1.5 px-2.5 py-1 rounded-lg text-xs font-semibold bg-slate-100 text-slate-700">
+                                            <Calendar size={12} />
+                                            {termName}
+                                        </span>
+                                        {exam.examType && (
+                                            <span className="inline-flex items-center gap-1 px-2.5 py-1 rounded-lg text-xs font-semibold bg-blue-50 text-blue-700 border border-blue-100">
+                                                <FileText size={12} />
+                                                {exam.examType}
+                                            </span>
+                                        )}
+                                    </div>
+
+                                    {/* Title */}
+                                    <h3 className="text-base font-bold text-slate-900 group-hover:text-navy-900 transition-colors line-clamp-1">
+                                        {exam.name}
+                                    </h3>
+
+                                    {/* Stats Meta */}
+                                    <div className="grid grid-cols-2 gap-2 mt-4 pt-4 border-t border-slate-100 text-xs text-slate-600">
+                                        <div className="flex items-center gap-2">
+                                            <Users size={14} className="text-slate-400" />
+                                            <span>{classesCount} {classesCount === 1 ? 'Class' : 'Classes'}</span>
+                                        </div>
+                                        <div className="flex items-center gap-2">
+                                            <BookOpen size={14} className="text-slate-400" />
+                                            <span>{subjectsCount} {subjectsCount === 1 ? 'Subject' : 'Subjects'}</span>
+                                        </div>
+                                    </div>
+                                </div>
+
+                                {/* Action Buttons */}
+                                <div className="flex items-center justify-end gap-1.5 mt-5 pt-3 border-t border-slate-100">
+                                    <button
+                                        onClick={() => handleOpenView(exam)}
+                                        className="p-2 rounded-xl text-slate-500 hover:text-slate-800 hover:bg-slate-100 transition-colors"
+                                        title="View Exam Details"
+                                    >
+                                        <Eye size={16} />
+                                    </button>
+                                    <button
+                                        onClick={() => handleOpenEdit(exam)}
+                                        className="p-2 rounded-xl text-slate-500 hover:text-navy-900 hover:bg-slate-100 transition-colors"
+                                        title="Edit Exam"
+                                    >
+                                        <Edit3 size={16} />
+                                    </button>
+                                    <button
+                                        onClick={() => handleConfirmDelete(exam)}
+                                        className="p-2 rounded-xl text-slate-500 hover:text-rose-600 hover:bg-rose-50 transition-colors"
+                                        title="Delete Exam"
+                                    >
+                                        <Trash2 size={16} />
+                                    </button>
+                                </div>
+                            </div>
+                        );
+                    })}
+                </div>
+            ) : (
+                /* EMPTY STATE */
+                <div className="flex flex-col items-center justify-center py-16 px-4 bg-white border border-slate-200 rounded-2xl text-center">
+                    <div className="w-12 h-12 rounded-full bg-slate-100 flex items-center justify-center text-slate-400 mb-3">
+                        <FileText size={24} />
+                    </div>
+                    <h3 className="text-sm font-bold text-slate-900">No exams found</h3>
+                    <p className="text-xs text-slate-500 max-w-sm mt-1 mb-4">
+                        {searchTerm || selectedTermFilter
+                            ? 'No examination records match your selected filter criteria.'
+                            : 'Get started by creating your first scheduled examination.'}
+                    </p>
+                    {!searchTerm && !selectedTermFilter && (
+                        <button
+                            onClick={handleOpenCreate}
+                            className="flex items-center gap-2 px-4 py-2 rounded-xl text-xs font-semibold text-white bg-navy-900 hover:bg-navy-800 transition-colors"
+                        >
+                            <Plus size={14} />
+                            Schedule First Exam
+                        </button>
+                    )}
+                </div>
+            )}
+
+            {/* EXAM FORM & DETAILS MODAL */}
+            {modalConfig.isOpen && (
                 <ExamModal
-                    initialData={editing || viewing}
+                    readOnly={modalConfig.mode === 'view'}
+                    initialData={modalConfig.initialData}
                     terms={terms}
                     classSections={classSections}
                     subjects={subjects}
-                    readOnly={!!viewing}
-                    onClose={() => setModalOpen(false)}
-                    onSaved={() => { setModalOpen(false); load(); toast.success('Exam saved successfully.'); }}
+                    onClose={handleCloseModal}
+                    onSaved={handleExamSaved}
                 />
             )}
 
-            {/* CONFIRMATION DIALOG */}
-            <ConfirmDialog
-                open={!!deleteTarget}
-                title="Delete exam"
-                message={`Are you sure you want to delete "${deleteTarget?.name}"? Any marks recorded against it will remain but become orphaned.`}
-                confirmLabel="Delete"
-                variant="danger"
-                onConfirm={handleDelete}
-                onCancel={() => setDeleteTarget(null)}
-            />
+            {/* DELETE CONFIRMATION DIALOG */}
+            {deleteModal.isOpen && (
+                <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-slate-900/60 backdrop-blur-xs animate-in fade-in duration-200">
+                    <div className="w-full max-w-md bg-white rounded-2xl shadow-2xl p-6 border border-slate-200 animate-in zoom-in-95 duration-200">
+                        <div className="w-10 h-10 rounded-full bg-rose-100 text-rose-600 flex items-center justify-center mb-4">
+                            <Trash2 size={20} />
+                        </div>
+                        <h3 className="text-lg font-bold text-slate-900">Delete Exam</h3>
+                        <p className="text-xs text-slate-500 mt-1">
+                            Are you sure you want to delete <span className="font-semibold text-slate-800">"{deleteModal.examName}"</span>? This action cannot be undone and will remove all linked subject configurations.
+                        </p>
+
+                        <div className="flex items-center justify-end gap-3 mt-6">
+                            <button
+                                type="button"
+                                disabled={deleteModal.isDeleting}
+                                onClick={() => setDeleteModal({ isOpen: false, examId: null, examName: '', isDeleting: false })}
+                                className="px-4 py-2 rounded-xl text-xs font-semibold text-slate-600 hover:bg-slate-100 transition-colors"
+                            >
+                                Cancel
+                            </button>
+                            <button
+                                type="button"
+                                disabled={deleteModal.isDeleting}
+                                onClick={executeDelete}
+                                className="px-4 py-2 rounded-xl text-xs font-semibold text-white bg-rose-600 hover:bg-rose-700 transition-colors disabled:opacity-50"
+                            >
+                                {deleteModal.isDeleting ? 'Deleting...' : 'Confirm Delete'}
+                            </button>
+                        </div>
+                    </div>
+                </div>
+            )}
         </div>
     );
 }

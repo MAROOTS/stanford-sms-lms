@@ -10,19 +10,37 @@ export function SidebarProvider({ children }) {
       return false;
     }
   });
+  const [mobileOpen, setMobileOpen] = useState(false);
 
   useEffect(() => {
     try {
       localStorage.setItem("sidebarCollapsed", JSON.stringify(collapsed));
-    } catch {
-      // Fall back silently if localStorage is unavailable
-    }
+    } catch { /* ignore */ }
   }, [collapsed]);
 
-  const toggle = () => setCollapsed((s) => !s);
+  useEffect(() => {
+    const onResize = () => {
+      if (window.innerWidth >= 1024) setMobileOpen(false);
+    };
+    window.addEventListener("resize", onResize);
+    return () => window.removeEventListener("resize", onResize);
+  }, []);
+
+  useEffect(() => {
+    document.body.style.overflow = mobileOpen ? "hidden" : "";
+    return () => { document.body.style.overflow = ""; };
+  }, [mobileOpen]);
+
+  const toggle = () => {
+    if (window.innerWidth < 1024) setMobileOpen((o) => !o);
+    else setCollapsed((s) => !s);
+  };
+  const closeMobile = () => setMobileOpen(false);
 
   return (
-      <SidebarContext.Provider value={{ collapsed, setCollapsed, toggle }}>
+      <SidebarContext.Provider
+          value={{ collapsed, setCollapsed, toggle, mobileOpen, closeMobile }}
+      >
         {children}
       </SidebarContext.Provider>
   );

@@ -45,7 +45,7 @@ export default function Teachers() {
         setError('');
         try {
             const { data } = await axiosClient.get('/teachers');
-            setTeachers(data);
+            setTeachers(Array.isArray(data) ? data : data?.content || []);
         } catch {
             setError('Could not load teachers');
         } finally {
@@ -53,12 +53,20 @@ export default function Teachers() {
         }
     }, []);
 
-    useEffect(() => { queueMicrotask(() => loadAll()); }, [loadAll]);
+    useEffect(() => {
+        let isMounted = true;
+        loadAll().catch(() => {
+            if (isMounted) setError('Could not load teachers');
+        });
+        return () => {
+            isMounted = false;
+        };
+    }, [loadAll]);
 
     const handleDelete = async () => {
         if (!deleteTarget) return;
         const id = deleteTarget.id;
-        const name = `${deleteTarget.firstName} ${deleteTarget.lastName}`;
+        const name = `${deleteTarget.firstName || ''} ${deleteTarget.lastName || ''}`.trim() || 'Teacher';
         setDeleteTarget(null);
         try {
             await axiosClient.delete(`/teachers/${id}`);
@@ -72,10 +80,35 @@ export default function Teachers() {
     const { resetCredentials, setResetCredentials, handleResetPassword, handleUnlock } =
         useAccountActions(toast, { entityLabel: 'teacher' });
 
-    const openAddModal = () => { setEditingTeacher(null); setViewingTeacher(null); setModalOpen(true); };
-    const openEditModal = (teacher) => { setEditingTeacher(teacher); setViewingTeacher(null); setModalOpen(true); };
-    const openViewModal = (teacher) => { setViewingTeacher(teacher); setEditingTeacher(null); setModalOpen(true); };
-    const handleSaved = () => { setModalOpen(false); loadAll(); toast.success('Teacher saved successfully.'); };
+    const openAddModal = () => {
+        setEditingTeacher(null);
+        setViewingTeacher(null);
+        setModalOpen(true);
+    };
+
+    const openEditModal = (teacher) => {
+        setEditingTeacher(teacher);
+        setViewingTeacher(null);
+        setModalOpen(true);
+    };
+
+    const openViewModal = (teacher) => {
+        setViewingTeacher(teacher);
+        setEditingTeacher(null);
+        setModalOpen(true);
+    };
+
+    const closeModal = () => {
+        setModalOpen(false);
+        setEditingTeacher(null);
+        setViewingTeacher(null);
+    };
+
+    const handleSaved = () => {
+        closeModal();
+        loadAll();
+        toast.success('Teacher saved successfully.');
+    };
 
     return (
         <div className="max-w-7xl mx-auto p-4 sm:p-6 lg:p-8 animate-in fade-in duration-500">
@@ -86,8 +119,9 @@ export default function Teachers() {
                     <p className="text-sm text-slate-500 mt-1.5">Manage all teaching staff at your school.</p>
                 </div>
                 <button
+                    type="button"
                     onClick={openAddModal}
-                    className="flex items-center gap-2 bg-navy-900 hover:bg-navy-800 text-white shadow-sm text-sm font-semibold px-4 py-2.5 rounded-xl transition-all active:scale-[0.98]"
+                    className="flex items-center gap-2 bg-navy-900 hover:bg-navy-800 text-white shadow-sm text-sm font-semibold px-4 py-2.5 rounded-xl transition-all active:scale-[0.98] cursor-pointer"
                 >
                     <Plus size={16} /> Add Teacher
                 </button>
@@ -101,8 +135,9 @@ export default function Teachers() {
                     <UserX size={40} className="mx-auto text-red-400 mb-3" />
                     <p className="text-red-700 font-medium mb-3">{error}</p>
                     <button
+                        type="button"
                         onClick={loadAll}
-                        className="text-sm font-bold text-red-700 hover:text-red-900 bg-red-100/50 hover:bg-red-100 px-4 py-2 rounded-lg transition-colors"
+                        className="text-sm font-bold text-red-700 hover:text-red-900 bg-red-100/50 hover:bg-red-100 px-4 py-2 rounded-lg transition-colors cursor-pointer"
                     >
                         Try again
                     </button>
@@ -117,8 +152,9 @@ export default function Teachers() {
                         description="Add your first teacher to get started building your faculty roster."
                         action={
                             <button
+                                type="button"
                                 onClick={openAddModal}
-                                className="flex items-center gap-2 bg-navy-900 hover:bg-navy-800 text-white text-sm font-semibold px-5 py-2.5 rounded-xl transition-all active:scale-[0.98]"
+                                className="flex items-center gap-2 bg-navy-900 hover:bg-navy-800 text-white text-sm font-semibold px-5 py-2.5 rounded-xl transition-all active:scale-[0.98] cursor-pointer"
                             >
                                 <Plus size={16} /> Add Teacher
                             </button>
@@ -139,68 +175,76 @@ export default function Teachers() {
                             </tr>
                             </thead>
                             <tbody className="divide-y divide-slate-100">
-                            {teachers.map((t) => (
-                                <tr
-                                    key={t.id}
-                                    className="group bg-white hover:bg-slate-50/80 transition-colors"
-                                >
-                                    <td className="px-6 py-4">
-                                        <div className="flex items-center gap-3">
-                                            <div className={`w-9 h-9 rounded-full flex items-center justify-center text-xs font-bold shadow-sm border border-black/5 ${getAvatarStyle(t.firstName)}`}>
-                                                {t.firstName?.[0]}{t.lastName?.[0]}
+                            {teachers.map((t) => {
+                                const initials = `${t.firstName?.[0] || ''}${t.lastName?.[0] || ''}` || 'T';
+                                return (
+                                    <tr
+                                        key={t.id}
+                                        className="group bg-white hover:bg-slate-50/80 transition-colors"
+                                    >
+                                        <td className="px-6 py-4">
+                                            <div className="flex items-center gap-3">
+                                                <div className={`w-9 h-9 rounded-full flex items-center justify-center text-xs font-bold shadow-sm border border-black/5 ${getAvatarStyle(t.firstName)}`}>
+                                                    {initials}
+                                                </div>
+                                                <span className="font-semibold text-slate-900">
+                                                        {t.firstName} {t.lastName}
+                                                    </span>
                                             </div>
-                                            <span className="font-semibold text-slate-900">
-                                                    {t.firstName} {t.lastName}
+                                        </td>
+                                        <td className="px-6 py-4">
+                                                <span className="text-slate-600 font-medium">
+                                                    {t.email || <span className="text-slate-400 italic font-normal">No email</span>}
                                                 </span>
-                                        </div>
-                                    </td>
-                                    <td className="px-6 py-4">
-                                            <span className="text-slate-600 font-medium">
-                                                {t.email || <span className="text-slate-400 italic font-normal">No email</span>}
-                                            </span>
-                                    </td>
-                                    <td className="px-6 py-4 text-right">
-                                        <div className="flex items-center justify-end gap-1.5 opacity-60 group-hover:opacity-100 transition-opacity">
-                                            <button
-                                                onClick={() => openViewModal(t)}
-                                                title="View Profile"
-                                                className="p-2 rounded-lg text-slate-400 hover:text-navy-600 hover:bg-navy-50 transition-colors"
-                                            >
-                                                <Eye size={18} />
-                                            </button>
-                                            <div className="w-px h-4 bg-slate-200 mx-1"></div>
-                                            <button
-                                                onClick={() => handleResetPassword(t.id)}
-                                                title="Reset Password"
-                                                className="p-2 rounded-lg text-slate-400 hover:text-amber-600 hover:bg-amber-50 transition-colors"
-                                            >
-                                                <KeyRound size={18} />
-                                            </button>
-                                            <button
-                                                onClick={() => handleUnlock(t.id)}
-                                                title="Unlock Account"
-                                                className="p-2 rounded-lg text-slate-400 hover:text-emerald-600 hover:bg-emerald-50 transition-colors"
-                                            >
-                                                <Unlock size={18} />
-                                            </button>
-                                            <button
-                                                onClick={() => openEditModal(t)}
-                                                title="Edit Teacher"
-                                                className="p-2 rounded-lg text-slate-400 hover:text-blue-600 hover:bg-blue-50 transition-colors"
-                                            >
-                                                <Pencil size={18} />
-                                            </button>
-                                            <button
-                                                onClick={() => setDeleteTarget(t)}
-                                                title="Delete Teacher"
-                                                className="p-2 rounded-lg text-slate-400 hover:text-red-600 hover:bg-red-50 transition-colors"
-                                            >
-                                                <Trash2 size={18} />
-                                            </button>
-                                        </div>
-                                    </td>
-                                </tr>
-                            ))}
+                                        </td>
+                                        <td className="px-6 py-4 text-right">
+                                            <div className="flex items-center justify-end gap-1.5 opacity-60 group-hover:opacity-100 transition-opacity">
+                                                <button
+                                                    type="button"
+                                                    onClick={() => openViewModal(t)}
+                                                    title="View Profile"
+                                                    className="p-2 rounded-lg text-slate-400 hover:text-navy-600 hover:bg-navy-50 transition-colors cursor-pointer"
+                                                >
+                                                    <Eye size={18} />
+                                                </button>
+                                                <div className="w-px h-4 bg-slate-200 mx-1"></div>
+                                                <button
+                                                    type="button"
+                                                    onClick={() => handleResetPassword(t.id)}
+                                                    title="Reset Password"
+                                                    className="p-2 rounded-lg text-slate-400 hover:text-amber-600 hover:bg-amber-50 transition-colors cursor-pointer"
+                                                >
+                                                    <KeyRound size={18} />
+                                                </button>
+                                                <button
+                                                    type="button"
+                                                    onClick={() => handleUnlock(t.id)}
+                                                    title="Unlock Account"
+                                                    className="p-2 rounded-lg text-slate-400 hover:text-emerald-600 hover:bg-emerald-50 transition-colors cursor-pointer"
+                                                >
+                                                    <Unlock size={18} />
+                                                </button>
+                                                <button
+                                                    type="button"
+                                                    onClick={() => openEditModal(t)}
+                                                    title="Edit Teacher"
+                                                    className="p-2 rounded-lg text-slate-400 hover:text-blue-600 hover:bg-blue-50 transition-colors cursor-pointer"
+                                                >
+                                                    <Pencil size={18} />
+                                                </button>
+                                                <button
+                                                    type="button"
+                                                    onClick={() => setDeleteTarget(t)}
+                                                    title="Delete Teacher"
+                                                    className="p-2 rounded-lg text-slate-400 hover:text-red-600 hover:bg-red-50 transition-colors cursor-pointer"
+                                                >
+                                                    <Trash2 size={18} />
+                                                </button>
+                                            </div>
+                                        </td>
+                                    </tr>
+                                );
+                            })}
                             </tbody>
                         </table>
                     </div>
@@ -212,7 +256,7 @@ export default function Teachers() {
                 <TeacherModal
                     initialData={editingTeacher || viewingTeacher}
                     readOnly={!!viewingTeacher}
-                    onClose={() => setModalOpen(false)}
+                    onClose={closeModal}
                     onSaved={handleSaved}
                 />
             )}

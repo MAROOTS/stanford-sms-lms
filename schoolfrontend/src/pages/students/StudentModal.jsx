@@ -195,7 +195,7 @@ export default function StudentModal({ initialData, classSections, readOnly, onC
                             STUDENT
                         </p>
 
-                        <div className="grid grid-cols-2 gap-3">
+                        <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
                             <div>
                                 <label className="block text-sm font-medium text-slate-700 mb-1.5">
                                     First name
@@ -390,7 +390,7 @@ export default function StudentModal({ initialData, classSections, readOnly, onC
                             GUARDIAN
                         </p>
 
-                        <div className="grid grid-cols-2 gap-3">
+                        <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
                             <div>
                                 <label className="block text-sm font-medium text-slate-700 mb-1.5">
                                     Name
@@ -473,7 +473,7 @@ export default function StudentModal({ initialData, classSections, readOnly, onC
                             MEDICAL
                         </p>
 
-                        <div className="grid grid-cols-2 gap-3">
+                        <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
                             <div>
                                 <label className="block text-sm font-medium text-slate-700 mb-1.5">
                                     Blood group
