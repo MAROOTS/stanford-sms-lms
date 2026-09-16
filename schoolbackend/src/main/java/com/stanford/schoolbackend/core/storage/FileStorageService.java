@@ -1,27 +1,35 @@
 package com.stanford.schoolbackend.core.storage;
 
 import io.minio.*;
-import lombok.RequiredArgsConstructor;
+import jakarta.annotation.PostConstruct;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
+import org.springframework.beans.factory.annotation.Qualifier;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.stereotype.Service;
 import org.springframework.web.multipart.MultipartFile;
 
-import jakarta.annotation.PostConstruct;
-import io.minio.Http;
+import java.util.Base64;
 import java.util.UUID;
 import java.util.concurrent.TimeUnit;
-import io.minio.GetObjectArgs;
-import java.util.Base64;
 
 @Service
-@RequiredArgsConstructor
 public class FileStorageService {
+
+    private static final Logger log = LoggerFactory.getLogger(FileStorageService.class);
 
     private final MinioClient minioClient;
     private final MinioClient minioPresignClient;
 
     @Value("${minio.bucket}")
     private String bucket;
+
+    public FileStorageService(
+            @Qualifier("minioClient") MinioClient minioClient,
+            @Qualifier("minioPresignClient") MinioClient minioPresignClient) {
+        this.minioClient = minioClient;
+        this.minioPresignClient = minioPresignClient;
+    }
 
     @PostConstruct
     public void ensureBucketExists() {
@@ -62,14 +70,15 @@ public class FileStorageService {
     }
 
     public String getPresignedUrl(String objectKey, long expiryHours) {
-        if (objectKey == null) return null;
+        if (objectKey == null || objectKey.isBlank()) return null;
         try {
             return minioPresignClient.getPresignedObjectUrl(
                     GetPresignedObjectUrlArgs.builder()
-                    .method(Http.Method.GET).bucket(bucket).object(objectKey)
-                    .expiry((int) expiryHours, TimeUnit.HOURS).build());
+                            .method(Http.Method.GET).bucket(bucket).object(objectKey)
+                            .expiry((int) expiryHours, TimeUnit.HOURS).build());
         } catch (Exception e) {
-            throw new RuntimeException("Failed to generate file URL", e);
+            log.warn("Failed to presign URL for object {}", objectKey, e);
+            return null;
         }
     }
 
@@ -105,5 +114,4 @@ public class FileStorageService {
             return null;
         }
     }
-
 }

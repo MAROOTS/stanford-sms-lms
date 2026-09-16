@@ -58,7 +58,7 @@ public class SchoolProfileService {
     private SchoolProfileResponse toResponse(SchoolProfile p) {
         return SchoolProfileResponse.builder()
                 .name(p.getName())
-                .logoUrl(p.getLogoObjectKey() != null ? fileStorageService.getPresignedUrl(p.getLogoObjectKey(), 24) : null)
+                .logoUrl(fileStorageService.toDataUri(p.getLogoObjectKey()))
                 .address(p.getAddress())
                 .contactEmail(p.getContactEmail())
                 .contactPhone(p.getContactPhone())
