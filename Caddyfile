@@ -1,7 +1,7 @@
 {
 	email kademieugine@gmail.com
 	on_demand_tls {
-		ask http://backend:8080/api/public/caddy-ask
+		ask http://caddy-ask:8090/
 	}
 }
 
