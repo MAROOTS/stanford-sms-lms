@@ -18,6 +18,7 @@ import java.util.Base64;
 public class FileStorageService {
 
     private final MinioClient minioClient;
+    private final MinioClient minioPresignClient;
 
     @Value("${minio.bucket}")
     private String bucket;
@@ -63,7 +64,8 @@ public class FileStorageService {
     public String getPresignedUrl(String objectKey, long expiryHours) {
         if (objectKey == null) return null;
         try {
-            return minioClient.getPresignedObjectUrl(GetPresignedObjectUrlArgs.builder()
+            return minioPresignClient.getPresignedObjectUrl(
+                    GetPresignedObjectUrlArgs.builder()
                     .method(Http.Method.GET).bucket(bucket).object(objectKey)
                     .expiry((int) expiryHours, TimeUnit.HOURS).build());
         } catch (Exception e) {
