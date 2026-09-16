@@ -193,16 +193,27 @@ public class AuthService {
         return request.getRemoteAddr();
     }
 
-    private String extractSubdomain(String originHeader) {
+        private String extractSubdomain(String originHeader) {
         if (originHeader == null) return null;
         try {
             java.net.URI uri = new java.net.URI(originHeader);
             String host = uri.getHost();
             if (host == null) return null;
-            String[] parts = host.split("\\.");
-            if (parts.length < 2) return null;
-            String sub = parts[0];
-            return "www".equalsIgnoreCase(sub) ? null : sub;
+            host = host.toLowerCase();
+            if (host.startsWith("www.")) host = host.substring(4);
+
+            String root = "stanfordos.co.ke";
+            if (host.equals(root) || host.equals("localhost")) return null;
+            if (host.endsWith("." + root)) {
+                String sub = host.substring(0, host.length() - root.length() - 1);
+                if (sub.isEmpty() || "www".equals(sub) || "files".equals(sub)) return null;
+                return sub.split("\\.")[0];
+            }
+            if (host.endsWith(".localhost")) {
+                String sub = host.substring(0, host.length() - ".localhost".length());
+                return sub.isEmpty() ? null : sub.split("\\.")[0];
+            }
+            return null;
         } catch (Exception e) {
             return null;
         }

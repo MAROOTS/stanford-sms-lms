@@ -1,5 +1,5 @@
 {
-	email {$CADDY_EMAIL}
+	email kademieugine@gmail.com
 }
 
 stanfordos.co.ke, www.stanfordos.co.ke {
@@ -16,19 +16,4 @@ stanfordos.co.ke, www.stanfordos.co.ke {
 
 files.stanfordos.co.ke {
 	reverse_proxy minio:9000
-}
-
-*.stanfordos.co.ke {
-	tls {
-		on_demand
-	}
-	handle /api* {
-		reverse_proxy backend:8080
-	}
-	handle {
-		root * /srv
-		encode gzip
-		try_files {path} /index.html
-		file_server
-	}
 }
