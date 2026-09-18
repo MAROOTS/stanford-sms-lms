@@ -7,6 +7,8 @@ import org.springframework.mail.SimpleMailMessage;
 import org.springframework.mail.javamail.JavaMailSender;
 import org.springframework.stereotype.Service;
 
+import java.net.URI;
+
 @Service
 @RequiredArgsConstructor
 public class EmailService {
@@ -22,12 +24,13 @@ public class EmailService {
     @Value("${app.mail.sales-inbox}")
     private String salesInbox;
 
-    public void sendPasswordResetEmail(String to, String token) {
-        String link = frontendUrl + "/reset-password?token=" + token;
-        String body = "You requested a password reset for your SchoolOS account.\n\n"
-                + "Click the link below to set a new password:\n" + link
-                + "\n\nThis link expires in 1 hour. If you didn't request this, you can ignore this email.";
-        send(to, "Reset your SchoolOS password", body);
+    public void sendPasswordResetEmail(String to, String token, String publicBaseUrl) {
+        String base = sanitizeBase(publicBaseUrl);
+        String link = base + "/reset-password?token=" + token;
+        String body = "You requested a password reset.\n\n"
+                + "Set a new password:\n" + link
+                + "\n\nThis link expires in 1 hour. If you did not request this, ignore this email.";
+        send(to, "Reset your StanfordOS password", body);
     }
 
     public void sendVerificationEmail(String to, String token) {
@@ -35,7 +38,7 @@ public class EmailService {
         String body = "Welcome to SchoolOS!\n\n"
                 + "Please verify your email address by clicking the link below:\n" + link
                 + "\n\nThis link expires in 24 hours.";
-        send(to, "Verify your SchoolOS email", body);
+        send(to, "Verify your StanfordOS email", body);
     }
     public void sendContactInquiryNotification(ContactInquiry inquiry) {
         String subject = "New inquiry: " + inquiry.getSchoolName();
@@ -47,6 +50,18 @@ public class EmailService {
                 + "Estimated students: " + (inquiry.getStudentCountEstimate() != null ? inquiry.getStudentCountEstimate() : "not provided") + "\n\n"
                 + "Message:\n" + inquiry.getMessage();
         send(salesInbox, subject, body);
+    }
+    private String sanitizeBase(String candidate) {
+        String fallback = frontendUrl == null ? "https://stanfordos.co.ke" : frontendUrl.replaceAll("/$", "");
+        if (candidate == null || candidate.isBlank()) return fallback;
+        try {
+            URI u = URI.create(candidate.trim());
+            String host = u.getHost() == null ? "" : u.getHost().toLowerCase();
+            if ("stanfordos.co.ke".equals(host) || host.endsWith(".stanfordos.co.ke")) {
+                return "https://" + host;
+            }
+        } catch (Exception ignored) {}
+        return fallback;
     }
 
     private void send(String to, String subject, String body) {

@@ -44,9 +44,13 @@ public class AuthController {
     }
 
     @PostMapping("/forgot-password")
-    public ResponseEntity<Map<String, String>> forgotPassword(@Valid @RequestBody ForgotPasswordRequest request) {
-        passwordResetService.requestReset(request.getEmail());
-        return ResponseEntity.ok(Map.of("message", "If that email exists, a reset link has been sent."));
+    public ResponseEntity<Map<String, String>> forgotPassword(
+            @Valid @RequestBody ForgotPasswordRequest request,
+            HttpServletRequest http) {
+        String origin = http.getHeader("Origin");
+        passwordResetService.requestReset(request.getIdentifier(), origin);
+        return ResponseEntity.ok(Map.of(
+                "message", "If that account exists, a reset link has been sent."));
     }
 
     @PostMapping("/reset-password")
@@ -63,7 +67,7 @@ public class AuthController {
 
     @PostMapping("/resend-verification")
     public ResponseEntity<Map<String, String>> resendVerification(@Valid @RequestBody ForgotPasswordRequest request) {
-        emailVerificationService.resend(request.getEmail());
+        emailVerificationService.resend(request.getIdentifier());
         return ResponseEntity.ok(Map.of("message", "If that account needs verification, a new email has been sent."));
     }
     @PostMapping("/refresh")

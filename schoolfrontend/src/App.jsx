@@ -62,6 +62,9 @@ export default function App() {
             <Routes>
               <Route path="/login" element={<Login />} />
               <Route path="/contact" element={<ContactForm />} />
+              <Route path="/forgot-password" element={<ForgotPassword />} />
+              <Route path="/reset-password" element={<ResetPassword />} />
+              <Route path="/verify-email" element={<VerifyEmail />} />
               <Route
                 element={
                   <ProtectedRoute>
@@ -87,9 +90,7 @@ export default function App() {
                 <Route path="/library/loans" element={<Loans />} />
                 <Route path="/announcements" element={<AnnouncementsRouter />} />
                 <Route path="/register" element={<Register />} />
-                <Route path="/forgot-password" element={<ForgotPassword />} />
-                <Route path="/reset-password" element={<ResetPassword />} />
-                <Route path="/verify-email" element={<VerifyEmail />} />
+
 
                 <Route path="/my-attendance" element={<MyAttendance />} />
                 <Route path="/my-results" element={<MyResults />} />
