@@ -101,8 +101,9 @@ public class AuthService {
         User user = userRepository.findByUsername(request.getUsername())
                 .orElseThrow(() -> new ResourceNotFoundException("User not found"));
 
-        if (user.getSchool() != null && user.getSchool().getStatus() == SchoolStatus.SUSPENDED) {
-            throw new SchoolSuspendedException("Your school's account is currently suspended. Please contact support.");
+        if (user.getSchool() != null && user.getSchool().getStatus() != SchoolStatus.ACTIVE) {
+            throw new SchoolSuspendedException(
+                    "Your school's account is currently suspended. Please contact support.");
         }
         String requestSubdomain = extractSubdomain(httpRequest.getHeader("Origin"));
 

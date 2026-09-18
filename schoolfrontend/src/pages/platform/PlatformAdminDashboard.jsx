@@ -6,7 +6,8 @@ import {
     UserCog,
     Ban,
     Play,
-    School
+    School,
+    Trash2
 } from 'lucide-react';
 import axiosClient from '../../api/axiosClient';
 import OnboardSchoolModal from './OnboardSchoolModal';
@@ -54,6 +55,21 @@ export default function PlatformAdminDashboard() {
             load();
         } catch {
             alert('Could not change school status. Please try again.');
+        }
+    };
+
+    const deleteSchool = async (school) => {
+        const typed = window.prompt(
+            `This cannot be undone from the dashboard.\nType the school name to confirm:\n${school.name}`
+        );
+        if (typed == null) return;
+        try {
+            await axiosClient.delete(`/platform/schools/${school.id}`, {
+                data: { confirmationName: typed }
+            });
+            load();
+        } catch (err) {
+            alert(err.response?.data?.message || 'Could not delete school.');
         }
     };
 
@@ -142,21 +158,29 @@ export default function PlatformAdminDashboard() {
                                         <StatusBadge status={s.status} />
                                     </td>
                                     <td className="px-6 py-4 text-right">
-                                        <button
-                                            onClick={() => toggleStatus(s)}
-                                            className={`inline-flex items-center gap-1.5 px-3 py-1.5 rounded-lg text-xs font-semibold border transition-all active:scale-[0.97]
+                                        <div className="inline-flex items-center gap-2">
+                                            <button
+                                                onClick={() => toggleStatus(s)}
+                                                className={`inline-flex items-center gap-1.5 px-3 py-1.5 rounded-lg text-xs font-semibold border transition-all active:scale-[0.97]
                                                     ${s.status === 'ACTIVE'
-                                                ? 'text-slate-600 border-slate-200 bg-white hover:text-red-700 hover:bg-red-50 hover:border-red-200'
-                                                : 'text-slate-600 border-slate-200 bg-white hover:text-emerald-700 hover:bg-emerald-50 hover:border-emerald-200'
-                                            }
-                                                `}
-                                        >
-                                            {s.status === 'ACTIVE' ? (
-                                                <><Ban size={14} /> Suspend</>
-                                            ) : (
-                                                <><Play size={14} /> Reactivate</>
+                                                    ? 'text-slate-600 border-slate-200 bg-white hover:text-red-700 hover:bg-red-50 hover:border-red-200'
+                                                    : 'text-slate-600 border-slate-200 bg-white hover:text-emerald-700 hover:bg-emerald-50 hover:border-emerald-200'}`}
+                                            >
+                                                {s.status === 'ACTIVE' ? (
+                                                    <><Ban size={14} /> Suspend</>
+                                                ) : (
+                                                    <><Play size={14} /> Reactivate</>
+                                                )}
+                                            </button>
+                                            {s.status === 'SUSPENDED' && (
+                                                <button
+                                                    onClick={() => deleteSchool(s)}
+                                                    className="inline-flex items-center gap-1.5 px-3 py-1.5 rounded-lg text-xs font-semibold border border-slate-200 bg-white text-red-700 hover:bg-red-50 hover:border-red-200 transition-all active:scale-[0.97]"
+                                                >
+                                                    <Trash2 size={14} /> Delete
+                                                </button>
                                             )}
-                                        </button>
+                                        </div>
                                     </td>
                                 </tr>
                             ))}

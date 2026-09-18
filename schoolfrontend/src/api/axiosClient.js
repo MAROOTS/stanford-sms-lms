@@ -49,6 +49,7 @@ axiosClient.interceptors.response.use(
             originalRequest?.url?.includes('/auth/reset-password') ||
             originalRequest?.url?.includes('/auth/resend-verification');
 
+        // 401 → try refresh, otherwise log out
         if (error.response?.status === 401 && !isPublicAuthEndpoint && !originalRequest._retry) {
             const storage = getStorage();
             const refreshToken = storage.getItem('refreshToken');
@@ -84,6 +85,15 @@ axiosClient.interceptors.response.use(
                 return Promise.reject(refreshError);
             } finally {
                 isRefreshing = false;
+            }
+        }
+
+        // 403 → log out if account is suspended
+        if (error.response?.status === 403) {
+            const msg = (error.response?.data?.message || '').toLowerCase();
+            if (msg.includes('suspended')) {
+                clearSessionAndRedirect();
+                return Promise.reject(error);
             }
         }
 

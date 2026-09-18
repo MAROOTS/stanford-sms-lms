@@ -1,5 +1,8 @@
 package com.stanford.schoolbackend.core.security;
 
+import com.stanford.schoolbackend.core.enums.SchoolStatus;
+import com.stanford.schoolbackend.core.school.School;
+import com.stanford.schoolbackend.core.school.SchoolRepository;
 import com.stanford.schoolbackend.core.utils.JwtService;
 import jakarta.servlet.FilterChain;
 import jakarta.servlet.ServletException;
@@ -25,6 +28,7 @@ public class JwtAuthenticationFilter extends OncePerRequestFilter {
 
     private final JwtService jwtService;
     private final UserDetailsService userDetailsService;
+    private final SchoolRepository schoolRepository;
 
     private static final Set<String> ALLOWED_WHILE_MUST_CHANGE_PASSWORD = Set.of(
             "/api/auth/change-password",
@@ -63,6 +67,18 @@ public class JwtAuthenticationFilter extends OncePerRequestFilter {
                             Instant.now());
                     response.getWriter().write(json);
                     return; // stop here — filterChain.doFilter is deliberately never called
+                }
+                if (userDetails instanceof AppUserPrincipal principal
+                        && principal.getSchoolId() != null) {
+                    School school = schoolRepository.findById(principal.getSchoolId()).orElse(null);
+                    if (school == null || school.getStatus() != SchoolStatus.ACTIVE) {
+                        response.setStatus(403);
+                        response.setContentType(MediaType.APPLICATION_JSON_VALUE);
+                        response.getWriter().write(String.format(
+                                "{\"timestamp\":\"%s\",\"status\":403,\"message\":\"Your school's account is currently suspended. Please contact support.\"}",
+                                Instant.now()));
+                        return;
+                    }
                 }
 
                 UsernamePasswordAuthenticationToken authToken = new UsernamePasswordAuthenticationToken(

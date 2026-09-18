@@ -1,5 +1,7 @@
 package com.stanford.schoolbackend.core.school;
 
+import com.stanford.schoolbackend.core.auth.RefreshTokenService;
+import com.stanford.schoolbackend.core.enums.SchoolStatus;
 import com.stanford.schoolbackend.core.enums.UserRole;
 import com.stanford.schoolbackend.core.exception.EmailAlreadyExistsException;
 import com.stanford.schoolbackend.core.exception.ResourceNotFoundException;
@@ -25,6 +27,7 @@ public class PlatformAdminService {
     private final UsernameGeneratorService usernameGeneratorService;
     private final SecurePasswordGenerator securePasswordGenerator;
     private final SlugGenerator slugGenerator;
+    private final RefreshTokenService refreshTokenService;
 
     @Transactional
     public OnboardSchoolResponse onboardSchool(OnboardSchoolRequest request) {
@@ -66,14 +69,42 @@ public class PlatformAdminService {
     }
 
     public List<SchoolResponse> listSchools() {
-        return schoolRepository.findAll().stream().map(this::toResponse).toList();
+        return schoolRepository.findAll().stream()
+                .filter(s -> s.getStatus() != SchoolStatus.DELETED)
+                .map(this::toResponse)
+                .toList();
     }
 
+    @Transactional
     public SchoolResponse updateStatus(Long schoolId, UpdateSchoolStatusRequest request) {
         School school = schoolRepository.findById(schoolId)
                 .orElseThrow(() -> new ResourceNotFoundException("School not found"));
         school.setStatus(request.getStatus());
-        return toResponse(schoolRepository.save(school));
+        schoolRepository.save(school);
+        if (request.getStatus() == SchoolStatus.SUSPENDED
+                || request.getStatus() == SchoolStatus.DELETED) {
+            refreshTokenService.revokeAllForSchool(school.getId());
+        }
+        return toResponse(school);
+    }
+    @Transactional
+    public void deleteSchool(Long schoolId, String confirmationName) {
+        School school = schoolRepository.findById(schoolId)
+                .orElseThrow(() -> new ResourceNotFoundException("School not found"));
+
+        if (school.getStatus() != SchoolStatus.SUSPENDED) {
+            throw new IllegalArgumentException("Suspend the school before deleting it.");
+        }
+        if (confirmationName == null
+                || !school.getName().equalsIgnoreCase(confirmationName.trim())) {
+            throw new IllegalArgumentException("School name does not match.");
+        }
+
+        refreshTokenService.revokeAllForSchool(school.getId());
+        school.setStatus(SchoolStatus.DELETED);
+        school.setSlug(school.getSlug() + "-deleted-" + school.getId());
+        school.setName(school.getName() + " (deleted)");
+        schoolRepository.save(school);
     }
 
     private SchoolResponse toResponse(School school) {

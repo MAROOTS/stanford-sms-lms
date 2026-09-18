@@ -32,4 +32,12 @@ public class PlatformAdminController {
     public ResponseEntity<SchoolResponse> updateStatus(@PathVariable Long schoolId, @Valid @RequestBody UpdateSchoolStatusRequest request) {
         return ResponseEntity.ok(platformAdminService.updateStatus(schoolId, request));
     }
+
+    @DeleteMapping("/{schoolId}")
+    public ResponseEntity<Void> deleteSchool(
+            @PathVariable Long schoolId,
+            @Valid @RequestBody DeleteSchoolRequest request) {
+        platformAdminService.deleteSchool(schoolId, request.getConfirmationName());
+        return ResponseEntity.noContent().build();
+    }
 }

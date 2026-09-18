@@ -7,6 +7,7 @@ import lombok.RequiredArgsConstructor;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.security.access.AccessDeniedException;
 import org.springframework.stereotype.Service;
+import org.springframework.transaction.annotation.Transactional;
 
 import java.nio.charset.StandardCharsets;
 import java.security.MessageDigest;
@@ -79,6 +80,10 @@ public class RefreshTokenService {
         tokens.forEach(t -> t.setRevoked(true));
         refreshTokenRepository.saveAll(tokens);
     }
+    @Transactional
+    public void revokeAllForSchool(Long schoolId) {
+        refreshTokenRepository.revokeAllActiveBySchoolId(schoolId);
+    }
     public List<SessionResponse> listActiveSessions(User user, String currentTokenValue) {
         return refreshTokenRepository.findByUserIdAndRevokedFalseAndExpiresAtAfter(user.getId(), Instant.now()).stream()
                 .map(t -> toSessionResponse(t, currentTokenValue))
@@ -94,6 +99,7 @@ public class RefreshTokenService {
         token.setRevoked(true);
         refreshTokenRepository.save(token);
     }
+
 
     private SessionResponse toSessionResponse(RefreshToken t, String currentTokenValue) {
         return SessionResponse.builder()
