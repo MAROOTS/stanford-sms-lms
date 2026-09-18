@@ -33,6 +33,20 @@ export function SchoolProfileProvider({ children }) {
         setLoading(false);
     }, [fetchProfile]);
 
+    useEffect(() => {
+        const name = profile?.name?.trim();
+        document.title = name ? `${name} | StanfordOS` : 'StanfordOS';
+
+        const href = profile?.logoUrl || '/logo.png';
+        let link = document.querySelector("link[rel='icon']");
+        if (!link) {
+            link = document.createElement('link');
+            link.rel = 'icon';
+            document.head.appendChild(link);
+        }
+        link.type = 'image/png';
+        link.href = href;
+    }, [profile]);
     return (
         <SchoolProfileContext.Provider value={{ profile, loading, refetch: fetchProfile }}>
             {children}
