@@ -151,12 +151,7 @@ const adminTeacherNav = [
         label: 'Staff',
         roles: ['ADMIN'],
       },
-      {
-        to: '/leads',
-        icon: Inbox,
-        label: 'Leads',
-        roles: ['ADMIN'],
-      },
+
     ],
   },
 ];
@@ -311,6 +306,12 @@ const platformAdminNav = [
         to: '/platform/schools',
         icon: Building2,
         label: 'Schools',
+      },
+      {
+        to: '/leads',
+        icon: Inbox,
+        label: 'Leads',
+        roles: ['PLATFORM_ADMIN'],
       },
     ],
   },
