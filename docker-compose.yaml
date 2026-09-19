@@ -53,9 +53,11 @@ services:
             def do_GET(self):
                 d = (parse_qs(urlparse(self.path).query).get("domain") or [""])[0].lower()
                 ok = False
-                if d.endswith("." + ROOT):
+                if d in ("www.stanfordos.co.ke", "stanfordos.co.ke"):
+                    ok = True
+                elif d.endswith("." + ROOT):
                     sub = d[: -(len(ROOT) + 1)]
-                    ok = bool(sub) and "." not in sub and sub not in ("www", "files")
+                    ok = bool(sub) and "." not in sub and sub not in ("files",)
                 self.send_response(200 if ok else 403)
                 self.end_headers()
             def log_message(self, *a):
