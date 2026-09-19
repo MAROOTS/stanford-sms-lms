@@ -1,7 +1,7 @@
 import { useState } from 'react';
 import { Sparkles, X, Users, GraduationCap, ClipboardList, ArrowRight } from 'lucide-react';
 import { Link } from 'react-router-dom';
-
+import { useAuth } from '../../context/useAuth';
 const STEPS = [
   { icon: Users, title: 'View Students', desc: 'View and filter students based on their classes.', to: '/students' },
   { icon: GraduationCap, title: 'Add teachers', desc: 'Register your teaching staff.', to: '/teachers' },
@@ -9,6 +9,7 @@ const STEPS = [
 ];
 
 export default function OnboardingCard() {
+  const { user } = useAuth();
   const [dismissed, setDismissed] = useState(() => {
     try { return localStorage.getItem('onboardingDismissed') === 'true'; } catch { return false; }
   });
@@ -19,7 +20,7 @@ export default function OnboardingCard() {
       // Fall back silently if localStorage is unavailable
     }
   };
-
+  if (user?.role !== 'ADMIN') return null;
   if (dismissed) return null;
 
   return (
