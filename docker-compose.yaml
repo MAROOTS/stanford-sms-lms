@@ -74,7 +74,7 @@ services:
     volumes:
       - ./Caddyfile:/etc/caddy/Caddyfile
       - ./schoolfrontend/dist:/srv
-        - ./stanfordos-website/out:/srv-www
+      - ./stanfordos-website/stanford/out:/srv-www
       - caddy-data:/data
     depends_on:
       - backend

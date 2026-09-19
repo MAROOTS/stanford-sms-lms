@@ -5,22 +5,19 @@
 	}
 }
 
-www.stanfordos.co.ke {
+stanfordos.co.ke, www.stanfordos.co.ke {
 	handle /api* {
 		reverse_proxy backend:8080
 	}
-	handle {
+
+	@www host www.stanfordos.co.ke
+	handle @www {
 		root * /srv-www
 		encode gzip
 		try_files {path} {path}.html {path}/index.html /404.html
 		file_server
 	}
-}
 
-stanfordos.co.ke {
-	handle /api* {
-		reverse_proxy backend:8080
-	}
 	handle {
 		root * /srv
 		encode gzip
