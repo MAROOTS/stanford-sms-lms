@@ -26,13 +26,13 @@ public class ContactInquiryController {
     }
 
     @GetMapping
-    @PreAuthorize("hasRole('ADMIN')")
+    @PreAuthorize("hasRole('PLATFORM_ADMIN')")
     public ResponseEntity<List<ContactInquiryResponse>> listAll(@RequestParam(required = false) ContactInquiryStatus status) {
         return ResponseEntity.ok(contactInquiryService.listAll(status));
     }
 
     @PatchMapping("/{id}/status")
-    @PreAuthorize("hasRole('ADMIN')")
+    @PreAuthorize("hasRole('PLATFORM_ADMIN')")
     public ResponseEntity<ContactInquiryResponse> updateStatus(@PathVariable Long id, @Valid @RequestBody UpdateInquiryStatusRequest request) {
         return ResponseEntity.ok(contactInquiryService.updateStatus(id, request));
     }
