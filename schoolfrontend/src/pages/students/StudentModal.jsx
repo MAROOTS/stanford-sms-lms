@@ -158,7 +158,7 @@ export default function StudentModal({ initialData, classSections, readOnly, onC
 
                         {!readOnly && (
                             <div className="flex flex-col items-center gap-1">
-                                <label className="text-sm font-semibold text-navy-900 hover:underline cursor-pointer">
+                                <label className="inline-flex items-center gap-1.5 rounded-md border border-slate-300 bg-white px-3 py-1.5 text-sm font-semibold text-navy-900 shadow-sm cursor-pointer transition-colors hover:bg-slate-50 hover:border-slate-400 focus-within:ring-2 focus-within:ring-navy-500 focus-within:ring-offset-1 has-[:disabled]:opacity-60 has-[:disabled]:cursor-not-allowed">
                                     {uploadingPhoto
                                         ? 'Uploading...'
                                         : photoUrl
@@ -179,7 +179,7 @@ export default function StudentModal({ initialData, classSections, readOnly, onC
                                         type="button"
                                         onClick={handleRemovePhoto}
                                         disabled={uploadingPhoto}
-                                        className="text-xs text-slate-500 hover:text-red-600 disabled:opacity-60 transition-colors"
+                                        className="text-xs font-medium text-slate-500 rounded-md px-2 py-1.5 transition-colors hover:text-red-600 hover:bg-red-50 disabled:opacity-60 disabled:hover:bg-transparent disabled:hover:text-slate-500 disabled:cursor-not-allowed focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-red-500 focus-visible:ring-offset-1"
                                     >
                                         Remove photo
                                     </button>
