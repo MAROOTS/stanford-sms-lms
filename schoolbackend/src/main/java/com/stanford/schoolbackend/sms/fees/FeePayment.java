@@ -32,5 +32,9 @@ public class FeePayment {
     @Column(nullable = false)
     private LocalDate paymentDate;
 
+    @ManyToOne(fetch = FetchType.LAZY)
+    @JoinColumn(name = "school_id", nullable = false)
+    private com.stanford.schoolbackend.core.school.School school;
+
     private String reference; // optional, e.g. M-Pesa transaction code
 }

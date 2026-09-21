@@ -21,28 +21,45 @@ export default function PaymentModal({ invoice, onClose, onSaved }) {
 
     const handleSubmit = async (e) => {
         e.preventDefault();
-        setError(''); setSaving(true);
+        setError('');
+        setSaving(true);
+
         if (Number(amount) > Number(invoice.balance)) {
             setError(`Payment cannot exceed KES ${Number(invoice.balance).toLocaleString()}`);
+            setSaving(false);
             return;
         }
-        const { data } = await axiosClient.post(`/fee-invoices/${invoice.id}/payments`, {
-            amount: Number(amount), method, paymentDate, reference: reference || null,
-        });
-        if (data?.id) {
-            try {
-                await downloadPaymentReceipt(
-                    invoice.id,
-                    data.id,
-                    `${invoice.invoiceNumber || 'receipt'}.pdf`
-                );
-            } catch {
-                setError('Payment saved, but the receipt could not be downloaded. Use Receipt on the invoice row.');
-                setSaving(false);
-                return;
+
+        try {
+            const { data } = await axiosClient.post(`/fee-invoices/${invoice.id}/payments`, {
+                amount: Number(amount),
+                method,
+                paymentDate,
+                reference: reference.trim() || null,
+            });
+
+            if (data?.id) {
+                try {
+                    await downloadPaymentReceipt(
+                        invoice.id,
+                        data.id,
+                        `${invoice.invoiceNumber || 'receipt'}.pdf`
+                    );
+                } catch {
+                    setError('Payment saved, but the receipt could not be downloaded. Use Receipt on the invoice row.');
+                    setSaving(false);
+                    return;
+                }
             }
+            onSaved();
+        } catch (err) {
+            setError(
+                err.response?.data?.message
+                || 'Could not record this payment. Check the reference and try again.'
+            );
+        } finally {
+            setSaving(false);
         }
-        onSaved();
     };
 
     return (

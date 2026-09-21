@@ -11,4 +11,5 @@ public interface FeePaymentRepository extends JpaRepository<FeePayment, Long> {
    // List<FeePayment> findByPaymentDateBetween(LocalDate start, LocalDate end);
     List<FeePayment> findByInvoice_School_IdAndPaymentDateBetween(
             Long schoolId, LocalDate start, LocalDate end);
+    boolean existsBySchoolIdAndReferenceIgnoreCase(Long schoolId, String reference);
 }

@@ -47,6 +47,16 @@ public class FeePaymentService {
             throw new IllegalArgumentException(
                     "Payment cannot exceed the outstanding balance of KES " + balance);
         }
+        String ref = request.getReference() == null ? null : request.getReference().trim();
+        if (ref != null && ref.isEmpty()) ref = null;
+
+        if (ref != null) {
+            Long schoolId = invoice.getSchool().getId();
+            if (feePaymentRepository.existsBySchoolIdAndReferenceIgnoreCase(schoolId, ref)) {
+                throw new IllegalArgumentException(
+                        "Payment reference \"" + ref + "\" was already used for another payment in this school");
+            }
+        }
 
         FeePayment saved = feePaymentRepository.save(FeePayment.builder()
                 .invoice(invoice)
