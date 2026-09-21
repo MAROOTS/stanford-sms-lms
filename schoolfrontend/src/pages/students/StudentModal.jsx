@@ -80,8 +80,11 @@ export default function StudentModal({ initialData, classSections, readOnly, onC
 
     const handlePhoto = async (e) => {
         const file = e.target.files?.[0];
-        if (!file || !initialData?.id) return;
-
+        if (!initialData?.id) {
+            setError('Save the student first, then upload a photo.');
+            e.target.value = '';
+            return;
+        }
         const formData = new FormData();
         formData.append('file', file);
 

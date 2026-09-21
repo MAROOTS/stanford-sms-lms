@@ -31,5 +31,8 @@ stanfordos.co.ke, www.stanfordos.co.ke, *.stanfordos.co.ke {
 }
 
 files.stanfordos.co.ke {
-	reverse_proxy minio:9000
+	reverse_proxy minio:9000 {
+		header_up Host {host}
+		header_up X-Forwarded-Proto {scheme}
+	}
 }

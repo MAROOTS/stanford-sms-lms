@@ -208,9 +208,7 @@ public class StudentService {
     private StudentResponse toResponse(Student s) {
         return StudentResponse.builder()
                 .id(s.getId())
-                .photoUrl(s.getPhotoObjectKey() != null
-                        ? fileStorageService.getPresignedUrl(s.getPhotoObjectKey(), 24)
-                        : null)
+                .photoUrl(fileStorageService.toDataUri(s.getPhotoObjectKey()))
                 .firstName(s.getFirstName())
                 .lastName(s.getLastName())
                 .email(s.getEmail())
