@@ -22,4 +22,4 @@ jobs:
           script_stop: true
           command_timeout: 30m
           script: |
-            /root/stanfordos/scripts/deploy.sh
+           bash /root/stanfordos/scripts/deploy.sh
