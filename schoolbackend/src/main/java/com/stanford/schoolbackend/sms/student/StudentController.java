@@ -1,6 +1,8 @@
 package com.stanford.schoolbackend.sms.student;
 
 import com.stanford.schoolbackend.sms.academic.dto.AssignSectionRequest;
+import com.stanford.schoolbackend.sms.student.dto.PromoteStudentsRequest;
+import com.stanford.schoolbackend.sms.student.dto.PromoteStudentsResponse;
 import com.stanford.schoolbackend.sms.student.dto.StudentResponse;
 import com.stanford.schoolbackend.sms.student.dto.StudentUpdateRequest;
 import jakarta.validation.Valid;
@@ -49,6 +51,13 @@ public class StudentController {
             @PathVariable Long studentId,
             @RequestParam MultipartFile file) {
         return ResponseEntity.ok(studentService.updatePhoto(studentId, file));
+    }
+
+    @PostMapping("/promote")
+    @PreAuthorize("hasRole('ADMIN')")
+    public ResponseEntity<PromoteStudentsResponse> promote(
+            @Valid @RequestBody PromoteStudentsRequest request) {
+        return ResponseEntity.ok(studentService.promote(request));
     }
 
     @DeleteMapping("/{studentId}/photo")

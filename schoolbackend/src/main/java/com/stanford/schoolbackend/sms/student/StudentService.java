@@ -9,6 +9,8 @@ import com.stanford.schoolbackend.sms.academic.ClassSection;
 import com.stanford.schoolbackend.sms.academic.ClassSectionRepository;
 import com.stanford.schoolbackend.sms.academic.dto.AssignSectionRequest;
 import com.stanford.schoolbackend.sms.parent.ParentAccessService;
+import com.stanford.schoolbackend.sms.student.dto.PromoteStudentsRequest;
+import com.stanford.schoolbackend.sms.student.dto.PromoteStudentsResponse;
 import com.stanford.schoolbackend.sms.student.dto.StudentResponse;
 import com.stanford.schoolbackend.sms.student.dto.StudentUpdateRequest;
 import com.stanford.schoolbackend.sms.teacher.Teacher;
@@ -16,6 +18,7 @@ import com.stanford.schoolbackend.sms.teacher.TeacherRepository;
 import lombok.RequiredArgsConstructor;
 import org.springframework.security.access.AccessDeniedException;
 import org.springframework.stereotype.Service;
+import org.springframework.transaction.annotation.Transactional;
 import org.springframework.web.multipart.MultipartFile;
 
 import java.util.List;
@@ -161,6 +164,54 @@ public class StudentService {
         return toResponse(studentRepository.save(student));
     }
 
+    @Transactional
+    public PromoteStudentsResponse promote(PromoteStudentsRequest request) {
+        Long schoolId = SecurityUtils.currentSchoolId();
+
+        ClassSection from = classSectionRepository.findById(request.getFromClassSectionId())
+                .orElseThrow(() -> new ResourceNotFoundException("Source class not found"));
+        if (from.getSchool() == null || !schoolId.equals(from.getSchool().getId())) {
+            throw new ResourceNotFoundException("Source class not found");
+        }
+
+        ClassSection to = null;
+        if (request.getToClassSectionId() != null) {
+            to = classSectionRepository.findById(request.getToClassSectionId())
+                    .orElseThrow(() -> new ResourceNotFoundException("Destination class not found"));
+            if (to.getSchool() == null || !schoolId.equals(to.getSchool().getId())) {
+                throw new ResourceNotFoundException("Destination class not found");
+            }
+            if (to.getId().equals(from.getId())) {
+                throw new IllegalArgumentException("Pick a different destination class");
+            }
+        }
+
+        int moved = 0;
+        for (Long studentId : request.getStudentIds()) {
+            Student student = getOwnedOrThrow(studentId);
+            if (student.getClassSection() == null
+                    || !from.getId().equals(student.getClassSection().getId())) {
+                continue;
+            }
+            student.setClassSection(to);
+            studentRepository.save(student);
+            moved++;
+        }
+
+        if (moved == 0) {
+            throw new IllegalArgumentException("None of the selected students are in the source class");
+        }
+
+        String toName = to == null
+                ? "Completed / left school"
+                : to.getGradeLevel().getName() + " — " + to.getName();
+
+        return PromoteStudentsResponse.builder()
+                .moved(moved)
+                .fromClassName(from.getGradeLevel().getName() + " — " + from.getName())
+                .toClassName(toName)
+                .build();
+    }
     public void delete(Long studentId) {
         Student student = getOwnedOrThrow(studentId);
 
