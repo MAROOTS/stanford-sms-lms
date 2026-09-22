@@ -7,7 +7,7 @@ import {
     Trash2,
     Unlock,
     KeyRound,
-    UserX
+    UserX,
 } from 'lucide-react';
 import axiosClient from '../../api/axiosClient';
 import TeacherModal from './TeacherModal';
@@ -20,12 +20,18 @@ import { useAccountActions } from '../../hooks/useAccountActions';
 
 const getAvatarStyle = (name) => {
     const colors = [
-        'bg-blue-100 text-blue-700', 'bg-emerald-100 text-emerald-700',
-        'bg-violet-100 text-violet-700', 'bg-amber-100 text-amber-700',
-        'bg-pink-100 text-pink-700', 'bg-rose-100 text-rose-700',
-        'bg-indigo-100 text-indigo-700', 'bg-cyan-100 text-cyan-700'
+        'bg-blue-100 text-blue-700',
+        'bg-emerald-100 text-emerald-700',
+        'bg-violet-100 text-violet-700',
+        'bg-amber-100 text-amber-700',
+        'bg-pink-100 text-pink-700',
+        'bg-rose-100 text-rose-700',
+        'bg-indigo-100 text-indigo-700',
+        'bg-cyan-100 text-cyan-700',
     ];
+
     if (!name) return colors[0];
+
     const charCode = name.charCodeAt(0);
     return colors[charCode % colors.length];
 };
@@ -43,9 +49,15 @@ export default function Teachers() {
     const loadAll = useCallback(async () => {
         setLoading(true);
         setError('');
+
         try {
             const { data } = await axiosClient.get('/teachers');
-            setTeachers(Array.isArray(data) ? data : data?.content || []);
+
+            setTeachers(
+                Array.isArray(data)
+                    ? data
+                    : data?.content || []
+            );
         } catch {
             setError('Could not load teachers');
         } finally {
@@ -55,9 +67,13 @@ export default function Teachers() {
 
     useEffect(() => {
         let isMounted = true;
+
         loadAll().catch(() => {
-            if (isMounted) setError('Could not load teachers');
+            if (isMounted) {
+                setError('Could not load teachers');
+            }
         });
+
         return () => {
             isMounted = false;
         };
@@ -65,20 +81,38 @@ export default function Teachers() {
 
     const handleDelete = async () => {
         if (!deleteTarget) return;
+
         const id = deleteTarget.id;
-        const name = `${deleteTarget.firstName || ''} ${deleteTarget.lastName || ''}`.trim() || 'Teacher';
+        const name =
+            `${deleteTarget.firstName || ''} ${deleteTarget.lastName || ''}`.trim() ||
+            'Teacher';
+
         setDeleteTarget(null);
+
         try {
             await axiosClient.delete(`/teachers/${id}`);
-            setTeachers((prev) => prev.filter((t) => t.id !== id));
+
+            setTeachers((prev) =>
+                prev.filter((t) => t.id !== id)
+            );
+
             toast.success(`${name} has been deleted.`);
         } catch (err) {
-            toast.error(err.response?.data?.message || 'Could not delete this teacher.');
+            toast.error(
+                err.response?.data?.message ||
+                'Could not delete this teacher.'
+            );
         }
     };
 
-    const { resetCredentials, setResetCredentials, handleResetPassword, handleUnlock } =
-        useAccountActions(toast, { entityLabel: 'teacher' });
+    const {
+        resetCredentials,
+        setResetCredentials,
+        handleResetPassword,
+        handleUnlock,
+    } = useAccountActions(toast, {
+        entityLabel: 'teacher',
+    });
 
     const openAddModal = () => {
         setEditingTeacher(null);
@@ -110,30 +144,55 @@ export default function Teachers() {
         toast.success('Teacher saved successfully.');
     };
 
+    const handleTeacherUnlock = async (teacherId) => {
+        const unlocked = await handleUnlock(teacherId);
+
+        if (unlocked) {
+            loadAll();
+        }
+    };
+
     return (
         <div className="max-w-7xl mx-auto p-4 sm:p-6 lg:p-8 animate-in fade-in duration-500">
+
             {/* HEADER SECTION */}
             <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4 mb-8">
                 <div>
-                    <h1 className="text-3xl font-bold tracking-tight text-slate-900">Teachers</h1>
-                    <p className="text-sm text-slate-500 mt-1.5">Manage all teaching staff at your school.</p>
+                    <h1 className="text-3xl font-bold tracking-tight text-slate-900">
+                        Teachers
+                    </h1>
+
+                    <p className="text-sm text-slate-500 mt-1.5">
+                        Manage all teaching staff at your school.
+                    </p>
                 </div>
+
                 <button
                     type="button"
                     onClick={openAddModal}
                     className="flex items-center gap-2 bg-navy-900 hover:bg-navy-800 text-white shadow-sm text-sm font-semibold px-4 py-2.5 rounded-xl transition-all active:scale-[0.98] cursor-pointer"
                 >
-                    <Plus size={16} /> Add Teacher
+                    <Plus size={16} />
+                    Add Teacher
                 </button>
             </div>
 
             {/* CONTENT AREA */}
-            {loading && <TableSkeleton columns={3} rows={5} />}
+            {loading && (
+                <TableSkeleton columns={3} rows={5} />
+            )}
 
             {error && !loading && (
                 <div className="bg-red-50 border border-red-100 rounded-2xl p-8 text-center animate-in zoom-in-95">
-                    <UserX size={40} className="mx-auto text-red-400 mb-3" />
-                    <p className="text-red-700 font-medium mb-3">{error}</p>
+                    <UserX
+                        size={40}
+                        className="mx-auto text-red-400 mb-3"
+                    />
+
+                    <p className="text-red-700 font-medium mb-3">
+                        {error}
+                    </p>
+
                     <button
                         type="button"
                         onClick={loadAll}
@@ -156,7 +215,8 @@ export default function Teachers() {
                                 onClick={openAddModal}
                                 className="flex items-center gap-2 bg-navy-900 hover:bg-navy-800 text-white text-sm font-semibold px-5 py-2.5 rounded-xl transition-all active:scale-[0.98] cursor-pointer"
                             >
-                                <Plus size={16} /> Add Teacher
+                                <Plus size={16} />
+                                Add Teacher
                             </button>
                         }
                     />
@@ -167,74 +227,130 @@ export default function Teachers() {
                 <div className="bg-white rounded-2xl border border-slate-200 shadow-sm overflow-hidden">
                     <div className="overflow-x-auto custom-scrollbar">
                         <table className="w-full text-sm text-left">
+
                             <thead className="bg-slate-50 border-b border-slate-200">
                             <tr className="text-[11px] font-bold tracking-wider text-slate-500 uppercase">
-                                <th className="px-6 py-4">Teacher</th>
-                                <th className="px-6 py-4">Email</th>
-                                <th className="px-6 py-4 text-right">Actions</th>
+                                <th className="px-6 py-4">
+                                    Teacher
+                                </th>
+
+                                <th className="px-6 py-4">
+                                    Email
+                                </th>
+
+                                <th className="px-6 py-4 text-right">
+                                    Actions
+                                </th>
                             </tr>
                             </thead>
+
                             <tbody className="divide-y divide-slate-100">
                             {teachers.map((t) => {
-                                const initials = `${t.firstName?.[0] || ''}${t.lastName?.[0] || ''}` || 'T';
+                                const initials =
+                                    `${t.firstName?.[0] || ''}${t.lastName?.[0] || ''}` ||
+                                    'T';
+
                                 return (
                                     <tr
                                         key={t.id}
                                         className="group bg-white hover:bg-slate-50/80 transition-colors"
                                     >
+                                        {/* TEACHER */}
                                         <td className="px-6 py-4">
                                             <div className="flex items-center gap-3">
-                                                <div className={`w-9 h-9 rounded-full flex items-center justify-center text-xs font-bold shadow-sm border border-black/5 ${getAvatarStyle(t.firstName)}`}>
+                                                <div
+                                                    className={`w-9 h-9 rounded-full flex items-center justify-center text-xs font-bold shadow-sm border border-black/5 shrink-0 ${getAvatarStyle(t.firstName)}`}
+                                                >
                                                     {initials}
                                                 </div>
-                                                <span className="font-semibold text-slate-900">
-                                                        {t.firstName} {t.lastName}
-                                                    </span>
+
+                                                <div className="flex items-center min-w-0">
+                                                        <span className="font-semibold text-slate-900 truncate">
+                                                            {t.firstName} {t.lastName}
+                                                        </span>
+
+                                                    {t.accountLocked && (
+                                                        <span className="ml-2 shrink-0 text-[10px] font-semibold uppercase tracking-wide text-amber-800 bg-amber-50 border border-amber-100 rounded px-1.5 py-0.5">
+                                                                Locked
+                                                            </span>
+                                                    )}
+                                                </div>
                                             </div>
                                         </td>
+
+                                        {/* EMAIL */}
                                         <td className="px-6 py-4">
                                                 <span className="text-slate-600 font-medium">
-                                                    {t.email || <span className="text-slate-400 italic font-normal">No email</span>}
+                                                    {t.email || (
+                                                        <span className="text-slate-400 italic font-normal">
+                                                            No email
+                                                        </span>
+                                                    )}
                                                 </span>
                                         </td>
+
+                                        {/* ACTIONS */}
                                         <td className="px-6 py-4 text-right">
                                             <div className="flex items-center justify-end gap-1.5 opacity-60 group-hover:opacity-100 transition-opacity">
+
+                                                {/* VIEW */}
                                                 <button
                                                     type="button"
-                                                    onClick={() => openViewModal(t)}
+                                                    onClick={() =>
+                                                        openViewModal(t)
+                                                    }
                                                     title="View Profile"
                                                     className="p-2 rounded-lg text-slate-400 hover:text-navy-600 hover:bg-navy-50 transition-colors cursor-pointer"
                                                 >
                                                     <Eye size={18} />
                                                 </button>
+
                                                 <div className="w-px h-4 bg-slate-200 mx-1"></div>
+
+                                                {/* RESET PASSWORD */}
                                                 <button
                                                     type="button"
-                                                    onClick={() => handleResetPassword(t.id)}
+                                                    onClick={() =>
+                                                        handleResetPassword(t.id)
+                                                    }
                                                     title="Reset Password"
                                                     className="p-2 rounded-lg text-slate-400 hover:text-amber-600 hover:bg-amber-50 transition-colors cursor-pointer"
                                                 >
                                                     <KeyRound size={18} />
                                                 </button>
+
+                                                {/* UNLOCK — ONLY WHEN LOCKED */}
+                                                {t.accountLocked && (
+                                                    <button
+                                                        type="button"
+                                                        onClick={() =>
+                                                            handleTeacherUnlock(t.id)
+                                                        }
+                                                        title="Unlock account (too many failed logins)"
+                                                        className="p-2 rounded-lg text-amber-600 hover:bg-amber-50 transition-colors cursor-pointer"
+                                                    >
+                                                        <Unlock size={18} />
+                                                    </button>
+                                                )}
+
+                                                {/* EDIT */}
                                                 <button
                                                     type="button"
-                                                    onClick={() => handleUnlock(t.id)}
-                                                    title="Unlock Account"
-                                                    className="p-2 rounded-lg text-slate-400 hover:text-emerald-600 hover:bg-emerald-50 transition-colors cursor-pointer"
-                                                >
-                                                    <Unlock size={18} />
-                                                </button>
-                                                <button
-                                                    type="button"
-                                                    onClick={() => openEditModal(t)}
+                                                    onClick={() =>
+                                                        openEditModal(t)
+                                                    }
                                                     title="Edit Teacher"
                                                     className="p-2 rounded-lg text-slate-400 hover:text-blue-600 hover:bg-blue-50 transition-colors cursor-pointer"
                                                 >
                                                     <Pencil size={18} />
                                                 </button>
+
+                                                {/* DELETE */}
                                                 <button
                                                     type="button"
-                                                    onClick={() => setDeleteTarget(t)}
+                                                    onClick={() =>
+                                                        setDeleteTarget(t)
+                                                    }
                                                     title="Delete Teacher"
                                                     className="p-2 rounded-lg text-slate-400 hover:text-red-600 hover:bg-red-50 transition-colors cursor-pointer"
                                                 >
@@ -252,6 +368,7 @@ export default function Teachers() {
             )}
 
             {/* MODALS & DIALOGS */}
+
             {modalOpen && (
                 <TeacherModal
                     initialData={editingTeacher || viewingTeacher}
@@ -274,8 +391,15 @@ export default function Teachers() {
                 title="Delete Teacher"
                 message={
                     <>
-                        Are you sure you want to delete <strong className="text-slate-900">{deleteTarget?.firstName} {deleteTarget?.lastName}</strong>?
-                        This action cannot be undone and will remove all their associated data.
+                        Are you sure you want to delete{' '}
+                        <strong className="text-slate-900">
+                            {deleteTarget?.firstName}{' '}
+                            {deleteTarget?.lastName}
+                        </strong>
+                        ?
+                        <br />
+                        This action cannot be undone and will remove all their
+                        associated data.
                     </>
                 }
                 confirmLabel="Delete Teacher"

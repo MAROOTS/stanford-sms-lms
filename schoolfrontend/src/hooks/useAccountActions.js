@@ -15,11 +15,14 @@ export function useAccountActions(toast, { entityLabel = 'user' } = {}) {
     };
 
     const handleUnlock = async (userId) => {
+        if (!window.confirm(`Unlock this ${entityLabel}? They will be able to sign in again.`)) return false;
         try {
             await axiosClient.post(`/admin/users/${userId}/unlock`);
-            toast.success('Account unlocked.');
+            toast.success('Account unlocked. They can sign in again.');
+            window.dispatchEvent(new Event('account-unlocked'));
         } catch (err) {
             toast.error(err.response?.data?.message || 'Could not unlock account');
+            return false;
         }
     };
 

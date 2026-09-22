@@ -62,7 +62,13 @@ export default function ParentModal({ initialData, onClose, onSaved }) {
                 const { data } = await axiosClient.post('/parents', payload);
                 setCreatedCredentials({ username: data.username, temporaryPassword: data.temporaryPassword });            }
         } catch (err) {
-            setError(err.response?.data?.message || 'Something went wrong');
+            const data = err.response?.data;
+            const fieldMsg =
+                data?.errors?.password
+                || data?.errors?.email
+                || data?.errors?.username
+                || Object.values(data?.errors || {})[0];
+            setError(fieldMsg || data?.message || 'Something went wrong');
         } finally {
             setSaving(false);
         }

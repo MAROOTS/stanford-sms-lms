@@ -80,6 +80,7 @@ public class TeacherService {
                 .gender(t.getGender())
                 .dateOfEmployment(t.getDateOfEmployment())
                 .address(t.getAddress())
+                .accountLocked(t.isAccountLocked())  // Teacher extends User
                 .build();
     }
 }

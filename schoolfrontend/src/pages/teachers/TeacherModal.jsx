@@ -75,7 +75,14 @@ export default function TeacherModal({ initialData, onClose, onSaved, readOnly }
         setCreatedCredentials({ username, temporaryPassword: password });
       }
     } catch (err) {
-      setError(err.response?.data?.message || 'Something went wrong');
+      const data = err.response?.data;
+      const fieldMsg =
+          data?.errors?.password
+          || data?.errors?.email
+          || data?.errors?.username
+          || Object.values(data?.errors || {})[0];
+      setError(fieldMsg || data?.message || 'Something went wrong');
+
     } finally {
       setSaving(false);
     }
@@ -128,6 +135,9 @@ export default function TeacherModal({ initialData, onClose, onSaved, readOnly }
                       <div>
                         <label className="block text-sm font-medium text-slate-700 mb-1.5">Temporary password</label>
                         <input type="text" required value={password} onChange={(e) => setPassword(e.target.value)} className={field} />
+                        <p className="text-xs text-slate-400 mt-1">
+                          At least 8 characters, with upper, lower, a number and a symbol.
+                        </p>
                       </div>
                       <div>
                         <label className="block text-sm font-medium text-slate-700 mb-1.5">Confirm password</label>

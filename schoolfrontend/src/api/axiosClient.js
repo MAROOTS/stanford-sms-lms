@@ -50,42 +50,40 @@ axiosClient.interceptors.response.use(
             originalRequest?.url?.includes('/auth/resend-verification');
 
         // 401 → try refresh, otherwise log out
-        if (error.response?.status === 401 && !isPublicAuthEndpoint && !originalRequest._retry) {
+        if (error.response?.status === 401 && !isPublicAuthEndpoint) {
             const storage = getStorage();
             const refreshToken = storage.getItem('refreshToken');
 
-            if (!refreshToken) {
-                clearSessionAndRedirect();
-                return Promise.reject(error);
-            }
+            if (!originalRequest._retry && refreshToken) {
+                if (isRefreshing) {
+                    return new Promise((resolve, reject) => {
+                        refreshQueue.push({ resolve, reject });
+                    }).then((newToken) => {
+                        originalRequest.headers.Authorization = `Bearer ${newToken}`;
+                        return axiosClient(originalRequest);
+                    });
+                }
 
-            if (isRefreshing) {
-                return new Promise((resolve, reject) => {
-                    refreshQueue.push({ resolve, reject });
-                }).then((newToken) => {
-                    originalRequest.headers.Authorization = `Bearer ${newToken}`;
+                originalRequest._retry = true;
+                isRefreshing = true;
+                try {
+                    const { data } = await axios.post(`${apiBase}/auth/refresh`, { refreshToken });
+                    storage.setItem('accessToken', data.accessToken);
+                    storage.setItem('refreshToken', data.refreshToken);
+                    processQueue(null, data.accessToken);
+                    originalRequest.headers.Authorization = `Bearer ${data.accessToken}`;
                     return axiosClient(originalRequest);
-                });
+                } catch {
+                    processQueue(new Error('session'), null);
+                    clearSessionAndRedirect();
+                    return new Promise(() => {});
+                } finally {
+                    isRefreshing = false;
+                }
             }
 
-            originalRequest._retry = true;
-            isRefreshing = true;
-
-            try {
-                // plain axios here, not axiosClient — avoids re-triggering this same interceptor
-                const { data } = await axios.post(`${apiBase}/auth/refresh`, { refreshToken });
-                storage.setItem('accessToken', data.accessToken);
-                storage.setItem('refreshToken', data.refreshToken);
-                processQueue(null, data.accessToken);
-                originalRequest.headers.Authorization = `Bearer ${data.accessToken}`;
-                return axiosClient(originalRequest);
-            } catch (refreshError) {
-                processQueue(refreshError, null);
-                clearSessionAndRedirect();
-                return Promise.reject(refreshError);
-            } finally {
-                isRefreshing = false;
-            }
+            clearSessionAndRedirect();
+            return new Promise(() => {});
         }
 
         // 403 → log out if account is suspended

@@ -21,4 +21,5 @@ public class TeacherResponse {
     private String gender;
     private LocalDate dateOfEmployment;
     private String address;
+    private boolean accountLocked;
 }
