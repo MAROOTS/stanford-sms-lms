@@ -36,6 +36,10 @@ services:
       FRONTEND_URL: https://${DOMAIN}
       GMAIL_USERNAME: ${GMAIL_USERNAME}
       GMAIL_APP_PASSWORD: ${GMAIL_APP_PASSWORD}
+      AT_USERNAME: ${AT_USERNAME:}
+      AT_API_KEY: ${AT_API_KEY:}
+      AT_SENDER_ID: ${AT_SENDER_ID:}
+      AT_SANDBOX: ${AT_SANDBOX:true}
     depends_on:
       - postgres
       - minio

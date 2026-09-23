@@ -64,3 +64,9 @@ minio:
   app:
     cors:
       origin-patterns: ${CORS_ORIGIN_PATTERNS:http://localhost:5173,http://*.localhost:5173}
+
+africastalking:
+    username: ${AT_USERNAME:}
+    api-key: ${AT_API_KEY:}
+    sender-id: ${AT_SENDER_ID:}
+    sandbox: ${AT_SANDBOX:true}

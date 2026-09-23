@@ -51,6 +51,7 @@ import StudentImport from './pages/students/StudentImport';
 import FeeStructures from './pages/fees/FeeStructures';
 import Timetable from './pages/timetable/Timetable';
 import MyTimetable from './pages/timetable/MyTimetable';
+import Communications from './pages/communications/Communications';
 export default function App() {
   return (
     <ThemeProvider>
@@ -90,6 +91,7 @@ export default function App() {
                 <Route path="/library/loans" element={<Loans />} />
                 <Route path="/announcements" element={<AnnouncementsRouter />} />
                 <Route path="/register" element={<Register />} />
+                <Route path="/communications" element={<Communications />} />
 
 
                 <Route path="/my-attendance" element={<MyAttendance />} />

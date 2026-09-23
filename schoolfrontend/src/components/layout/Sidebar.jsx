@@ -27,6 +27,7 @@ import {
   UserCheck,
   UserCog,
   Users,
+  MessageSquare
 } from 'lucide-react';
 
 const adminTeacherNav = [
@@ -144,6 +145,12 @@ const adminTeacherNav = [
         icon: Megaphone,
         label: 'Announcements',
         roles: ['ADMIN', 'TEACHER'],
+      },
+      {
+        to: '/communications',
+        icon: MessageSquare,
+        label: 'SMS',
+        roles: ['ADMIN', 'ACCOUNTANT'],
       },
       {
         to: '/staff',
