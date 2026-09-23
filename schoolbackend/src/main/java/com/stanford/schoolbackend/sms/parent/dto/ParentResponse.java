@@ -19,6 +19,7 @@ public class ParentResponse {
     private String address;
     private List<ChildSummary> children;
     private String temporaryPassword;
+    private boolean accountLocked;
 
     @Data
     @Builder

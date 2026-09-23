@@ -276,6 +276,7 @@ public class ParentService {
                 .alternatePhone(parent.getAlternatePhone())
                 .address(parent.getAddress())
                 .children(links.stream().map(l -> toChildSummary(l.getStudent(), l)).collect(Collectors.toList()))
+                .accountLocked(parent.isAccountLocked())
                 .build();
     }
 

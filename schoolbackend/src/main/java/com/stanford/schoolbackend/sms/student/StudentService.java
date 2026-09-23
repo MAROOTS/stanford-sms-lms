@@ -287,6 +287,7 @@ public class StudentService {
                 .emergencyContactName(s.getEmergencyContactName())
                 .emergencyContactPhone(s.getEmergencyContactPhone())
                 .previousSchool(s.getPreviousSchool())
+                .accountLocked(s.isAccountLocked())
                 .build();
     }
 }

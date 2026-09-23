@@ -37,4 +37,5 @@ public class StudentResponse {
     private String emergencyContactPhone;
     private String previousSchool;
     private String photoUrl;
+    private boolean accountLocked;
 }
