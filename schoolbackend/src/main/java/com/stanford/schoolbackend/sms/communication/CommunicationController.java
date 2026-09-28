@@ -37,4 +37,15 @@ public class CommunicationController {
     public CampaignResponse get(@PathVariable Long id) {
         return communicationService.get(id);
     }
+
+    @PostMapping("/{id}/retry")
+    public CampaignResponse retry(@PathVariable Long id) {
+        return communicationService.retry(id);
+    }
+
+    @DeleteMapping("/{id}")
+    public ResponseEntity<Void> delete(@PathVariable Long id) {
+        communicationService.delete(id);
+        return ResponseEntity.noContent().build();
+    }
 }

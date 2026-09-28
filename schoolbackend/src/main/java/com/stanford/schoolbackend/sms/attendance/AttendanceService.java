@@ -1,15 +1,18 @@
 package com.stanford.schoolbackend.sms.attendance;
 
+import com.stanford.schoolbackend.core.enums.AttendanceStatus;
 import com.stanford.schoolbackend.core.exception.ResourceNotFoundException;
 import com.stanford.schoolbackend.core.security.SecurityUtils;
 import com.stanford.schoolbackend.sms.attendance.dto.AttendanceRecordResponse;
 import com.stanford.schoolbackend.sms.attendance.dto.MarkAttendanceRequest;
+import com.stanford.schoolbackend.sms.communication.CommunicationService;
 import com.stanford.schoolbackend.sms.student.Student;
 import com.stanford.schoolbackend.sms.student.StudentRepository;
 import lombok.RequiredArgsConstructor;
 import org.springframework.security.access.AccessDeniedException;
 import org.springframework.stereotype.Service;
 
+import java.util.ArrayList;
 import java.util.List;
 
 @Service
@@ -19,10 +22,11 @@ public class AttendanceService {
     private final AttendanceRecordRepository attendanceRecordRepository;
     private final SessionService sessionService;
     private final StudentRepository studentRepository;
+    private final CommunicationService communicationService;
 
     public List<AttendanceRecordResponse> markAttendance(Long sessionId, MarkAttendanceRequest request) {
         Session session = sessionService.getOwnedSessionOrThrow(sessionId);
-
+        List<Student> newlyAbsent = new ArrayList<>();
         List<AttendanceRecord> saved = request.getEntries().stream()
                 .map(entry -> {
                     Student student = studentRepository.findById(entry.getStudentId())
@@ -34,11 +38,24 @@ public class AttendanceService {
                             .filter(r -> r.getStudent().getId().equals(student.getId()))
                             .findFirst()
                             .orElse(AttendanceRecord.builder().session(session).student(student).build());
-
+                    AttendanceStatus previous = record.getStatus();
                     record.setStatus(entry.getStatus());
+                    if (entry.getStatus() == AttendanceStatus.ABSENT
+                            && previous != AttendanceStatus.ABSENT) {
+                        newlyAbsent.add(student);
+                    }
                     return attendanceRecordRepository.save(record);
                 })
                 .toList();
+        for (Student student : newlyAbsent) {
+            String date = session.getSessionDate() != null ? session.getSessionDate().toString() : "today";
+            communicationService.smsParentsOfStudent(
+                    student,
+                    "Absent — " + student.getFirstName(),
+                    "Hello {{parentName}}, {{studentName}} was marked absent on " + date
+                            + ". Please contact the school if needed. {{schoolName}}"
+            );
+        }
 
         return saved.stream().map(this::toResponse).toList();
     }

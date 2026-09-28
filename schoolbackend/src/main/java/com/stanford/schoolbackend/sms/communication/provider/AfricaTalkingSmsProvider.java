@@ -6,6 +6,7 @@ import org.springframework.http.MediaType;
 import org.springframework.stereotype.Component;
 import org.springframework.util.LinkedMultiValueMap;
 import org.springframework.web.client.RestClient;
+import org.springframework.http.client.SimpleClientHttpRequestFactory;
 
 @Slf4j
 @Component
@@ -27,10 +28,16 @@ public class AfricaTalkingSmsProvider {
         String base = sandbox
                 ? "https://api.sandbox.africastalking.com"
                 : "https://api.africastalking.com";
+        SimpleClientHttpRequestFactory factory = new SimpleClientHttpRequestFactory();
+        factory.setConnectTimeout(5_000);
+        factory.setReadTimeout(20_000);
+
+        String key = apiKey == null ? "" : apiKey.trim();
         this.restClient = RestClient.builder()
                 .baseUrl(base)
-                .defaultHeader("apiKey", apiKey == null ? "" : apiKey)
+                .defaultHeader("apiKey", key)
                 .defaultHeader("Accept", "application/json")
+                .requestFactory(factory)
                 .build();
     }
 

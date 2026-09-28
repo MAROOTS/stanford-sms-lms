@@ -32,17 +32,28 @@ public class CampaignDispatcher {
             return;
         }
 
+        /*
+         * Only process recipients that have not been attempted yet.
+         * This makes dispatch safe to retry without sending SMS messages
+         * that were already marked SENT or FAILED.
+         */
+        List<CommunicationRecipient> rows =
+                recipientRepository.findByCampaignId(campaignId)
+                        .stream()
+                        .filter(r -> r.getStatus() == RecipientStatus.PENDING)
+                        .toList();
+
+        /*
+         * Nothing is pending. Recalculate the campaign state from the
+         * database and finish.
+         */
+        if (rows.isEmpty()) {
+            recount(campaign);
+            return;
+        }
+
         campaign.setStatus(CampaignStatus.SENDING);
         campaignRepository.save(campaign);
-
-        var school = campaign.getSchool();
-
-        List<CommunicationRecipient> rows =
-                recipientRepository.findByCampaignId(campaignId);
-
-        int sent = 0;
-        int failed = 0;
-        String firstFailureReason = null;
 
         for (CommunicationRecipient row : rows) {
 
@@ -66,7 +77,7 @@ public class CampaignDispatcher {
                     campaign.getBody(),
                     parentName,
                     studentName,
-                    school.getName()
+                    campaign.getSchool().getName()
             );
 
             var result = smsProvider.send(
@@ -78,41 +89,55 @@ public class CampaignDispatcher {
                 row.setStatus(RecipientStatus.SENT);
                 row.setProviderId(result.providerId());
                 row.setSentAt(Instant.now());
-                sent++;
+
+                log.info(
+                        "SMS sent successfully to {} for campaign {}",
+                        row.getPhone(),
+                        campaignId
+                );
 
             } else {
                 row.setStatus(RecipientStatus.FAILED);
                 row.setFailureReason(result.error());
 
-                if (firstFailureReason == null) {
-                    firstFailureReason = result.error();
-                }
-
                 log.warn(
-                        "SMS to {} failed: {}",
+                        "SMS to {} failed for campaign {}: {}",
                         row.getPhone(),
+                        campaignId,
                         result.error()
                 );
-
-                failed++;
             }
 
             recipientRepository.save(row);
         }
 
-        if (sent == 0) {
-            log.error(
-                    "Campaign {} sent 0/{} — {}",
-                    campaignId,
-                    rows.size(),
-                    rows.isEmpty()
-                            ? "no recipients"
-                            : firstFailureReason
-            );
+        /*
+         * Recalculate campaign totals from recipient rows rather than
+         * relying on counters maintained during this particular dispatch.
+         */
+        recount(campaign);
+    }
+
+    private void recount(CommunicationCampaign campaign) {
+        List<CommunicationRecipient> all =
+                recipientRepository.findByCampaignId(campaign.getId());
+
+        int sent = 0;
+        int failed = 0;
+
+        for (CommunicationRecipient recipient : all) {
+            if (recipient.getStatus() == RecipientStatus.SENT) {
+                sent++;
+            }
+
+            if (recipient.getStatus() == RecipientStatus.FAILED) {
+                failed++;
+            }
         }
 
         campaign.setSentCount(sent);
         campaign.setFailedCount(failed);
+        campaign.setRecipientCount(all.size());
 
         campaign.setStatus(
                 failed > 0 && sent == 0
@@ -121,7 +146,16 @@ public class CampaignDispatcher {
         );
 
         campaign.setSentAt(Instant.now());
+
         campaignRepository.save(campaign);
+
+        log.info(
+                "Campaign {} recount complete: {}/{} sent, {} failed",
+                campaign.getId(),
+                sent,
+                all.size(),
+                failed
+        );
     }
 
     private static String personalize(

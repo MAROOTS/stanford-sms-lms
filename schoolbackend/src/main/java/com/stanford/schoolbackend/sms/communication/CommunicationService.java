@@ -45,7 +45,7 @@ public class CommunicationService {
         List<Resolved> targets = resolve(schoolId, request);
 
         List<Resolved> withPhone = targets.stream()
-                .filter(t -> t.phone != null)
+                .filter(t -> t.phone() != null)
                 .toList();
 
         School school = schoolRepository.findById(schoolId)
@@ -60,8 +60,8 @@ public class CommunicationService {
         )
                 : personalize(
                 request.getBody(),
-                withPhone.get(0).parentName,
-                withPhone.get(0).studentName,
+                withPhone.get(0).parentName(),
+                withPhone.get(0).studentName(),
                 school.getName()
         );
 
@@ -71,7 +71,7 @@ public class CommunicationService {
                 .sample(
                         withPhone.stream()
                                 .limit(5)
-                                .map(t -> mask(t.phone))
+                                .map(t -> mask(t.phone()))
                                 .toList()
                 )
                 .exampleMessage(example)
@@ -122,7 +122,7 @@ public class CommunicationService {
         List<Resolved> targets = resolve(schoolId, request);
 
         List<Resolved> withPhone = targets.stream()
-                .filter(t -> t.phone != null)
+                .filter(t -> t.phone() != null)
                 .toList();
 
         if (withPhone.isEmpty()) {
@@ -159,9 +159,9 @@ public class CommunicationService {
             recipientRepository.save(
                     CommunicationRecipient.builder()
                             .campaign(campaign)
-                            .parent(t.parent)
-                            .student(t.student)
-                            .phone(t.phone)
+                            .parent(t.parent())
+                            .student(t.student())
+                            .phone(t.phone())
                             .status(RecipientStatus.PENDING)
                             .build()
             );
@@ -186,6 +186,131 @@ public class CommunicationService {
         );
 
         return toResponse(campaign);
+    }
+
+    @Transactional
+    public CampaignResponse retry(Long id) {
+        CommunicationCampaign campaign = owned(id);
+
+        if (campaign.getStatus() == CampaignStatus.SENDING
+                || campaign.getStatus() == CampaignStatus.QUEUED) {
+            throw new IllegalArgumentException(
+                    "This campaign is still sending"
+            );
+        }
+
+        List<CommunicationRecipient> failed =
+                recipientRepository.findByCampaignId(id)
+                        .stream()
+                        .filter(r -> r.getStatus() == RecipientStatus.FAILED)
+                        .toList();
+
+        if (failed.isEmpty()) {
+            throw new IllegalArgumentException(
+                    "Nothing failed on this campaign"
+            );
+        }
+
+        for (CommunicationRecipient recipient : failed) {
+            recipient.setStatus(RecipientStatus.PENDING);
+            recipient.setFailureReason(null);
+            recipient.setProviderId(null);
+            recipientRepository.save(recipient);
+        }
+
+        campaign.setStatus(CampaignStatus.QUEUED);
+        campaignRepository.save(campaign);
+
+        Long campaignId = campaign.getId();
+
+        TransactionSynchronizationManager.registerSynchronization(
+                new TransactionSynchronization() {
+                    @Override
+                    public void afterCommit() {
+                        campaignDispatcher.dispatch(campaignId);
+                    }
+                }
+        );
+
+        return toResponse(campaign);
+    }
+
+    @Transactional
+    public void delete(Long id) {
+        CommunicationCampaign campaign = owned(id);
+
+        if (campaign.getStatus() == CampaignStatus.SENDING
+                || campaign.getStatus() == CampaignStatus.QUEUED) {
+            throw new IllegalArgumentException(
+                    "Wait until sending finishes, then delete"
+            );
+        }
+
+        campaignRepository.delete(campaign);
+    }
+
+    /**
+     * Queues an automatic campaign for a school.
+     *
+     * This method intentionally does not use SecurityUtils because it may
+     * be called by a scheduler where there is no authenticated user.
+     */
+    @Transactional
+    public void queueAuto(
+            Long schoolId,
+            String title,
+            String body,
+            List<Resolved> targets
+    ) {
+        List<Resolved> withPhone = targets.stream()
+                .filter(t -> t.phone() != null)
+                .toList();
+
+        if (withPhone.isEmpty()) {
+            return;
+        }
+
+        School school = schoolRepository.findById(schoolId)
+                .orElseThrow(() ->
+                        new ResourceNotFoundException("School not found"));
+
+        CommunicationCampaign campaign =
+                campaignRepository.save(
+                        CommunicationCampaign.builder()
+                                .school(school)
+                                .title(title)
+                                .body(body)
+                                .audience(CampaignAudience.ALL_PARENTS)
+                                .recipientCount(withPhone.size())
+                                .skippedCount(
+                                        targets.size() - withPhone.size()
+                                )
+                                .status(CampaignStatus.QUEUED)
+                                .build()
+                );
+
+        for (Resolved t : withPhone) {
+            recipientRepository.save(
+                    CommunicationRecipient.builder()
+                            .campaign(campaign)
+                            .parent(t.parent())
+                            .student(t.student())
+                            .phone(t.phone())
+                            .status(RecipientStatus.PENDING)
+                            .build()
+            );
+        }
+
+        Long campaignId = campaign.getId();
+
+        TransactionSynchronizationManager.registerSynchronization(
+                new TransactionSynchronization() {
+                    @Override
+                    public void afterCommit() {
+                        campaignDispatcher.dispatch(campaignId);
+                    }
+                }
+        );
     }
 
     @Transactional(readOnly = true)
@@ -323,7 +448,11 @@ public class CommunicationService {
         return new ArrayList<>(byParent.values());
     }
 
-    private static String firstPhone(
+    /*
+     * Package-visible so other communication-related services in this
+     * package can reuse the same phone selection logic.
+     */
+    static String firstPhone(
             Parent parent,
             Student student
     ) {
@@ -340,6 +469,10 @@ public class CommunicationService {
         return normalizeKe(raw);
     }
 
+    /*
+     * Package-visible so automatic communication services can reuse
+     * the same Kenyan phone-number normalization.
+     */
     static String normalizeKe(String raw) {
         if (isBlank(raw)) {
             return null;
@@ -403,6 +536,13 @@ public class CommunicationService {
         return s == null || s.isBlank();
     }
 
+    @Transactional
+    public void smsParentsOfStudent(Student student, String title, String body) {
+        if (student.getSchool() == null) return;
+        List<Resolved> targets = uniqueParents(linkRepository.findByStudentId(student.getId()));
+        queueAuto(student.getSchool().getId(), title, body, targets);
+    }
+
     private CampaignResponse toResponse(
             CommunicationCampaign campaign
     ) {
@@ -421,7 +561,13 @@ public class CommunicationService {
                 .build();
     }
 
-    private record Resolved(
+    /*
+     * Package-visible intentionally.
+     *
+     * This allows attendance/fees/other services in the same package
+     * to build Resolved objects for automatic SMS campaigns.
+     */
+    record Resolved(
             Parent parent,
             Student student,
             String phone,

@@ -13,6 +13,8 @@ import {
     RefreshCw,
     Info,
     Smartphone,
+    RotateCcw,
+    Trash2,
 } from 'lucide-react';
 import axiosClient from '../../api/axiosClient';
 import { useToast } from '../../context/useToast';
@@ -121,6 +123,9 @@ export default function Communications() {
     const [previewing, setPreviewing] = useState(false);
     const [sending, setSending] = useState(false);
     const [formError, setFormError] = useState('');
+
+    // Campaign id currently being retried/deleted (prevents double-clicks)
+    const [busyId, setBusyId] = useState(null);
 
     const payload = () => ({
         title: title.trim(),
@@ -268,6 +273,40 @@ export default function Communications() {
             );
         } finally {
             setSending(false);
+        }
+    };
+
+    const handleRetry = async (c) => {
+        if (busyId) return;
+        if (!window.confirm(`Retry ${c.failedCount} failed SMS for "${c.title}"?`)) return;
+
+        setBusyId(c.id);
+
+        try {
+            await axiosClient.post(`/communications/${c.id}/retry`);
+            toast.success('Retry queued');
+            await load();
+        } catch (err) {
+            toast.error(err.response?.data?.message || 'Retry failed');
+        } finally {
+            setBusyId(null);
+        }
+    };
+
+    const handleDelete = async (c) => {
+        if (busyId) return;
+        if (!window.confirm(`Delete campaign "${c.title}"?`)) return;
+
+        setBusyId(c.id);
+
+        try {
+            await axiosClient.delete(`/communications/${c.id}`);
+            toast.success('Campaign deleted');
+            await load();
+        } catch (err) {
+            toast.error(err.response?.data?.message || 'Could not delete');
+        } finally {
+            setBusyId(null);
         }
     };
 
@@ -926,7 +965,7 @@ export default function Communications() {
 
                 {loading && (
                     <div className="overflow-hidden rounded-2xl border border-slate-200 bg-white shadow-sm">
-                        <TableSkeleton columns={5} rows={4} />
+                        <TableSkeleton columns={6} rows={4} />
                     </div>
                 )}
 
@@ -966,7 +1005,7 @@ export default function Communications() {
                     campaigns.length > 0 && (
                         <div className="overflow-hidden rounded-2xl border border-slate-200 bg-white shadow-sm">
                             <div className="overflow-x-auto custom-scrollbar">
-                                <table className="w-full min-w-[760px] text-sm text-left">
+                                <table className="w-full min-w-[840px] text-sm text-left">
 
                                     <thead className="border-b border-slate-200 bg-slate-50">
                                     <tr className="text-[11px] font-bold uppercase tracking-wider text-slate-500">
@@ -988,6 +1027,10 @@ export default function Communications() {
 
                                         <th className="px-5 py-4 sm:px-6">
                                             When
+                                        </th>
+
+                                        <th className="px-5 py-4 text-right sm:px-6">
+                                            Actions
                                         </th>
                                     </tr>
                                     </thead>
@@ -1011,6 +1054,10 @@ export default function Communications() {
                                                     100
                                                 )
                                                 : 0;
+
+                                        const inProgress =
+                                            c.status === 'SENDING' ||
+                                            c.status === 'QUEUED';
 
                                         return (
                                             <tr
@@ -1109,6 +1156,45 @@ export default function Communications() {
                                                             c.createdAt
                                                         ).toLocaleString()
                                                         : '—'}
+                                                </td>
+
+                                                {/* ACTIONS */}
+                                                <td className="px-5 py-4 text-right sm:px-6">
+                                                    <div className="flex justify-end gap-1 opacity-70 group-hover:opacity-100">
+                                                        {c.failedCount > 0 &&
+                                                            !inProgress && (
+                                                                <button
+                                                                    type="button"
+                                                                    title="Retry failed"
+                                                                    aria-label="Retry failed"
+                                                                    disabled={busyId === c.id}
+                                                                    onClick={() => handleRetry(c)}
+                                                                    className="rounded-lg p-2 text-amber-600 transition hover:bg-amber-50 disabled:cursor-not-allowed disabled:opacity-40"
+                                                                >
+                                                                    <RotateCcw
+                                                                        size={16}
+                                                                        className={
+                                                                            busyId === c.id
+                                                                                ? 'animate-spin'
+                                                                                : ''
+                                                                        }
+                                                                    />
+                                                                </button>
+                                                            )}
+
+                                                        {!inProgress && (
+                                                            <button
+                                                                type="button"
+                                                                title="Delete"
+                                                                aria-label="Delete"
+                                                                disabled={busyId === c.id}
+                                                                onClick={() => handleDelete(c)}
+                                                                className="rounded-lg p-2 text-slate-400 transition hover:bg-red-50 hover:text-red-600 disabled:cursor-not-allowed disabled:opacity-40"
+                                                            >
+                                                                <Trash2 size={16} />
+                                                            </button>
+                                                        )}
+                                                    </div>
                                                 </td>
                                             </tr>
                                         );

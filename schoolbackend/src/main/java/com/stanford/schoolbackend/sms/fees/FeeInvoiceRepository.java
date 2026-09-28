@@ -1,7 +1,10 @@
 package com.stanford.schoolbackend.sms.fees;
 
 import org.springframework.data.jpa.repository.JpaRepository;
+import org.springframework.data.jpa.repository.Query;
+import org.springframework.data.repository.query.Param;
 
+import java.time.LocalDate;
 import java.util.List;
 import java.util.Optional;
 
@@ -15,4 +18,6 @@ public interface FeeInvoiceRepository extends JpaRepository<FeeInvoice, Long> {
      Long schoolId, Long termId, Long classSectionId);
     List<FeeInvoice> findBySchoolId(Long schoolId);
     boolean existsByTermId(Long termId);
+    @Query("SELECT i FROM FeeInvoice i WHERE i.dueDate IS NOT NULL AND i.dueDate < :today")
+    List<FeeInvoice> findDueBefore(@Param("today") LocalDate today);
 }

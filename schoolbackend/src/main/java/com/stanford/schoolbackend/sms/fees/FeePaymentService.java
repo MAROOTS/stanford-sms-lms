@@ -4,6 +4,7 @@ import com.stanford.schoolbackend.core.enums.NotificationType;
 import com.stanford.schoolbackend.core.exception.ResourceNotFoundException;
 import com.stanford.schoolbackend.core.notification.NotificationService;
 import com.stanford.schoolbackend.core.security.SecurityUtils;
+import com.stanford.schoolbackend.sms.communication.CommunicationService;
 import com.stanford.schoolbackend.sms.fees.dto.FeePaymentResponse;
 import com.stanford.schoolbackend.sms.fees.dto.RecordPaymentRequest;
 import com.stanford.schoolbackend.sms.parent.ParentAccessService;
@@ -26,6 +27,7 @@ public class FeePaymentService {
     private final NotificationService notificationService;
     private final ParentStudentLinkRepository parentStudentLinkRepository;
     private final ParentAccessService parentAccessService;
+    private final CommunicationService communicationService;
     @Transactional
     public FeePaymentResponse recordPayment(Long invoiceId, RecordPaymentRequest request) {
         FeeInvoice invoice = feeInvoiceRepository.findById(invoiceId)
@@ -71,7 +73,13 @@ public class FeePaymentService {
         notificationService.notifyUser(invoice.getStudent(), NotificationType.FEE_PAYMENT, msg, "/my-fees");
         notifyParents(invoice.getStudent(), NotificationType.FEE_PAYMENT, msg,
                 "/child/" + invoice.getStudent().getId() + "/fees");
-
+        communicationService.smsParentsOfStudent(
+                invoice.getStudent(),
+                "Fee payment received",
+                "Hello {{parentName}}, we received KES " + request.getAmount()
+                        + " for {{studentName}} (" + invoice.getTerm().getName()
+                        + "). {{schoolName}}"
+        );
         return toResponse(saved);
     }
 
