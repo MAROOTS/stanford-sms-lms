@@ -65,7 +65,8 @@ public class FeePaymentService {
                 .amount(request.getAmount())
                 .method(request.getMethod())
                 .paymentDate(request.getPaymentDate())
-                .reference(request.getReference())
+                .school(invoice.getSchool())
+                .reference(ref)
                 .build());
 
         String msg = "Payment of KES " + request.getAmount() + " received via "

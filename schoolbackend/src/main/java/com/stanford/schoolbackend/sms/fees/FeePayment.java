@@ -1,5 +1,6 @@
 package com.stanford.schoolbackend.sms.fees;
 
+import com.stanford.schoolbackend.core.school.School;
 import jakarta.persistence.*;
 import lombok.*;
 
@@ -13,6 +14,7 @@ import java.time.LocalDate;
 @Getter
 @Setter
 @Builder
+
 public class FeePayment {
 
     @Id
@@ -34,7 +36,14 @@ public class FeePayment {
 
     @ManyToOne(fetch = FetchType.LAZY)
     @JoinColumn(name = "school_id", nullable = false)
-    private com.stanford.schoolbackend.core.school.School school;
+    private School school;
 
     private String reference; // optional, e.g. M-Pesa transaction code
+
+    @PrePersist
+    void inheritSchool() {
+        if (school == null && invoice != null) {
+            school = invoice.getSchool();
+        }
+    }
 }
