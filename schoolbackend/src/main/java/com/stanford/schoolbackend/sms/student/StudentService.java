@@ -152,6 +152,7 @@ public class StudentService {
         student.setEmergencyContactName(request.getEmergencyContactName());
         student.setEmergencyContactPhone(request.getEmergencyContactPhone());
         student.setPreviousSchool(request.getPreviousSchool());
+        student.setKemisNumber(request.getKemisNumber());
 
         if (request.getClassSectionId() != null) {
             ClassSection section = classSectionRepository.findById(request.getClassSectionId())
@@ -288,6 +289,7 @@ public class StudentService {
                 .emergencyContactPhone(s.getEmergencyContactPhone())
                 .previousSchool(s.getPreviousSchool())
                 .accountLocked(s.isAccountLocked())
+                .kemisNumber(s.getKemisNumber())
                 .build();
     }
 }

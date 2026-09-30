@@ -24,11 +24,11 @@ function downloadBlob(blob, filename) {
 }
 
 function credentialsToCsv(created) {
-    const header = 'firstName,lastName,username,temporaryPassword,className,parentUsername,parentTemporaryPassword\n';
+    const header = 'FirstName,LastName,Username,TemporaryPassword,ClassName,ParentUsername,ParentTemporaryPassword,KemisNumber\n';
     const rows = created.map((c) =>
         [
             c.firstName, c.lastName, c.username, c.temporaryPassword, c.className || '',
-            c.parentUsername || '', c.parentTemporaryPassword || '',
+            c.parentUsername || '', c.parentTemporaryPassword || '', c.kemisNumber || '',
         ].join(',')
     ).join('\n');
     return header + rows;
@@ -223,6 +223,7 @@ export default function StudentImport() {
                                     <th className="px-5 py-3.5 w-16">Row</th>
                                     <th className="px-5 py-3.5">Name</th>
                                     <th className="px-5 py-3.5">Email</th>
+                                    <th className="px-5 py-3.5">Kemis Number</th>
                                     <th className="px-5 py-3.5">Class</th>
                                     <th className="px-5 py-3.5 text-right">Status</th>
                                 </tr>
@@ -248,6 +249,9 @@ export default function StudentImport() {
                                                         {r.className}
                                                     </span>
                                             ) : <span className="text-slate-400 italic">—</span>}
+                                        </td>
+                                        <td className="px-5 py-3.5 text-slate-600">
+                                            {r.kemisNumber || <span className="text-slate-400 italic">None</span>}
                                         </td>
                                         <td className="px-5 py-3.5 text-right">
                                             {r.valid ? (

@@ -40,4 +40,5 @@ public class StudentUpdateRequest {
     private String previousSchool;
     private String parentContactNumber;
     private String rollNumber;
+    private String kemisNumber;
 }

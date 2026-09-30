@@ -32,4 +32,6 @@ public class SchoolProfile {
     @JoinColumn(name = "school_id", nullable = false, unique = true)
     private School school;
     private String brandColor;
+    private String motto;
+    private String postalAddress;
 }

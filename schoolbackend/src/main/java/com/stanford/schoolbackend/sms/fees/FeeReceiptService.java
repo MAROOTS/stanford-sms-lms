@@ -2,7 +2,7 @@ package com.stanford.schoolbackend.sms.fees;
 
 import com.openhtmltopdf.pdfboxout.PdfRendererBuilder;
 import com.stanford.schoolbackend.core.exception.ResourceNotFoundException;
-import com.stanford.schoolbackend.core.school.School;
+//import com.stanford.schoolbackend.core.school.School;
 import com.stanford.schoolbackend.core.school.SchoolProfile;
 import com.stanford.schoolbackend.core.school.SchoolProfileRepository;
 import com.stanford.schoolbackend.core.security.SecurityUtils;
@@ -30,12 +30,14 @@ public class FeeReceiptService {
 
     public byte[] generate(Long invoiceId, Long paymentId) {
         FeeInvoice invoice = feeInvoiceRepository.findById(invoiceId)
-                .orElseThrow(() -> new ResourceNotFoundException("Invoice not found"));
+                .orElseThrow(() ->
+                        new ResourceNotFoundException("Invoice not found"));
 
         assertSchool(invoice);
 
         FeePayment payment = feePaymentRepository.findById(paymentId)
-                .orElseThrow(() -> new ResourceNotFoundException("Payment not found"));
+                .orElseThrow(() ->
+                        new ResourceNotFoundException("Payment not found"));
 
         if (!payment.getInvoice().getId().equals(invoiceId)) {
             throw new ResourceNotFoundException("Payment not found");
@@ -47,20 +49,23 @@ public class FeeReceiptService {
                 .map(FeeInvoiceLineItem::getAmount)
                 .reduce(BigDecimal.ZERO, BigDecimal::add);
 
-        BigDecimal paidToDate = feePaymentRepository.findByInvoiceId(invoice.getId())
+        BigDecimal paidToDate = feePaymentRepository
+                .findByInvoiceId(invoice.getId())
                 .stream()
                 .map(FeePayment::getAmount)
                 .reduce(BigDecimal.ZERO, BigDecimal::add);
 
         BigDecimal balance = billed.subtract(paidToDate);
 
-        var profile = schoolProfileRepository
+        SchoolProfile profile = schoolProfileRepository
                 .findBySchoolId(invoice.getSchool().getId())
                 .orElse(null);
 
-        String schoolName = officialName(invoice.getSchool(), profile);
+        String schoolName = profile != null && notBlank(profile.getName())
+                ? profile.getName().trim()
+                : invoice.getSchool().getName();
 
-        String logoDataUri = (profile != null)
+        String logoDataUri = profile != null
                 ? fileStorageService.toDataUri(profile.getLogoObjectKey())
                 : null;
 
@@ -86,7 +91,10 @@ public class FeeReceiptService {
 
             return os.toByteArray();
         } catch (Exception e) {
-            throw new RuntimeException("Failed to generate receipt PDF", e);
+            throw new RuntimeException(
+                    "Failed to generate receipt PDF",
+                    e
+            );
         }
     }
 
@@ -101,40 +109,27 @@ public class FeeReceiptService {
     }
 
     private void assertCanView(FeeInvoice invoice) {
-        boolean privileged = SecurityUtils.currentUserHasRole("ADMIN")
-                || SecurityUtils.currentUserHasRole("ACCOUNTANT");
+        boolean privileged =
+                SecurityUtils.currentUserHasRole("ADMIN")
+                        || SecurityUtils.currentUserHasRole("ACCOUNTANT");
 
         Student student = invoice.getStudent();
 
-        boolean own = student.getUsername().equals(SecurityUtils.currentUsername());
+        boolean own =
+                student.getUsername() != null
+                        && student.getUsername()
+                        .equals(SecurityUtils.currentUsername());
 
-        boolean parent = SecurityUtils.currentUserHasRole("PARENT")
-                && parentAccessService.isCurrentUserParentOf(student.getId());
+        boolean parent =
+                SecurityUtils.currentUserHasRole("PARENT")
+                        && parentAccessService
+                        .isCurrentUserParentOf(student.getId());
 
         if (!privileged && !own && !parent) {
-            throw new AccessDeniedException("You cannot view this receipt");
+            throw new AccessDeniedException(
+                    "You cannot view this receipt"
+            );
         }
-    }
-
-    private String officialName(School school, SchoolProfile profile) {
-        String fromSchool = school != null && school.getName() != null
-                ? school.getName().trim()
-                : "";
-
-        String fromProfile = profile != null && profile.getName() != null
-                ? profile.getName().trim()
-                : "";
-
-        // pick the longer so "Alliance High School" wins over "Alliance"
-        if (fromProfile.length() > fromSchool.length()) {
-            return fromProfile;
-        }
-
-        if (!fromSchool.isBlank()) {
-            return fromSchool;
-        }
-
-        return fromProfile.isBlank() ? "School" : fromProfile;
     }
 
     private String buildHtml(
@@ -149,44 +144,39 @@ public class FeeReceiptService {
     ) {
         Student student = invoice.getStudent();
 
-        String className = (student.getClassSection() != null)
-                ? student.getClassSection().getName()
-                : "—";
+        String className =
+                student.getClassSection() != null
+                        ? student.getClassSection().getName()
+                        : "—";
 
-        String receiptNo = (invoice.getInvoiceNumber() != null
-                ? invoice.getInvoiceNumber()
-                : "INV") + "-P" + payment.getId();
+        String receiptNo =
+                (invoice.getInvoiceNumber() != null
+                        ? invoice.getInvoiceNumber()
+                        : "INV")
+                        + "-P"
+                        + payment.getId();
 
-        String paidOn = payment.getPaymentDate() != null
-                ? payment.getPaymentDate()
-                .format(DateTimeFormatter.ISO_LOCAL_DATE)
-                : "—";
-
-        String logoImg = (logoDataUri != null)
-                ? "<img src=\"" + logoDataUri
-                  + "\" style=\"width:64px;height:64px;object-fit:contain;\"/>"
-                : "";
-
-        String address = profile != null
-                ? nullToDash(profile.getAddress())
-                : "—";
-
-        String phone = profile != null
-                ? nullToDash(profile.getContactPhone())
-                : "—";
+        String paidOn =
+                payment.getPaymentDate() != null
+                        ? payment.getPaymentDate()
+                        .format(DateTimeFormatter.ISO_LOCAL_DATE)
+                        : "—";
 
         StringBuilder itemRows = new StringBuilder();
 
         for (FeeInvoiceLineItem li : invoice.getLineItems()) {
-            itemRows.append("<tr><td>")
+            itemRows.append("<tr>")
+                    .append("<td>")
                     .append(esc(
                             li.getFeeItem() != null
                                     ? li.getFeeItem().getName()
                                     : "Fee"
                     ))
-                    .append("</td><td class=\"right\">KES ")
+                    .append("</td>")
+                    .append("<td class=\"right\">KES ")
                     .append(money(li.getAmount()))
-                    .append("</td></tr>");
+                    .append("</td>")
+                    .append("</tr>");
         }
 
         String css = """
@@ -202,30 +192,52 @@ public class FeeReceiptService {
                 padding: 32px;
             }
 
-            .header {
-                display: flex;
-                align-items: center;
-                gap: 16px;
-                margin-bottom: 8px;
+            .letterhead {
+                text-align: center;
+                margin-bottom: 18px;
+                border-bottom: 2px solid #0f172a;
+                padding-bottom: 12px;
             }
 
-            .name {
+            .letterhead .name {
                 font-size: 18px;
-                font-weight: bold;
+                font-weight: 700;
+                margin: 6px 0 2px;
+                letter-spacing: .02em;
+            }
+
+            .letterhead .motto {
+                font-size: 11px;
+                font-style: italic;
+                color: #475569;
+                margin: 0 0 6px;
+            }
+
+            .letterhead .meta {
+                font-size: 10px;
+                color: #334155;
                 margin: 0;
+            }
+
+            .letterhead img {
+                display: block;
+                margin: 0 auto 6px;
+                width: 72px;
+                height: 72px;
+                object-fit: contain;
+            }
+
+            .section-title {
+                font-size: 16px;
+                letter-spacing: 2px;
+                text-transform: uppercase;
+                margin: 24px 0 16px;
             }
 
             .subtitle {
                 color: #64748b;
                 margin: 4px 0 0;
                 font-size: 12px;
-            }
-
-            h1 {
-                font-size: 16px;
-                letter-spacing: 2px;
-                text-transform: uppercase;
-                margin: 24px 0 16px;
             }
 
             table {
@@ -267,83 +279,180 @@ public class FeeReceiptService {
             }
             """;
 
-        return "<html><head><style>" + css + "</style></head><body><div class=\"card\">"
+        StringBuilder html = new StringBuilder();
 
-                + "<div class=\"header\">"
-                + logoImg
-                + "<div>"
-                + "<p class=\"name\">" + esc(schoolName) + "</p>"
-                + "<p class=\"subtitle\">"
-                + esc(address)
-                + " · "
-                + esc(phone)
-                + "</p>"
-                + "</div>"
-                + "</div>"
+        html.append("<html><head><style>")
+                .append(css)
+                .append("</style></head><body>")
+                .append("<div class=\"card\">");
 
-                + "<h1>Official receipt</h1>"
+        // LETTERHEAD
+        html.append("<div class=\"letterhead\">");
 
-                + "<p class=\"subtitle\">Receipt No. "
-                + esc(receiptNo)
-                + "</p>"
+        if (notBlank(logoDataUri)) {
+            html.append("<img src=\"")
+                    .append(escAttr(logoDataUri))
+                    .append("\" alt=\"School logo\"/>");
+        }
 
-                + "<table><tbody>"
-                + row(
-                "Student",
-                student.getFirstName() + " " + student.getLastName()
-        )
-                + row("Class", className)
-                + row(
-                "Invoice",
-                nullToDash(invoice.getInvoiceNumber())
-        )
-                + row(
-                "Term",
-                invoice.getTerm() != null
-                        ? invoice.getTerm().getName()
-                        : "—"
-        )
-                + row("Date paid", paidOn)
-                + row("Method", payment.getMethod())
-                + row(
-                "Reference",
-                nullToDash(payment.getReference())
-        )
-                + "</tbody></table>"
+        if (notBlank(schoolName)) {
+            html.append("<p class=\"name\">")
+                    .append(esc(schoolName))
+                    .append("</p>");
+        }
 
-                + "<p class=\"subtitle\" style=\"margin-top:16px\">"
-                + "This payment is towards"
-                + "</p>"
+        if (profile != null && notBlank(profile.getMotto())) {
+            html.append("<p class=\"motto\">&quot;")
+                    .append(esc(profile.getMotto()))
+                    .append("&quot;</p>");
+        }
 
-                + "<table>"
-                + "<thead>"
-                + "<tr>"
-                + "<th>Item</th>"
-                + "<th class=\"right\">Amount</th>"
-                + "</tr>"
-                + "</thead>"
-                + "<tbody>"
-                + itemRows
-                + "</tbody>"
-                + "</table>"
+        String postalAddress =
+                profile != null
+                        ? trimToNull(profile.getPostalAddress())
+                        : null;
 
-                + "<p class=\"subtitle\">Amount received</p>"
+        String physicalAddress =
+                profile != null
+                        ? trimToNull(profile.getAddress())
+                        : null;
 
-                + "<p class=\"amount\">KES "
-                + money(payment.getAmount())
-                + "</p>"
+        if (postalAddress != null || physicalAddress != null) {
+            html.append("<p class=\"meta\">");
 
-                + "<table><tbody>"
-                + row("Invoice total", "KES " + money(billed))
-                + row("Paid to date", "KES " + money(paidToDate))
-                + row("Balance", "KES " + money(balance))
-                + "</tbody></table>"
+            if (postalAddress != null) {
+                html.append(esc(postalAddress));
+            }
 
-                + "<p class=\"footer\">"
-                + "This is a computer-generated receipt. Keep it for your records."
-                + "</p>"
+            if (postalAddress != null && physicalAddress != null) {
+                html.append(" · ");
+            }
 
-                + "</div></body></html>";
+            if (physicalAddress != null) {
+                html.append(esc(physicalAddress));
+            }
+
+            html.append("</p>");
+        }
+
+        String phone =
+                profile != null
+                        ? trimToNull(profile.getContactPhone())
+                        : null;
+
+        String email =
+                profile != null
+                        ? trimToNull(profile.getContactEmail())
+                        : null;
+
+        if (phone != null || email != null) {
+            html.append("<p class=\"meta\">");
+
+            if (phone != null) {
+                html.append("Tel: ")
+                        .append(esc(phone));
+            }
+
+            if (phone != null && email != null) {
+                html.append(" · ");
+            }
+
+            if (email != null) {
+                html.append(esc(email));
+            }
+
+            html.append("</p>");
+        }
+
+        html.append("</div>");
+
+        // RECEIPT CONTENT
+        html.append("<h1 class=\"section-title\">Official receipt</h1>");
+
+        html.append("<p class=\"subtitle\">Receipt No. ")
+                .append(esc(receiptNo))
+                .append("</p>");
+
+        html.append("<table><tbody>")
+                .append(row(
+                        "Student",
+                        student.getFirstName()
+                                + " "
+                                + student.getLastName()
+                ))
+                .append(row("Class", className))
+                .append(row(
+                        "Invoice",
+                        nullToDash(invoice.getInvoiceNumber())
+                ))
+                .append(row(
+                        "Term",
+                        invoice.getTerm() != null
+                                ? invoice.getTerm().getName()
+                                : "—"
+                ))
+                .append(row("Date paid", paidOn))
+                .append(row(
+                        "Method",
+                        nullToDash(payment.getMethod())
+                ))
+                .append(row(
+                        "Reference",
+                        nullToDash(payment.getReference())
+                ))
+                .append("</tbody></table>");
+
+        html.append(
+                "<p class=\"subtitle\" style=\"margin-top:16px\">"
+                        + "This payment is towards"
+                        + "</p>"
+        );
+
+        html.append("<table>")
+                .append("<thead>")
+                .append("<tr>")
+                .append("<th>Item</th>")
+                .append("<th class=\"right\">Amount</th>")
+                .append("</tr>")
+                .append("</thead>")
+                .append("<tbody>")
+                .append(itemRows)
+                .append("</tbody>")
+                .append("</table>");
+
+        html.append(
+                "<p class=\"subtitle\">Amount received</p>"
+        );
+
+        html.append("<p class=\"amount\">KES ")
+                .append(money(payment.getAmount()))
+                .append("</p>");
+
+        html.append("<table><tbody>")
+                .append(row(
+                        "Invoice total",
+                        "KES " + money(billed)
+                ))
+                .append(row(
+                        "Paid to date",
+                        "KES " + money(paidToDate)
+                ))
+                .append(row(
+                        "Balance",
+                        "KES " + money(balance)
+                ))
+                .append("</tbody></table>");
+
+        html.append(
+                "<p class=\"footer\">"
+                        + "This is a computer-generated receipt. "
+                        + "Keep it for your records."
+                        + "</p>"
+        );
+
+        html.append("</div></body></html>");
+
+        return html.toString();
     }
 
     private String row(String label, String value) {
@@ -366,7 +475,15 @@ public class FeeReceiptService {
     }
 
     private String nullToDash(String s) {
-        return (s == null || s.isBlank()) ? "—" : s;
+        return notBlank(s) ? s : "—";
+    }
+
+    private String trimToNull(String s) {
+        return notBlank(s) ? s.trim() : null;
+    }
+
+    private boolean notBlank(String s) {
+        return s != null && !s.isBlank();
     }
 
     private String esc(String s) {
@@ -380,5 +497,9 @@ public class FeeReceiptService {
                 .replace(">", "&gt;")
                 .replace("\"", "&quot;")
                 .replace("'", "&#39;");
+    }
+
+    private String escAttr(String s) {
+        return esc(s);
     }
 }

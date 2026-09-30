@@ -38,4 +38,5 @@ public class StudentResponse {
     private String previousSchool;
     private String photoUrl;
     private boolean accountLocked;
+    private String kemisNumber;
 }

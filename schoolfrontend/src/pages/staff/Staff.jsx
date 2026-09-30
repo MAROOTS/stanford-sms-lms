@@ -25,18 +25,25 @@ export default function Staff() {
     const [loading, setLoading] = useState(true);
     const [error, setError] = useState('');
     const [modalOpen, setModalOpen] = useState(false);
+
     const toast = useToast();
 
     const load = useCallback(async () => {
         setLoading(true);
         setError('');
+
         try {
             const { data } = await axiosClient.get('/admin/users', {
-                params: { roles: ['LIBRARIAN', 'ACCOUNTANT', 'ADMIN'] },
+                params: {
+                    roles: ['LIBRARIAN', 'ACCOUNTANT', 'ADMIN'],
+                },
             });
+
             setStaff(data || []);
         } catch {
-            setError('Could not load staff accounts. Please try again.');
+            setError(
+                'Could not load staff accounts. Please try again.'
+            );
         } finally {
             setLoading(false);
         }
@@ -44,35 +51,59 @@ export default function Staff() {
 
     useEffect(() => {
         let isMounted = true;
+
         load().catch(() => {
-            if (isMounted) setError('Could not load staff accounts. Please try again.');
+            if (isMounted) {
+                setError(
+                    'Could not load staff accounts. Please try again.'
+                );
+            }
         });
+
         return () => {
             isMounted = false;
         };
     }, [load]);
 
-    const { resetCredentials, setResetCredentials, handleResetPassword, handleUnlock } =
-        useAccountActions(toast, { entityLabel: 'staff' });
+    const {
+        resetCredentials,
+        setResetCredentials,
+        handleResetPassword,
+        handleUnlock,
+    } = useAccountActions(toast, {
+        entityLabel: 'staff',
+    });
+
+    const handleStaffUnlock = async (staffId) => {
+        const unlocked = await handleUnlock(staffId);
+
+        if (unlocked) {
+            load();
+        }
+    };
 
     return (
         <div className="max-w-7xl mx-auto p-4 sm:p-6 lg:p-8 animate-in fade-in duration-500">
+
             {/* HEADER & CONTROLS */}
             <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4 mb-6 sm:mb-8">
                 <div>
                     <div className="inline-flex items-center gap-1.5 px-3 py-1 rounded-full bg-navy-900/5 text-navy-900 text-xs font-semibold mb-2">
                         System Administration
                     </div>
+
                     <div className="flex items-center gap-3">
                         <h1 className="text-2xl sm:text-3xl font-bold tracking-tight text-slate-900">
                             Staff
                         </h1>
+
                         {!loading && staff.length > 0 && (
                             <span className="bg-slate-100 border border-slate-200 text-slate-700 text-xs font-semibold px-2.5 py-0.5 rounded-full">
                                 {staff.length}
                             </span>
                         )}
                     </div>
+
                     <p className="text-sm text-slate-500 mt-1">
                         Manage librarians, accountants, and administrator system access.
                     </p>
@@ -83,7 +114,8 @@ export default function Staff() {
                     onClick={() => setModalOpen(true)}
                     className="w-full sm:w-auto flex items-center justify-center gap-2 bg-navy-900 hover:bg-navy-800 text-white text-sm font-semibold px-5 py-2.5 rounded-xl transition-all shadow-sm active:scale-[0.98] cursor-pointer"
                 >
-                    <Plus size={18} /> Add Staff
+                    <Plus size={18} />
+                    Add Staff
                 </button>
             </div>
 
@@ -93,13 +125,17 @@ export default function Staff() {
             {/* ERROR STATE */}
             {error && !loading && (
                 <div className="bg-rose-50 border border-rose-200 rounded-2xl p-6 text-center shadow-sm mb-6">
-                    <p className="text-rose-700 font-medium text-sm mb-3">{error}</p>
+                    <p className="text-rose-700 font-medium text-sm mb-3">
+                        {error}
+                    </p>
+
                     <button
                         type="button"
                         onClick={load}
                         className="inline-flex items-center gap-1.5 text-xs font-semibold text-rose-800 hover:text-rose-900 underline underline-offset-4 cursor-pointer"
                     >
-                        <RotateCcw size={14} /> Try again
+                        <RotateCcw size={14} />
+                        Try again
                     </button>
                 </div>
             )}
@@ -117,7 +153,8 @@ export default function Staff() {
                                 onClick={() => setModalOpen(true)}
                                 className="flex items-center justify-center gap-2 bg-navy-900 hover:bg-navy-800 text-white text-sm font-semibold px-5 py-2.5 rounded-xl transition-all shadow-sm active:scale-[0.98] cursor-pointer"
                             >
-                                <Plus size={18} /> Add Staff
+                                <Plus size={18} />
+                                Add Staff
                             </button>
                         }
                     />
@@ -137,56 +174,88 @@ export default function Staff() {
                                 <th className="px-6 py-4 text-right">Actions</th>
                             </tr>
                             </thead>
+
                             <tbody className="divide-y divide-slate-100">
                             {staff.map((s) => {
                                 const initials =
-                                    (s.firstName?.[0] || '') + (s.lastName?.[0] || '') || 'ST';
+                                    ((s.firstName?.[0] || '') +
+                                        (s.lastName?.[0] || '') ||
+                                        'ST');
 
                                 return (
                                     <tr
                                         key={s.id}
                                         className="hover:bg-slate-50/80 transition-colors"
                                     >
+                                        {/* NAME */}
                                         <td className="px-6 py-4 font-semibold text-slate-900 whitespace-nowrap">
                                             <div className="flex items-center gap-3">
                                                 <div className="w-9 h-9 rounded-xl bg-slate-100 border border-slate-200/80 flex items-center justify-center text-xs font-bold text-slate-600 shrink-0">
                                                     {initials.toUpperCase()}
                                                 </div>
-                                                <span className="font-semibold text-slate-900">
+
+                                                <div className="flex items-center gap-2">
+                                                    <span className="font-semibold text-slate-900">
                                                         {s.firstName} {s.lastName}
                                                     </span>
+
+                                                    {s.accountLocked && (
+                                                        <span className="inline-flex items-center px-2 py-0.5 rounded-full border border-amber-200 bg-amber-50 text-[10px] font-bold uppercase tracking-wide text-amber-700">
+                                                            Locked
+                                                        </span>
+                                                    )}
+                                                </div>
                                             </div>
                                         </td>
+
+                                        {/* ROLE */}
                                         <td className="px-6 py-4 whitespace-nowrap">
-                                                <span
-                                                    className={`text-xs font-bold px-2.5 py-0.5 rounded-full border ${
-                                                        ROLE_STYLES[s.role] || ROLE_STYLES.ADMIN
-                                                    }`}
-                                                >
-                                                    {ROLE_LABELS[s.role] || s.role}
-                                                </span>
+                                            <span
+                                                className={`text-xs font-bold px-2.5 py-0.5 rounded-full border ${
+                                                    ROLE_STYLES[s.role] ||
+                                                    ROLE_STYLES.ADMIN
+                                                }`}
+                                            >
+                                                {ROLE_LABELS[s.role] || s.role}
+                                            </span>
                                         </td>
+
+                                        {/* EMAIL */}
                                         <td className="px-6 py-4 text-slate-600 whitespace-nowrap font-medium">
                                             {s.email}
                                         </td>
+
+                                        {/* ACTIONS */}
                                         <td className="px-6 py-4 text-right whitespace-nowrap">
                                             <div className="flex items-center justify-end gap-1">
+
+                                                {/* RESET PASSWORD — ALWAYS AVAILABLE */}
                                                 <button
                                                     type="button"
-                                                    onClick={() => handleResetPassword(s.id)}
+                                                    onClick={() =>
+                                                        handleResetPassword(s.id)
+                                                    }
                                                     title="Reset Password"
                                                     className="p-2 rounded-xl text-slate-500 hover:text-amber-600 hover:bg-amber-50 transition-colors cursor-pointer"
                                                 >
                                                     <KeyRound size={16} />
                                                 </button>
-                                                <button
-                                                    type="button"
-                                                    onClick={() => handleUnlock(s.id)}
-                                                    title="Unlock Account"
-                                                    className="p-2 rounded-xl text-slate-500 hover:text-emerald-600 hover:bg-emerald-50 transition-colors cursor-pointer"
-                                                >
-                                                    <Unlock size={16} />
-                                                </button>
+
+                                                {/* UNLOCK — ONLY WHEN LOCKED */}
+                                                {s.accountLocked && (
+                                                    <button
+                                                        type="button"
+                                                        onClick={() =>
+                                                            handleStaffUnlock(
+                                                                s.id
+                                                            )
+                                                        }
+                                                        title="Unlock account (too many failed logins)"
+                                                        className="p-2 rounded-xl text-amber-600 hover:text-emerald-600 hover:bg-emerald-50 transition-colors cursor-pointer"
+                                                    >
+                                                        <Unlock size={16} />
+                                                    </button>
+                                                )}
                                             </div>
                                         </td>
                                     </tr>

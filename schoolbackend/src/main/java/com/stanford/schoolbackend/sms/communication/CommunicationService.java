@@ -456,7 +456,7 @@ public class CommunicationService {
             Parent parent,
             Student student
     ) {
-        String raw = parent.getAlternatePhone();
+        String raw = parent != null ? parent.getAlternatePhone() : null;
 
         if (isBlank(raw) && student != null) {
             raw = student.getGuardianPhone();
@@ -540,7 +540,29 @@ public class CommunicationService {
     public void smsParentsOfStudent(Student student, String title, String body) {
         if (student.getSchool() == null) return;
         List<Resolved> targets = uniqueParents(linkRepository.findByStudentId(student.getId()));
+        if (targets.isEmpty()) {
+            String phone = firstPhone(null, student);
+            targets = List.of(new Resolved(
+                    null,
+                    student,
+                    phone,
+                    "Parent",
+                    (student.getFirstName() + " " + student.getLastName()).trim()
+            ));
+        }
         queueAuto(student.getSchool().getId(), title, body, targets);
+    }
+
+    public List<Resolved> resolveParents(Student student) {
+        List<Resolved> targets = uniqueParents(linkRepository.findByStudentId(student.getId()));
+        if (!targets.isEmpty()) return targets;
+        return List.of(new Resolved(
+                null,
+                student,
+                firstPhone(null, student),
+                "Parent",
+                (student.getFirstName() + " " + student.getLastName()).trim()
+        ));
     }
 
     private CampaignResponse toResponse(
@@ -567,7 +589,7 @@ public class CommunicationService {
      * This allows attendance/fees/other services in the same package
      * to build Resolved objects for automatic SMS campaigns.
      */
-    record Resolved(
+   public record Resolved(
             Parent parent,
             Student student,
             String phone,

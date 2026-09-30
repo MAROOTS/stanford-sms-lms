@@ -41,4 +41,5 @@ public class Student extends User {
     private String emergencyContactPhone;
     private String previousSchool;
     private String photoObjectKey;
+    private String kemisNumber;
 }

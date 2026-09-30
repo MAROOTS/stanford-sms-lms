@@ -1,0 +1,3 @@
+ALTER TABLE school_profile
+    ADD COLUMN IF NOT EXISTS motto TEXT,
+    ADD COLUMN IF NOT EXISTS postal_address VARCHAR(255);

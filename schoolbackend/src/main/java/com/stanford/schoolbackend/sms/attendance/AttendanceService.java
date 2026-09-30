@@ -47,13 +47,25 @@ public class AttendanceService {
                     return attendanceRecordRepository.save(record);
                 })
                 .toList();
-        for (Student student : newlyAbsent) {
-            String date = session.getSessionDate() != null ? session.getSessionDate().toString() : "today";
-            communicationService.smsParentsOfStudent(
-                    student,
-                    "Absent — " + student.getFirstName(),
+        if (!newlyAbsent.isEmpty()) {
+            String date = session.getSessionDate() != null
+                    ? session.getSessionDate().toString() : "today";
+            List<CommunicationService.Resolved> targets = new ArrayList<>();
+            java.util.Set<String> seen = new java.util.HashSet<>();
+            for (Student student : newlyAbsent) {
+                for (var t : communicationService.resolveParents(student)) {
+                    String key = t.parent() != null
+                            ? "p" + t.parent().getId()
+                            : (t.phone() == null ? "s" + student.getId() : t.phone());
+                    if (seen.add(key)) targets.add(t);
+                }
+            }
+            communicationService.queueAuto(
+                    newlyAbsent.get(0).getSchool().getId(),
+                    "Absentees — " + date,
                     "Hello {{parentName}}, {{studentName}} was marked absent on " + date
-                            + ". Please contact the school if needed. {{schoolName}}"
+                            + ". Please contact the school if needed. {{schoolName}}",
+                    targets
             );
         }
 

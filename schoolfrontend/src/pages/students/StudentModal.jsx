@@ -31,6 +31,7 @@ export default function StudentModal({ initialData, classSections, readOnly, onC
     const [bloodGroup, setBloodGroup] = useState(initialData?.bloodGroup || '');
     const [allergies, setAllergies] = useState(initialData?.allergies || '');
     const [medicalConditions, setMedicalConditions] = useState(initialData?.medicalConditions || '');
+    const[kemisNumber, setKemisNumber] = useState(initialData?.kemisNumber || '');
     const [error, setError] = useState('');
     const [saving, setSaving] = useState(false);
 
@@ -68,6 +69,7 @@ export default function StudentModal({ initialData, classSections, readOnly, onC
                 bloodGroup: emptyToNull(bloodGroup),
                 allergies: emptyToNull(allergies),
                 medicalConditions: emptyToNull(medicalConditions),
+                kemisNumber: emptyToNull(kemisNumber)
             });
 
             onSaved();
@@ -357,6 +359,18 @@ export default function StudentModal({ initialData, classSections, readOnly, onC
                                     disabled={readOnly}
                                     value={birthCertificateNo}
                                     onChange={(e) => setBirthCertificateNo(e.target.value)}
+                                    className={field}
+                                />
+                            </div>
+
+                            <div>
+                                <label className="block text-sm font-medium text-slate-700 mb-1.5">
+                                    Kemis Number
+                                </label>
+                                <input
+                                    disabled={readOnly}
+                                    value={kemisNumber}
+                                    onChange={(e) => setKemisNumber(e.target.value)}
                                     className={field}
                                 />
                             </div>

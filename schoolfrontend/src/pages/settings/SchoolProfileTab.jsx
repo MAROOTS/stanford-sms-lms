@@ -8,12 +8,12 @@ export default function SchoolProfileTab() {
     const fileInputRef = useRef(null);
 
     const [name, setName] = useState('');
+    const [motto, setMotto] = useState('');
+    const [postalAddress, setPostalAddress] = useState('');
     const [address, setAddress] = useState('');
     const [contactEmail, setContactEmail] = useState('');
     const [contactPhone, setContactPhone] = useState('');
     const [logoUrl, setLogoUrl] = useState(null);
-
-    // Brand color
     const [brandColor, setBrandColor] = useState('#0f766e');
     const [loading, setLoading] = useState(true);
     const [saving, setSaving] = useState(false);
@@ -21,18 +21,15 @@ export default function SchoolProfileTab() {
 
     const load = () => {
         axiosClient.get('/school-profile').then((res) => {
-            setName(res.data.name);
+            setName(res.data.name || '');
+            setMotto(res.data.motto || '');
+            setPostalAddress(res.data.postalAddress || '');
             setAddress(res.data.address || '');
             setContactEmail(res.data.contactEmail || '');
             setContactPhone(res.data.contactPhone || '');
             setBrandColor(res.data.brandColor || '#0f766e');
             setLogoUrl(res.data.logoUrl);
-
-            // Load saved brand color if the backend provides one
-            if (res.data.brandColor) {
-                setBrandColor(res.data.brandColor );
-                applyBrandColor(res.data.brandColor);
-            }
+            if (res.data.brandColor) applyBrandColor(res.data.brandColor);
         }).finally(() => setLoading(false));
     };
 
@@ -43,21 +40,19 @@ export default function SchoolProfileTab() {
     const handleSubmit = async (e) => {
         e.preventDefault();
         setSaving(true);
-
         try {
             await axiosClient.put('/school-profile', {
                 name,
+                motto,
+                postalAddress,
                 address,
                 contactEmail,
                 contactPhone,
-                brandColor
+                brandColor,
             });
-
             toast.success('School profile updated.');
         } catch (err) {
-            toast.error(
-                err.response?.data?.message || 'Could not update profile'
-            );
+            toast.error(err.response?.data?.message || 'Could not update profile');
         } finally {
             setSaving(false);
         }
@@ -66,23 +61,13 @@ export default function SchoolProfileTab() {
     const handleLogoChange = async (e) => {
         const file = e.target.files[0];
         if (!file) return;
-
         setUploadingLogo(true);
-
         const formData = new FormData();
         formData.append('file', file);
-
         try {
-            const { data } = await axiosClient.post(
-                '/school-profile/logo',
-                formData,
-                {
-                    headers: {
-                        'Content-Type': 'multipart/form-data',
-                    },
-                }
-            );
-
+            const { data } = await axiosClient.post('/school-profile/logo', formData, {
+                headers: { 'Content-Type': 'multipart/form-data' },
+            });
             setLogoUrl(data.logoUrl);
             toast.success('Logo updated.');
         } catch {
@@ -93,35 +78,21 @@ export default function SchoolProfileTab() {
     };
 
     if (loading) {
-        return (
-            <p className="text-sm text-slate-400">
-                Loading school profile...
-            </p>
-        );
+        return <p className="text-sm text-slate-400">Loading school profile...</p>;
     }
 
     return (
         <div className="max-w-md space-y-6">
             <div>
-                <label className="block text-sm font-medium text-slate-700 mb-2">
-                    Logo
-                </label>
-
+                <label className="block text-sm font-medium text-slate-700 mb-2">Logo</label>
                 <div className="flex items-center gap-4">
                     <div className="w-16 h-16 rounded-lg border border-slate-200 bg-slate-50 flex items-center justify-center overflow-hidden">
                         {logoUrl ? (
-                            <img
-                                src={logoUrl}
-                                alt="School logo"
-                                className="w-full h-full object-cover"
-                            />
+                            <img src={logoUrl} alt="School logo" className="w-full h-full object-cover" />
                         ) : (
-                            <span className="text-xs text-slate-400">
-                                No logo
-                            </span>
+                            <span className="text-xs text-slate-400">No logo</span>
                         )}
                     </div>
-
                     <button
                         type="button"
                         onClick={() => fileInputRef.current?.click()}
@@ -130,7 +101,6 @@ export default function SchoolProfileTab() {
                     >
                         {uploadingLogo ? 'Uploading...' : 'Change logo'}
                     </button>
-
                     <input
                         ref={fileInputRef}
                         type="file"
@@ -143,10 +113,7 @@ export default function SchoolProfileTab() {
 
             <form onSubmit={handleSubmit} className="space-y-4">
                 <div>
-                    <label className="block text-sm font-medium text-slate-700 mb-1.5">
-                        School name
-                    </label>
-
+                    <label className="block text-sm font-medium text-slate-700 mb-1.5">School name</label>
                     <input
                         required
                         value={name}
@@ -156,14 +123,32 @@ export default function SchoolProfileTab() {
                 </div>
 
                 <div>
-                    <label className="block text-sm font-medium text-slate-700 mb-1.5">
-                        Address
-                    </label>
+                    <label className="block text-sm font-medium text-slate-700 mb-1.5">Motto</label>
+                    <input
+                        value={motto}
+                        onChange={(e) => setMotto(e.target.value)}
+                        placeholder="e.g. Strive for excellence"
+                        className="w-full px-3 py-2.5 rounded-lg bg-slate-50 border border-slate-200 text-sm focus:outline-none focus:ring-2 focus:ring-teal-accent"
+                    />
+                </div>
 
+                <div>
+                    <label className="block text-sm font-medium text-slate-700 mb-1.5">P.O. Box</label>
+                    <input
+                        value={postalAddress}
+                        onChange={(e) => setPostalAddress(e.target.value)}
+                        placeholder="e.g. P.O. Box 12345-00100 Nairobi"
+                        className="w-full px-3 py-2.5 rounded-lg bg-slate-50 border border-slate-200 text-sm focus:outline-none focus:ring-2 focus:ring-teal-accent"
+                    />
+                </div>
+
+                <div>
+                    <label className="block text-sm font-medium text-slate-700 mb-1.5">Physical address</label>
                     <textarea
                         rows={2}
                         value={address}
                         onChange={(e) => setAddress(e.target.value)}
+                        placeholder="Street, town"
                         className="w-full px-3 py-2.5 rounded-lg bg-slate-50 border border-slate-200 text-sm focus:outline-none focus:ring-2 focus:ring-teal-accent resize-none"
                     />
                 </div>
@@ -176,7 +161,6 @@ export default function SchoolProfileTab() {
                         onChange={(e) => setContactEmail(e.target.value)}
                         className="w-full px-3 py-2.5 rounded-lg bg-slate-50 border border-slate-200 text-sm focus:outline-none focus:ring-2 focus:ring-teal-accent"
                     />
-
                     <input
                         placeholder="Contact phone"
                         value={contactPhone}
@@ -185,12 +169,8 @@ export default function SchoolProfileTab() {
                     />
                 </div>
 
-                {/* Brand Color */}
                 <div>
-                    <label className="block text-sm font-medium text-slate-700 mb-2">
-                        Brand color
-                    </label>
-
+                    <label className="block text-sm font-medium text-slate-700 mb-2">Brand color</label>
                     <div className="flex items-center gap-3">
                         <input
                             type="color"
@@ -201,10 +181,7 @@ export default function SchoolProfileTab() {
                             }}
                             className="w-12 h-10 rounded-lg border border-slate-200 cursor-pointer"
                         />
-
-                        <span className="text-sm text-slate-500">
-                            {brandColor}
-                        </span>
+                        <span className="text-sm text-slate-500">{brandColor}</span>
                     </div>
                 </div>
 
