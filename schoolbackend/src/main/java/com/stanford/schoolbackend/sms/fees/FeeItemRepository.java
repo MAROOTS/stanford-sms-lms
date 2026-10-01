@@ -9,4 +9,5 @@ public interface FeeItemRepository extends JpaRepository<FeeItem, Long> {
     //Optional<FeeItem> findByNameIgnoreCase(String name);
     List<FeeItem> findBySchoolId(Long schoolId);
     Optional<FeeItem> findByNameIgnoreCaseAndSchoolId(String name, Long schoolId);
+    Optional<FeeItem> findBySchoolIdAndNameIgnoreCase(Long schoolId, String name);
 }

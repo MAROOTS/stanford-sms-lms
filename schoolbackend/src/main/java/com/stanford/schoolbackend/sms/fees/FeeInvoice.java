@@ -49,4 +49,8 @@ public class FeeInvoice {
 
     @Column(name = "invoice_number", nullable = false)
     private String invoiceNumber;
+
+    @Builder.Default
+    @Column(nullable = false)
+    private boolean carriedForward = false;
 }

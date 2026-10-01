@@ -72,6 +72,7 @@ export default function GenerateInvoicesModal({
                     <div>
                         <p className="text-sm text-slate-700 mb-3">
                             Created <strong>{result.created}</strong>. Already had invoice:{' '}
+                            Carried forward: <strong>{result.carriedForward ?? 0}</strong>.
                             <strong>{result.skippedExisting}</strong>.
                             <br />
                             No class: <strong>{result.skippedNoClass}</strong>. No structure:{' '}

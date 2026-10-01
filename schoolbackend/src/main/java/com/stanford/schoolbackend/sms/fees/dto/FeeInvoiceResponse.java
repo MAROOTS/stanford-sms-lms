@@ -23,6 +23,7 @@ public class FeeInvoiceResponse {
     private Instant createdAt;
     private LocalDate dueDate;
     private String invoiceNumber;
+    private boolean carriedForward;
 
     @Data
     @Builder

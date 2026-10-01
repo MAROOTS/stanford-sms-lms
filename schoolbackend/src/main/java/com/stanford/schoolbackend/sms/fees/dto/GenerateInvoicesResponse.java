@@ -11,4 +11,5 @@ public class GenerateInvoicesResponse {
     private int skippedNoAmount;
     private int skippedNoClass;
     private int skippedNoStructure;
+    private int carriedForward;
 }

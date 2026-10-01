@@ -20,4 +20,6 @@ public interface FeeInvoiceRepository extends JpaRepository<FeeInvoice, Long> {
     boolean existsByTermId(Long termId);
     @Query("SELECT i FROM FeeInvoice i WHERE i.dueDate IS NOT NULL AND i.dueDate < :today")
     List<FeeInvoice> findDueBefore(@Param("today") LocalDate today);
+    Optional<FeeInvoice> findTopByStudentIdAndSchoolIdAndTerm_StartDateBeforeOrderByTerm_StartDateDesc(
+            Long studentId, Long schoolId, java.time.LocalDate startDate);
 }

@@ -1,0 +1,2 @@
+ALTER TABLE fee_invoices
+    ADD COLUMN IF NOT EXISTS carried_forward BOOLEAN NOT NULL DEFAULT FALSE;
