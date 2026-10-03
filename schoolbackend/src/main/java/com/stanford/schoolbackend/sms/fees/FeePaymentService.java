@@ -17,6 +17,7 @@ import org.springframework.transaction.annotation.Transactional;
 
 import java.math.BigDecimal;
 import java.util.List;
+import java.util.Set;
 
 @Service
 @RequiredArgsConstructor
@@ -28,12 +29,19 @@ public class FeePaymentService {
     private final ParentStudentLinkRepository parentStudentLinkRepository;
     private final ParentAccessService parentAccessService;
     private final CommunicationService communicationService;
+    private static final Set<String> METHODS = Set.of(
+            "M-Pesa", "Bank Transfer", "Cash", "Cheque");
     @Transactional
     public FeePaymentResponse recordPayment(Long invoiceId, RecordPaymentRequest request) {
         FeeInvoice invoice = feeInvoiceRepository.findById(invoiceId)
                 .orElseThrow(() -> new ResourceNotFoundException("Invoice not found"));
         assertCurrentSchool(invoice.getSchool(), "Invoice not found");
 
+        String method = request.getMethod() == null ? "" : request.getMethod().trim();
+        if (!METHODS.contains(method)) {
+            throw new IllegalArgumentException(
+                    "Method must be one of: M-Pesa, Bank Transfer, Cash, Cheque");
+        }
         BigDecimal billed = invoice.getLineItems().stream()
                 .map(FeeInvoiceLineItem::getAmount)
                 .reduce(BigDecimal.ZERO, BigDecimal::add);

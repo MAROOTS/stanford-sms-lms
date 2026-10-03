@@ -52,6 +52,8 @@ import FeeStructures from './pages/fees/FeeStructures';
 import Timetable from './pages/timetable/Timetable';
 import MyTimetable from './pages/timetable/MyTimetable';
 import Communications from './pages/communications/Communications';
+import Analytics from "./pages/analytics/Analytics";
+import PlatformInsights from "./pages/platform/PlatformInsights";
 export default function App() {
   return (
     <ThemeProvider>
@@ -86,6 +88,7 @@ export default function App() {
                 <Route path="/report-cards" element={<ReportCards />} />
                 <Route path="/attendance" element={<Attendance />} />
                 <Route path="/fees" element={<FeeCollection />} />
+                <Route path="/analytics" element={<Analytics />} />
                 <Route path="/fee-items" element={<FeeItems />} />
                 <Route path="/library" element={<Library />} />
                 <Route path="/library/loans" element={<Loans />} />
@@ -105,6 +108,7 @@ export default function App() {
                 <Route path="/leads" element={<Leads />} />
                 <Route path="/settings" element={<Settings />} />
                 <Route path="/platform/schools" element={<PlatformAdminDashboard />} />
+                <Route path="/platform/insights" element={<PlatformInsights />} />
                 <Route path="/students/import" element={<StudentImport />} />
                 <Route path="/fee-structures" element={<FeeStructures />} />
                 <Route path="/timetable" element={<Timetable />} />

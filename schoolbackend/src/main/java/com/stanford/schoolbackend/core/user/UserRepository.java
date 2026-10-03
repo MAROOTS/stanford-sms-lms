@@ -18,5 +18,6 @@ public interface UserRepository extends JpaRepository<User, Long> {
     List<User> findByRoleInAndSchoolId(List<UserRole> roles, Long schoolId);
     Optional<User> findByEmailIgnoreCase(String email);
     Optional<User> findByUsernameIgnoreCase(String username);
+    long countByRole(com.stanford.schoolbackend.core.enums.UserRole role);
 }
 

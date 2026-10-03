@@ -90,11 +90,17 @@ export default function PaymentModal({ invoice, onClose, onSaved }) {
                     </div>
                     <div>
                         <label className="block text-sm font-medium text-slate-700 mb-1.5">Method</label>
-                        <input required value={method} onChange={(e) => setMethod(e.target.value)} list="method-suggestions" placeholder="e.g. M-Pesa"
-                               className="w-full px-3 py-2.5 rounded-lg bg-slate-50 border border-slate-200 text-sm focus:outline-none focus:ring-2 focus:ring-teal-accent" />
-                        <datalist id="method-suggestions">
-                            {METHOD_SUGGESTIONS.map((m) => <option key={m} value={m} />)}
-                        </datalist>
+                        <select
+                            required
+                            value={method}
+                            onChange={(e) => setMethod(e.target.value)}
+                            className="w-full px-3 py-2.5 rounded-lg bg-slate-50 border border-slate-200 text-sm focus:outline-none focus:ring-2 focus:ring-teal-accent"
+                        >
+                            <option value="">Select method</option>
+                            {METHOD_SUGGESTIONS.map((m) => (
+                                <option key={m} value={m}>{m}</option>
+                            ))}
+                        </select>
                     </div>
                     <div>
                         <label className="block text-sm font-medium text-slate-700 mb-1.5">Payment date</label>

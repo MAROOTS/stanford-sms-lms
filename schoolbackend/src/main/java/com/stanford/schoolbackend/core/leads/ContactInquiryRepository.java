@@ -7,4 +7,5 @@ import java.util.List;
 public interface ContactInquiryRepository extends JpaRepository<ContactInquiry, Long> {
     List<ContactInquiry> findByStatusOrderBySubmittedAtDesc(ContactInquiryStatus status);
     List<ContactInquiry> findAllByOrderBySubmittedAtDesc();
+    long countBySubmittedAtAfter(java.time.Instant after);
 }

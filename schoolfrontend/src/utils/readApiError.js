@@ -5,6 +5,9 @@ function messageFromBody(data) {
 }
 
 export function readApiError(err, fallbacks = {}) {
+    if (err?.response?.status === 401) {
+        return { kind: 'auth', title: '', description: '' };
+    }
     const status = err.response?.status;
     const message = messageFromBody(err.response?.data);
 

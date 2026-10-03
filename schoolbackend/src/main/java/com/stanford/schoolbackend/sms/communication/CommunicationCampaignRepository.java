@@ -6,4 +6,5 @@ import java.util.List;
 
 public interface CommunicationCampaignRepository extends JpaRepository<CommunicationCampaign,Long> {
     List<CommunicationCampaign> findBySchoolIdOrderByCreatedAtDesc(Long schoolId);
+    List<CommunicationCampaign> findByCreatedAtAfter(java.time.Instant after);
 }

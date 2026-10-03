@@ -160,10 +160,7 @@ public class FeeInvoiceService {
                 .toList();
     }
 
-    public FeeTermSummaryResponse getTermSummary(
-            Long termId,
-            Long classSectionId
-    ) {
+    public FeeTermSummaryResponse getTermSummary(Long termId, Long classSectionId) {
         Term term = termRepository.findById(termId)
                 .orElseThrow(() -> new ResourceNotFoundException("Term not found"));
 
@@ -670,9 +667,7 @@ public class FeeInvoiceService {
          * but once the invoice is carried forward its collectable balance
          * becomes zero.
          */
-        BigDecimal balance = invoice.isCarriedForward()
-                ? BigDecimal.ZERO
-                : totalBilled.subtract(totalPaid);
+        BigDecimal balance = totalBilled.subtract(totalPaid);
 
         return FeeInvoiceResponse.builder()
                 .id(invoice.getId())
