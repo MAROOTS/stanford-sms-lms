@@ -63,8 +63,7 @@ function isAuthFailure(error) {
             msg.includes('expired') ||
             msg.includes('jwt') ||
             msg.includes('unauthorized') ||
-            msg.includes('full authentication') ||
-            msg.includes('access denied')
+            msg.includes('full authentication')
         )
     ) {
         return true;
